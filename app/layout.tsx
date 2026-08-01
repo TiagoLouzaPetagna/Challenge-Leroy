@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const origin = `${protocol}://${host}`;
   const title = "Casa Digital Segura | Leroy Merlin";
   const description =
-    "Protótipo conceitual de uma plataforma gamificada de conscientização sobre phishing para colaboradores da Leroy Merlin.";
+    "Protótipo funcional de uma plataforma gamificada de conscientização sobre phishing para colaboradores da Leroy Merlin.";
 
   return {
     metadataBase: new URL(origin),
