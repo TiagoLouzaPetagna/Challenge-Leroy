@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
 import {
   findWorkdayTriageV2Package,
@@ -76,6 +77,15 @@ const queueLabels = Object.fromEntries(
 const actionLabels = Object.fromEntries(
   WORKDAY_ACTION_OPTIONS.map((action) => [action.id, action.label]),
 ) as Record<WorkdayActionId, string>;
+
+const steps = [
+  "Contexto",
+  "Triagem do lote",
+  "Revisão",
+  "Aplicação em outro caso",
+  "Resultado",
+  "Resumo final",
+] as const;
 
 function getActionLabel(actionId: WorkdayActionId | undefined) {
   return actionId ? actionLabels[actionId] : "Sem ação";
@@ -287,20 +297,17 @@ export function WorkdayTriageSimulation({
             <p>Organize uma rotina mista sem transformar pressa ou aparência em veredito.</p>
           </div>
           <div className="simulation-progress-card">
-            <span>Etapa</span>
-            <strong>{Math.min(stage + 1, 6)}/6</strong>
-            <div
-              className="workday-v2-progress"
-              role="progressbar"
-              aria-valuemin={1}
-              aria-valuemax={6}
-              aria-valuenow={Math.min(stage + 1, 6)}
-              aria-label={`Etapa ${Math.min(stage + 1, 6)} de 6`}
-            >
-              <span style={{ width: `${(Math.min(stage + 1, 6) / 6) * 100}%` }} />
-            </div>
+            <span>Tempo estimado</span>
+            <strong>12 minutos</strong>
+            <small>{POINT_RULES.simulation} pontos-base · sem cronômetro</small>
           </div>
         </header>
+
+        <ActivityProgress
+          steps={steps}
+          currentStep={stage}
+          ariaLabel="Progresso de Uma manhã comum"
+        />
 
         {stage === 0 ? (
           <div className="workday-v2-opening">
@@ -308,9 +315,19 @@ export function WorkdayTriageSimulation({
               <span className="section-kicker">O expediente</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>{content.pathLabel}</h2>
               <p>{content.openingContext}</p>
-              <div className="workday-v2-task">
-                <strong>Sua tarefa</strong>
-                <p>{content.task}</p>
+              <div className="workday-v2-context-grid">
+                <article>
+                  <strong>Seu papel</strong>
+                  <p>Você cuida da entrada de trabalho e precisa manter o fluxo sem liberar uma ação sensível cedo demais.</p>
+                </article>
+                <article>
+                  <strong>Sua tarefa</strong>
+                  <p>{content.task}</p>
+                </article>
+                <article>
+                  <strong>O que você protege</strong>
+                  <p>O trabalho legítimo continua avançando enquanto itens suspeitos ou inconclusivos recebem a verificação necessária.</p>
+                </article>
               </div>
               <ul>
                 <li>Você não precisa resolver um item sem informação suficiente.</li>

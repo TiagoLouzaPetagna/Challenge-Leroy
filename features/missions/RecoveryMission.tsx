@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import {
   findRecoveryBuilderV2Package,
   RECOVERY_ACTION_GROUP_OPTIONS,
@@ -355,7 +356,6 @@ export function RecoveryMission({
   const bonusPoints = builderResult
     ? builderResult.potentialReward - POINT_RULES.mainMission
     : 0;
-  const progressPercentage = Math.round(((stage + 1) / steps.length) * 100);
 
   const answerReviewItems = useMemo(() => {
     if (!builderResult || !submittedAnswer) return [];
@@ -525,22 +525,11 @@ export function RecoveryMission({
           </div>
         </header>
 
-        <div className="recovery-builder-progress">
-          <div>
-            <span>Etapa {stage + 1} de {steps.length}</span>
-            <strong>{steps[stage]}</strong>
-          </div>
-          <div
-            className="recovery-builder-progress__track"
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={steps.length}
-            aria-valuenow={stage + 1}
-            aria-label={`Etapa ${stage + 1} de ${steps.length}: ${steps[stage]}`}
-          >
-            <span style={{ width: `${progressPercentage}%` }} />
-          </div>
-        </div>
+        <ActivityProgress
+          steps={steps}
+          currentStep={stage}
+          ariaLabel="Progresso de Cliquei. E agora?"
+        />
 
         <div className="mission-content">
           {stage === 0 ? (
@@ -548,10 +537,12 @@ export function RecoveryMission({
               <div className="recovery-briefing__copy">
                 <span className="section-kicker">O caso</span>
                 <h2 tabIndex={-1} ref={stageTitleRef}>{content.role}</h2>
-                <p>{content.situation}</p>
+                <p><strong>O que aconteceu:</strong> {content.situation}</p>
                 <div className="recovery-no-blame-note">
                   <strong>Sua tarefa</strong>
                   <p>{content.task}</p>
+                  <strong>O que você protege</strong>
+                  <p>{content.protectedConsequence}</p>
                 </div>
                 <button
                   type="button"

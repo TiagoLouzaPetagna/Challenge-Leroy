@@ -74,7 +74,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /<h1>O aviso que n/,
         /Primeiro entenda o que est. em jogo/,
         /Come.ar pelo pedido/,
-        /Etapas da miss.o de fundamento/,
+        /Progresso da miss.o de fundamento/,
       ],
     },
     {
@@ -106,7 +106,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /Cliquei\. E agora\?/,
         /Reconstrua o que aconteceu/,
         /Reconstruir o ocorrido/,
-        /Etapa 1 de 9/,
+        /etapa 1 de 9/,
         /100.{0,30}pontos-base/,
       ],
     },

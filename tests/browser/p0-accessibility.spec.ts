@@ -39,6 +39,20 @@ async function expectNoHorizontalOverflow(page: Page) {
     .toBe(true);
 }
 
+async function expectCompactActivityProgress(
+  page: Page,
+  accessibleName: string,
+  currentLabel: string,
+) {
+  const progress = page.getByRole("region", { name: accessibleName });
+  await expect(progress).toBeVisible();
+  await expect(progress.locator('[aria-current="step"]')).toHaveText(currentLabel);
+  await expect(progress.getByRole("progressbar")).toHaveCount(1);
+  await expect(progress).toContainText("0 etapas concluídas");
+  await expect(progress).not.toContainText("A seguir");
+  return progress;
+}
+
 test("opera a fundação PARE v2 por teclado, move o foco e mantém a página acessível", async ({
   page,
 }) => {
@@ -52,11 +66,11 @@ test("opera a fundação PARE v2 por teclado, move o foco e mantém a página ac
   );
 
   const missionProgress = page.getByRole("region", {
-    name: "Progresso da missão",
+    name: "Progresso da missão de fundamento",
   });
-  await expect(missionProgress).toContainText("Concluído");
-  await expect(missionProgress).toContainText("Agora");
-  await expect(missionProgress).toContainText("A seguir");
+  await expect(missionProgress).toContainText("Abertura");
+  await expect(missionProgress).toContainText("0 etapas concluídas");
+  await expect(missionProgress).toContainText("8 etapas restantes depois desta");
 
   const start = page.getByRole("button", { name: "Começar pelo pedido" });
   await start.focus();
@@ -115,10 +129,10 @@ test("opera a fundação PARE v2 por teclado, move o foco e mantém a página ac
     }),
   ).toBeFocused();
 
-  const progress = page.getByRole("list", { name: "Etapas da missão de fundamento" });
-  await expect(progress.locator('[aria-current="step"]')).toContainText(
+  await expect(missionProgress.locator('[aria-current="step"]')).toHaveText(
     "Resultado",
   );
+  await expect(missionProgress).toContainText("7 etapas concluídas");
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(
@@ -187,6 +201,11 @@ test("conclui a anatomia de URL v2 por teclado e persiste o envelope atual", asy
 
   const shell = page.locator('[data-activity-id="phishlab:link-analyzer"]');
   await expect(shell).toBeVisible();
+  await expectCompactActivityProgress(
+    page,
+    "Progresso de Domínio sob a lupa",
+    "Abertura",
+  );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Domínio sob a lupa",
   );
@@ -316,6 +335,11 @@ test("conclui o mapa de identidade v2 por teclado sem expor os pacotes internos"
 
   const shell = page.locator('[data-activity-id="phishlab:true-sender"]');
   await expect(shell).toBeVisible();
+  await expectCompactActivityProgress(
+    page,
+    "Progresso do laboratório de identidade",
+    "Abertura",
+  );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Separe o que está comprovado do que ainda não está",
   );
@@ -436,6 +460,11 @@ test("reconstrói a conversa v2 por teclado, confirma fora do fio e abre o debri
     '[data-activity-id="mission:compromised-conversation"]',
   );
   await expect(shell).toBeVisible();
+  await expectCompactActivityProgress(
+    page,
+    "Progresso de A conversa já estava acontecendo",
+    "Abertura",
+  );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "A conversa já estava acontecendo",
   );
@@ -676,6 +705,11 @@ test("opera o console de MFA v2 em sequência e revisa cada decisão", async ({
   await page.goto("/missoes/voce-iniciou-este-acesso");
   const shell = page.locator('[data-activity-id="mission:mfa-fatigue"]');
   await expect(shell).toBeVisible();
+  await expectCompactActivityProgress(
+    page,
+    "Progresso de Você iniciou este acesso",
+    "Abertura",
+  );
   await shell.getByRole("button", { name: "Abrir console simulado" }).click();
 
   for (let eventIndex = 0; eventIndex < 3; eventIndex += 1) {
@@ -773,7 +807,11 @@ test("monta a resposta pós-clique v2 por teclado e explica cada acerto ou erro"
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Cliquei. E agora?",
   );
-  await expect(page.getByText("Etapa 1 de 9")).toBeVisible();
+  await expectCompactActivityProgress(
+    page,
+    "Progresso de Cliquei. E agora?",
+    "Contexto",
+  );
   await page.getByRole("button", { name: "Reconstruir o ocorrido" }).click();
 
   for (let index = 0; index < 3; index += 1) {
@@ -941,6 +979,11 @@ test("tria Uma manhã comum v2 por teclado, preserva inconclusivos e revisa o lo
 
   const shell = page.locator('[data-activity-id="simulation:workday"]');
   await expect(shell).toBeVisible();
+  await expectCompactActivityProgress(
+    page,
+    "Progresso de Uma manhã comum",
+    "Contexto",
+  );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Uma manhã comum",
   );
@@ -1084,6 +1127,11 @@ test("opera Mudança bancária v2 como estação e mantém o resultado privado",
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Mudança bancária sem atalho",
+  );
+  await expectCompactActivityProgress(
+    page,
+    "Progresso de Mudança bancária sem atalho",
+    "Contexto",
   );
   await expect(page.getByText("Estação de processo · caso fictício")).toBeVisible();
   await page.getByRole("button", { name: "Começar pela comparação" }).click();

@@ -7934,6 +7934,27 @@ footer span {
   font-size: 24px;
 }
 
+.foundation-protected-outcome {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem 0.9rem;
+  border-left: 0.25rem solid #2f7d5d;
+  border-radius: 0 0.65rem 0.65rem 0;
+  background: #edf7f1;
+}
+
+.foundation-protected-outcome strong {
+  color: var(--foundation-ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.foundation-protected-outcome span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .pare-mini-list {
   display: grid;
   gap: 10px;
@@ -8820,7 +8841,9 @@ footer span {
 .bank-change-briefing h1:focus,
 .bank-change-result-hero h1:focus,
 .bank-change-decision-panel h1:focus {
-  outline: none;
+  border-radius: 0.25rem;
+  outline: 3px solid var(--brand-lime);
+  outline-offset: 0.4rem;
 }
 
 .bank-change-briefing > div > p,
@@ -11737,6 +11760,100 @@ footer span {
     border-radius: 20px 20px 0 0;
   }
 }
+.activity-stage-progress {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 1rem clamp(1.25rem, 3vw, 2.5rem);
+  border-top: 1px solid #d9e1db;
+  border-bottom: 1px solid #d9e1db;
+  background: #f7f9f7;
+  color: #173b2a;
+}
+
+.activity-stage-progress__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.activity-stage-progress__heading > div {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.activity-stage-progress__heading span,
+.activity-stage-progress__counts {
+  color: #58675e;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.activity-stage-progress__heading > div > span {
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.activity-stage-progress__heading strong {
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.activity-stage-progress__heading > b {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: #e6eee8;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.activity-stage-progress progress {
+  width: 100%;
+  height: 0.48rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #dce5de;
+  accent-color: #247a58;
+}
+
+.activity-stage-progress progress::-webkit-progress-bar {
+  border-radius: 999px;
+  background: #dce5de;
+}
+
+.activity-stage-progress progress::-webkit-progress-value {
+  border-radius: 999px;
+  background: #247a58;
+}
+
+.activity-stage-progress progress::-moz-progress-bar {
+  border-radius: 999px;
+  background: #247a58;
+}
+
+.activity-stage-progress__counts {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+[data-activity-shell="true"] h1[tabindex="-1"]:focus,
+[data-activity-shell="true"] h2[tabindex="-1"]:focus {
+  border-radius: 0.25rem;
+  outline: 3px solid #247a58;
+  outline-offset: 0.35rem;
+}
+
+.bank-process-page > .activity-stage-progress {
+  border: 1px solid #d7ded7;
+  border-radius: 1rem;
+}
+
 .activity-answer-review {
   display: grid;
   gap: 1rem;
@@ -11761,12 +11878,24 @@ footer span {
   margin: 0;
 }
 
-.activity-answer-review > header > strong {
+.activity-answer-review__summary {
+  display: grid;
   flex: 0 0 auto;
+  justify-items: end;
+  gap: 0.25rem;
+}
+
+.activity-answer-review__summary > strong {
   padding: 0.55rem 0.75rem;
   border-radius: 999px;
   background: #eef3ef;
   color: #173b2a;
+}
+
+.activity-answer-review__summary > span {
+  color: #59675f;
+  font-size: 0.75rem;
+  font-weight: 750;
 }
 
 .activity-answer-review__list {
@@ -12253,7 +12382,8 @@ footer span {
 }
 
 .workday-v2-header .simulation-progress-card > span,
-.workday-v2-header .simulation-progress-card > strong {
+.workday-v2-header .simulation-progress-card > strong,
+.workday-v2-header .simulation-progress-card > small {
   display: block;
 }
 
@@ -12268,6 +12398,11 @@ footer span {
 .workday-v2-header .simulation-progress-card > strong {
   margin: 0.2rem 0 0.65rem;
   font-size: 1.35rem;
+}
+
+.workday-v2-header .simulation-progress-card > small {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.4;
 }
 
 .workday-v2-progress {
@@ -12351,22 +12486,29 @@ footer span {
   grid-column: 1 / -1;
 }
 
-.workday-v2-task {
+.workday-v2-context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
   margin: 1.25rem 0;
+}
+
+.workday-v2-context-grid article {
   padding: 1rem 1.1rem;
-  border-left: 0.3rem solid #2f7d59;
-  border-radius: 0.6rem;
+  border: 1px solid #cfdad2;
+  border-top: 0.25rem solid #2f7d59;
+  border-radius: 0.75rem;
   background: var(--workday-soft);
 }
 
-.workday-v2-task strong,
-.workday-v2-task p {
+.workday-v2-context-grid strong,
+.workday-v2-context-grid p {
   display: block;
   margin: 0;
 }
 
-.workday-v2-task p {
-  margin-top: 0.3rem;
+.workday-v2-context-grid p {
+  margin-top: 0.35rem;
 }
 
 .workday-v2-board {
@@ -12749,6 +12891,8 @@ footer span {
 .bank-process-context article,
 .bank-process-answer-detail article,
 .bank-process-review > div > article { display: grid; gap: 5px; padding: 16px 18px; border: 1px solid var(--bank-border); border-radius: 14px; background: #fff; }
+.bank-process-context article { color: #17231c; }
+.bank-process-context article span { color: #4d5d53; }
 .bank-process-context span,
 .bank-process-answer-detail span { line-height: 1.55; }
 .bank-process-legacy-note,

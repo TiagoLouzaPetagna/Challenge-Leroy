@@ -503,20 +503,10 @@ export function DomainUnderMagnifierLab({
           </div>
         </header>
 
-        <div
-          className="sr-only"
-          role="progressbar"
-          aria-label="Progresso de Domínio sob a lupa"
-          aria-valuemin={1}
-          aria-valuemax={steps.length}
-          aria-valuenow={stage + 1}
-          aria-valuetext={`${steps[stage]}, etapa ${stage + 1} de ${steps.length}`}
-        />
         <ActivityProgress
-          className="url-anatomy-progress"
           steps={steps}
           currentStep={stage}
-          ariaLabel="Etapas de Domínio sob a lupa"
+          ariaLabel="Progresso de Domínio sob a lupa"
         />
 
         <div className="url-anatomy-workspace" aria-live="polite">

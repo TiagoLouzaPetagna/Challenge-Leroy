@@ -591,20 +591,10 @@ export function ConversationReconstructionMission({
           </div>
         </header>
 
-        <div
-          className="sr-only"
-          role="progressbar"
-          aria-label="Progresso de A conversa já estava acontecendo"
-          aria-valuemin={1}
-          aria-valuemax={steps.length}
-          aria-valuenow={stage + 1}
-          aria-valuetext={`${steps[stage]}, etapa ${stage + 1} de ${steps.length}`}
-        />
         <ActivityProgress
-          className="conversation-progress"
           steps={steps}
           currentStep={stage}
-          ariaLabel="Etapas de A conversa já estava acontecendo"
+          ariaLabel="Progresso de A conversa já estava acontecendo"
         />
         <p className="sr-only" role="status" aria-live="polite">
           {announcement}

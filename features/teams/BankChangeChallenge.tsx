@@ -10,6 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 
+import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import {
   BANK_CHANGE_PROCESS_ACTIVITY_ID,
   BANK_CHANGE_PROCESS_ACTIVITY_VERSION,
@@ -50,6 +51,7 @@ const STEPS: readonly { id: View; label: string }[] = [
   { id: "review", label: "Revisão" }, { id: "result", label: "Resultado" },
   { id: "debrief", label: "Debrief" },
 ] as const;
+const STEP_LABELS = STEPS.map((step) => step.label);
 
 const contentPackage = BANK_CHANGE_PROCESS_V2_PACKAGE;
 const { content } = contentPackage;
@@ -92,6 +94,13 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
   const stepIndex = STEPS.findIndex((step) => step.id === view);
   const selectedContact = content.contactOptions.find((option) => option.id === contactSourceId);
   const outsideProcessIds = content.processCards.map((card) => card.id).filter((id) => !processIds.includes(id));
+  const activityProgress = (
+    <ActivityProgress
+      steps={STEP_LABELS}
+      currentStep={stepIndex}
+      ariaLabel="Progresso de Mudança bancária sem atalho"
+    />
+  );
 
   useEffect(() => { headingRef.current?.focus(); }, [view]);
 
@@ -135,6 +144,7 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
   if (view === "briefing") return (
     <div className="page-stack bank-change-page bank-process-page">
       <button type="button" className="text-button teams-back-button" onClick={onBackToTeams}>← Voltar para Equipes</button>
+      {activityProgress}
       <section className="bank-change-briefing bank-process-briefing">
         <div><span className="section-kicker">Estação de processo · caso fictício</span><h1 ref={headingRef} tabIndex={-1}>Mudança bancária sem atalho</h1><p>{content.situation}</p>
           <div className="bank-process-context" aria-label="Seu papel e sua tarefa">
@@ -159,6 +169,7 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
       { label: "Conteúdo seguro do reporte", score: result.reportPoints, max: 15 },
     ];
     return <div className="page-stack bank-change-page bank-process-page">
+      {activityProgress}
       <section className="bank-change-result-hero"><div><span className="section-kicker">Resultado privado</span><h1 ref={headingRef} tabIndex={-1}>{result.needsReview ? "O processo ainda contém um atalho" : "O processo protegeu a mudança"}</h1><p>Suas escolhas e sua nota ficam privadas. A equipe recebe somente os cinco controles normalizados e as competências cobertas.</p></div><div className="bank-change-result-score" aria-label={`Nota ${result.score} de 100`}><strong>{result.score}</strong><span>/100</span></div></section>
       <section className="bank-change-result-summary" aria-label="Resumo do resultado"><article><span>Controles completos</span><strong>{result.correctDecisions}/5</strong></article><article><span>Pontos gerais</span><strong>{rewardAlreadyClaimed && !countedOnThisAttempt ? claimedPoints : result.potentialReward}</strong><small>{rewardAlreadyClaimed && !countedOnThisAttempt ? "já confirmados" : "confirmados agora"}</small></article><article><span>Indicadores do setor</span><strong>{aggregateAlreadyCounted && !countedOnThisAttempt ? "Sem alteração" : "Atualizados"}</strong><small>uma contribuição para esta atividade</small></article><article><span>Revisão</span><strong>{result.needsReview ? "Recomendada" : "Dispensada"}</strong></article></section>
       <section className="bank-process-result-review"><div className="teams-section-heading"><div><span className="section-kicker">Revisão das respostas</span><h2>O que você acertou e o que precisa revisar</h2></div><span>{result.correctDecisions} de 5 controles completos</span></div>
@@ -169,11 +180,11 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
     </div>;
   }
 
-  if (view === "debrief" && result) return <div className="page-stack bank-change-page bank-process-page"><section className="bank-process-debrief"><span className="section-kicker">Debrief</span><h1 ref={headingRef} tabIndex={-1}>{contentPackage.debrief.title}</h1><p>{contentPackage.debrief.body}</p><ol><li><strong>Conter</strong><span>Suspender mudança e pagamento relacionado, preservando o pedido.</span></li><li><strong>Confirmar</strong><span>Partir do contato que já estava no cadastro antes da solicitação.</span></li><li><strong>Proteger</strong><span>Manter bloqueio, fluxo oficial e segunda aprovação, sem trocar um controle pelo outro.</span></li><li><strong>Registrar</strong><span>Relatar fatos, ação tomada e resposta obtida, sem segredos ou dados excessivos.</span></li></ol><div className="bank-change-result-actions"><button type="button" className="primary-button" onClick={onBackToTeams}>Ver placar agregado</button><button type="button" className="text-button" onClick={onOpenProfile}>Abrir Meu perfil</button><button type="button" className="text-button" onClick={restart}>Refazer estação</button></div></section></div>;
+  if (view === "debrief" && result) return <div className="page-stack bank-change-page bank-process-page">{activityProgress}<section className="bank-process-debrief"><span className="section-kicker">Debrief</span><h1 ref={headingRef} tabIndex={-1}>{contentPackage.debrief.title}</h1><p>{contentPackage.debrief.body}</p><ol><li><strong>Conter</strong><span>Suspender mudança e pagamento relacionado, preservando o pedido.</span></li><li><strong>Confirmar</strong><span>Partir do contato que já estava no cadastro antes da solicitação.</span></li><li><strong>Proteger</strong><span>Manter bloqueio, fluxo oficial e segunda aprovação, sem trocar um controle pelo outro.</span></li><li><strong>Registrar</strong><span>Relatar fatos, ação tomada e resposta obtida, sem segredos ou dados excessivos.</span></li></ol><div className="bank-change-result-actions"><button type="button" className="primary-button" onClick={onBackToTeams}>Ver placar agregado</button><button type="button" className="text-button" onClick={onOpenProfile}>Abrir Meu perfil</button><button type="button" className="text-button" onClick={restart}>Refazer estação</button></div></section></div>;
 
   return <div className="page-stack bank-change-page bank-process-page">
-    <div className="bank-change-topbar"><button type="button" className="text-button" onClick={onBackToTeams}>← Sair da estação</button><div><span>Etapa {stepIndex + 1} de {STEPS.length}</span><div role="progressbar" aria-label="Progresso da estação" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={stepIndex + 1}><span style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }} /></div></div></div>
-    <nav className="bank-process-step-list" aria-label="Etapas da estação">{STEPS.slice(1, 7).map((step, index) => <span key={step.id} aria-current={step.id === view ? "step" : undefined} className={step.id === view ? "active" : stepIndex > index + 1 ? "done" : ""}><b>{String(index + 1).padStart(2, "0")}</b>{step.label}</span>)}</nav>
+    <div className="bank-change-topbar"><button type="button" className="text-button" onClick={onBackToTeams}>← Sair da estação</button></div>
+    {activityProgress}
     {view === "compare" ? <CompareStep comparisonIds={comparisonIds} setComparisonIds={setComparisonIds} headingRef={headingRef} go={go} /> : null}
     {view === "contact" ? <ContactStep contactSourceId={contactSourceId} setContactSourceId={setContactSourceId} headingRef={headingRef} go={go} /> : null}
     {view === "response" && selectedContact ? <section className="bank-process-station bank-process-response"><header><span className="section-kicker">Estação 3 · consequência da escolha</span><h1 ref={headingRef} tabIndex={-1}>O que essa fonte permite concluir?</h1><p>Você escolheu <strong>{selectedContact.label}</strong>. O exercício não realiza ligação ou envio; mostra somente a consequência fictícia desta rota.</p></header><article role="status"><span>Origem consultada</span><strong>{selectedContact.source}</strong><p>{selectedContact.consequence}</p></article><p className="bank-process-hint">Você pode corrigir a origem agora ou manter sua decisão e revisar tudo antes de concluir.</p><Nav back={() => go("contact")} backLabel="Escolher outra fonte" next={() => go("process")} nextLabel="Montar o processo" /></section> : null}

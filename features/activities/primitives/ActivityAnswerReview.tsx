@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 export type ActivityAnswerReviewItem = {
   id: string;
   title: string;
@@ -21,22 +23,27 @@ export function ActivityAnswerReview({
     "Confira cada parte da sua resposta. Errar aqui serve para indicar o que vale praticar novamente.",
   className = "",
 }: ActivityAnswerReviewProps) {
+  const titleId = useId();
   const correctCount = items.filter((item) => item.status === "correct").length;
+  const reviewCount = items.length - correctCount;
 
   return (
     <section
       className={`activity-answer-review ${className}`.trim()}
-      aria-labelledby="activity-answer-review-title"
+      aria-labelledby={titleId}
     >
       <header>
         <div>
           <span className="section-kicker">Revisão das respostas</span>
-          <h2 id="activity-answer-review-title">{title}</h2>
+          <h2 id={titleId}>{title}</h2>
           <p>{description}</p>
         </div>
-        <strong aria-label={`${correctCount} de ${items.length} critérios atendidos`}>
-          {correctCount}/{items.length}
-        </strong>
+        <div className="activity-answer-review__summary">
+          <strong aria-label={`${correctCount} de ${items.length} critérios atendidos`}>
+            {correctCount}/{items.length}
+          </strong>
+          <span>{reviewCount === 0 ? "Tudo certo" : `${reviewCount} para revisar`}</span>
+        </div>
       </header>
 
       <div className="activity-answer-review__list">

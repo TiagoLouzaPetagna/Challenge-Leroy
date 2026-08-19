@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
+import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
 import {
   IDENTITY_CLAIM_ASSESSMENT_OPTIONS,
@@ -53,46 +54,6 @@ type SenderInspectorLabProps = {
 function scrollToTop() {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
-}
-
-function ProgressSummary({ currentStep }: { currentStep: number }) {
-  const previous = currentStep > 0 ? STAGES[currentStep - 1] : null;
-  const next = currentStep < STAGES.length - 1 ? STAGES[currentStep + 1] : null;
-
-  return (
-    <section className="identity-progress" aria-label="Progresso do laboratório">
-      <header>
-        <span>Jornada deste PhishLab</span>
-        <strong>Etapa {currentStep + 1} de {STAGES.length}</strong>
-      </header>
-      <progress
-        max={STAGES.length}
-        value={currentStep + 1}
-        aria-label={`Progresso: etapa ${currentStep + 1} de ${STAGES.length}`}
-      />
-      <ol>
-        <li className="complete">
-          <span>Concluído</span>
-          <strong>{previous ?? "Nenhuma etapa ainda"}</strong>
-          <small>{currentStep} de {STAGES.length} etapas concluídas</small>
-        </li>
-        <li className="active" aria-current="step">
-          <span>Agora</span>
-          <strong>{STAGES[currentStep]}</strong>
-          <small>Esta é a tarefa aberta neste momento.</small>
-        </li>
-        <li>
-          <span>A seguir</span>
-          <strong>{next ?? "Fim do laboratório"}</strong>
-          <small>
-            {next
-              ? `${STAGES.length - currentStep - 1} etapas ainda serão percorridas.`
-              : "O percurso termina depois desta explicação."}
-          </small>
-        </li>
-      </ol>
-    </section>
-  );
 }
 
 function ChoiceGroup<T extends string>({
@@ -417,7 +378,11 @@ export function SenderInspectorLab({
           </aside>
         </header>
 
-        <ProgressSummary currentStep={stage} />
+        <ActivityProgress
+          steps={STAGES}
+          currentStep={stage}
+          ariaLabel="Progresso do laboratório de identidade"
+        />
 
         {stage === 0 ? (
           <section className="identity-stage identity-opening">

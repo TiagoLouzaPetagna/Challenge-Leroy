@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
+import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
 import {
   FOUNDATION_ASSESSMENT_OPTIONS,
@@ -107,49 +108,6 @@ function optionLabel(
   id: string | null,
 ) {
   return options.find((option) => option.id === id)?.label ?? "Não respondido";
-}
-
-function FoundationProgress({ currentStep }: { currentStep: number }) {
-  const completedCount = currentStep;
-  const previousStep = currentStep > 0 ? STAGES[currentStep - 1] : null;
-  const nextStep = currentStep < STAGES.length - 1 ? STAGES[currentStep + 1] : null;
-
-  return (
-    <section className="foundation-progress" aria-label="Progresso da missão">
-      <header className="foundation-progress-heading">
-        <span>Jornada desta missão</span>
-        <strong>
-          Etapa {currentStep + 1} de {STAGES.length}
-        </strong>
-      </header>
-      <progress
-        max={STAGES.length}
-        value={currentStep + 1}
-        aria-label={`Progresso: etapa ${currentStep + 1} de ${STAGES.length}`}
-      />
-      <ol aria-label="Etapas da missão de fundamento">
-        <li className="complete">
-          <span>Concluído</span>
-          <strong>{previousStep ?? "Nenhuma etapa ainda"}</strong>
-          <small>{completedCount} de {STAGES.length} etapas concluídas</small>
-        </li>
-        <li className="active" aria-current="step">
-          <span>Agora</span>
-          <strong>{STAGES[currentStep]}</strong>
-          <small>Esta é a etapa que está aberta.</small>
-        </li>
-        <li>
-          <span>A seguir</span>
-          <strong>{nextStep ?? "Fim da missão"}</strong>
-          <small>
-            {nextStep
-              ? `${STAGES.length - currentStep - 1} etapas ainda serão percorridas.`
-              : "O percurso termina depois deste debrief."}
-          </small>
-        </li>
-      </ol>
-    </section>
-  );
 }
 
 export function PhishingFoundationMission({
@@ -316,7 +274,11 @@ export function PhishingFoundationMission({
           </div>
         </header>
 
-        <FoundationProgress currentStep={stage} />
+        <ActivityProgress
+          steps={STAGES}
+          currentStep={stage}
+          ariaLabel="Progresso da missão de fundamento"
+        />
 
         <div className="foundation-workspace">
           {stage === 0 ? (
@@ -327,12 +289,16 @@ export function PhishingFoundationMission({
                   Primeiro entenda o que está em jogo
                 </h2>
                 <p>{content.role}</p>
-                <p>{content.situation}</p>
+                <p><strong>O que aconteceu:</strong> {content.situation}</p>
               </div>
               <div className="foundation-task-card">
                 <span className="section-kicker">O que você fará</span>
                 <h3>Uma tarefa, em quatro passos</h3>
                 <p>{content.task}</p>
+                <p className="foundation-protected-outcome">
+                  <strong>O que você protege</strong>
+                  <span>{content.protectedOutcome}</span>
+                </p>
                 <ol className="pare-mini-list">
                   <li><strong>P</strong><span>Pare antes de agir.</span></li>
                   <li><strong>A</strong><span>Avalie o pedido e a consequência.</span></li>

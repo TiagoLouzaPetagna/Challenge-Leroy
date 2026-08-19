@@ -7187,6 +7187,32 @@ Todos os nomes, domínios, contas e contatos são fictícios ou mascarados. Nenh
 
 Os testes de domínio cobrem contrato válido e inválido, nota perfeita e insegura, controles críticos, idempotência, coexistência v1/v2, recompensa e agregado únicos, registro, currículo, migração v13→v14 e SSR da rota. O cenário Playwright percorre a estação canônica por teclado e verifica foco, revisão, nota 100, persistência v14, ausência de overflow, acessibilidade automatizada e console.
 
+### 44.19 Acabamento visual e de usabilidade do primeiro percurso
+
+Em 2026-08-16, o primeiro percurso funcional recebeu um passe transversal de interface e clareza antes da criação de novas atividades. O escopo cobre **O aviso que não podia esperar**, **Quem enviou de verdade?**, **Domínio sob a lupa**, **A conversa já estava acontecendo**, **Você iniciou este acesso?**, **Cliquei. E agora?**, **Uma manhã comum** e **Mudança bancária sem atalho**. As mecânicas, os pacotes, os contratos, os avaliadores, os pontos, as recompensas, as competências, os pré-requisitos e a persistência não foram reinterpretados.
+
+Os quatro tratamentos diferentes de progresso foram substituídos por um componente compartilhado e compacto. A orientação agora informa, sem exibir uma grade completa ou três cartões concorrentes:
+
+- o nome da etapa atual;
+- a posição `Etapa X de N`;
+- uma barra de progresso nativa e nomeada;
+- quantas etapas já foram concluídas;
+- quantas etapas permanecem depois da atual.
+
+“Etapa concluída” significa somente uma transição já percorrida; a etapa aberta não é contabilizada como concluída. O componente não revela respostas, não libera conteúdo e não transforma a ordem recomendada em pontuação. A atividade bancária também passou a usar essa orientação no contexto, na execução, no resultado e no debrief, em vez da lista paralela de seis estações.
+
+A gramática de abertura foi mantida comum sem uniformizar as mecânicas: papel, fato ocorrido, tarefa e consequência protegida devem estar explícitos antes da primeira decisão. A Missão de fundamento passou a nomear o que aconteceu e o que será protegido; **Cliquei. E agora?** passou a exibir a consequência protegida junto da tarefa; e **Uma manhã comum** ganhou cartões distintos de papel, tarefa e proteção do fluxo. Os demais players já possuíam os quatro elementos. Perguntas continuam específicas à mecânica e devem citar o objeto da decisão no enunciado ou no contexto imediatamente anterior.
+
+O componente de revisão compartilhado conserva **Acertou** e **Precisa revisar** em cada critério, acrescenta um resumo textual de quantos itens ainda exigem revisão e gera um identificador de título próprio por instância. Assim, telas que mostram mais de uma revisão não repetem o mesmo `id`. **Mudança bancária sem atalho** mantém sua revisão própria por controles normalizados, com os mesmos dois estados textuais.
+
+Na abertura de **Mudança bancária sem atalho**, os cartões de papel, tarefa e proteção tinham fundo branco, mas herdavam texto claro do hero. A cor de texto passou a ser definida explicitamente, restabelecendo leitura e contraste. Títulos que recebem foco programático por troca de etapa agora mostram contorno visível; a exceção antiga que removia o contorno dos títulos bancários foi retirada.
+
+O componente órfão `ReportGuideDialog.tsx` foi removido. Ele já não era importado nem renderizado desde a seção 44.16, mas ainda conservava internamente o rótulo antigo. Não há botão, diálogo ou referência operacional a **Como reportar** no `app` ou nas `features`; as menções neste documento são apenas histórico e regra de produto. Nenhuma função corporativa de reporte foi criada em seu lugar.
+
+O acabamento permanece restrito a desktop. A validação-alvo usa 1280×720 e 1440×900, teclado, foco por transição, contraste, texto ampliado, movimento reduzido, ausência de overflow horizontal, revisão de respostas e console sem erros. Celular continua deliberadamente posterior. A demonstração continua `isAuthoritative: false`, e backend autoritativo permanece obrigatório antes de uso real.
+
+A validação integrada foi concluída com `npm run lint`, build de produção, 29 testes de domínio/estado/persistência/SSR e 10 cenários Playwright em Chromium. Os cenários percorrem as oito atividades, inclusive a liberação da Missão de MFA, e verificam o novo progresso, teclado, foco, revisão das respostas, preferências de alto contraste/texto ampliado/movimento reduzido, `axe`, console e ausência de overflow. A inspeção manual adicional confirmou as oito aberturas em 1280×720 e 1440×900 sem overflow horizontal; a rota de MFA mostrou corretamente o bloqueio quando os dois pré-requisitos não estavam presentes. O typecheck manteve apenas o baseline preexistente de tipos Cloudflare e validações antigas, sem erro novo nos arquivos deste acabamento.
+
 ## Resumo da integração entre as abas
 
 **Visão geral** recomenda o próximo passo; **Missões** criam a narrativa; **Simulações** reproduzem a rotina; **PhishLab** aprofunda a investigação; **Radar** oferece consulta opcional e pontuada; **Equipes** desenvolve a defesa coletiva; e **Meu perfil** registra a evolução. O **Painel de gestão**, ainda não implementado como ferramenta operacional, deverá manter o programa quando sua etapa for iniciada. O **Arcade** permanece apenas como catálogo desacoplado até uma definição posterior.
