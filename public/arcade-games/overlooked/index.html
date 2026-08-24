@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlooked</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section id="startScreen" class="screen screen--start">
+        <div class="brand">
+          <span class="brand__mark">OV</span>
+          <div>
+            <p class="eyebrow">Casa Digital - Arcade</p>
+            <h1>Overlooked</h1>
+          </div>
+        </div>
+
+        <div class="start-grid">
+          <div>
+            <p class="lead">
+              Um jogo cooperativo anti-phishing para duas pessoas. Leiam os
+              e-mails, reportem golpes e processem requisicoes legitimas antes
+              que o expediente acabe em cinco minutos.
+            </p>
+            <button id="startButton" class="primary-button">Iniciar partida</button>
+            <p id="integrationStatus" class="integration-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="controls">
+            <h2>Controles</h2>
+            <div class="control-row">
+              <strong>Jogador 1</strong>
+              <span>W A S D</span>
+              <span>E</span>
+            </div>
+            <div class="control-row">
+              <strong>Jogador 2</strong>
+              <span>Setas</span>
+              <span>Enter</span>
+            </div>
+            <div class="control-row">
+              <strong>E-mail</strong>
+              <span>A aceitar</span>
+              <span>R reportar</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="game-screen hidden">
+        <div class="play-area">
+          <canvas id="gameCanvas" width="576" height="336"></canvas>
+        </div>
+      </section>
+
+      <section id="emailModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="emailSubject">
+        <div class="modal__panel email-panel">
+          <div class="email-app-bar">
+            <div class="email-app-identity">
+              <span aria-hidden="true">@</span>
+              <div>
+                <small>Casa Digital</small>
+                <strong>Caixa de entrada</strong>
+              </div>
+            </div>
+            <span class="email-safety-pill">Analise antes de agir</span>
+          </div>
+          <div class="modal__header">
+            <div>
+              <span class="hud__label">E-mail recebido</span>
+              <h2 id="emailSubject">Assunto</h2>
+            </div>
+            <button id="closeEmailButton" class="icon-button" aria-label="Fechar e-mail">×</button>
+          </div>
+          <div class="read-timer-wrap">
+            <div>
+              <span>Tempo para analisar</span>
+              <small>Observe o remetente, o pedido e o contexto.</small>
+            </div>
+            <div class="read-timer" aria-hidden="true">
+              <span id="readTimerBar"></span>
+            </div>
+          </div>
+          <dl class="email-meta">
+            <div>
+              <dt>Remetente</dt>
+              <dd id="emailSender"></dd>
+            </div>
+          </dl>
+          <div class="email-message-card">
+            <span>Mensagem</span>
+            <p id="emailBody" class="email-body"></p>
+          </div>
+          <div class="email-safety-note">
+            <strong>Pare, analise e confirme.</strong>
+            <span>Uma solicitação urgente também precisa fazer sentido.</span>
+          </div>
+          <div class="email-actions">
+            <button id="acceptButton" class="decision decision--accept">
+              <span>Aceitar solicitação</span>
+              <small>Tecla A</small>
+            </button>
+            <button id="reportButton" class="decision decision--report">
+              <span>Reportar phishing</span>
+              <small>Tecla R</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="screen screen--result hidden">
+        <div class="result-top">
+          <div>
+            <span class="eyebrow">Debriefing de seguranca</span>
+            <h1>Resultado final</h1>
+            <p id="rankTitle" class="lead"></p>
+          </div>
+          <div class="final-score">
+            <span>Pontuacao</span>
+            <strong id="finalScore">0</strong>
+          </div>
+        </div>
+
+        <div id="breakdown" class="breakdown"></div>
+        <div id="resultList" class="result-list"></div>
+        <p id="resultIntegrationStatus" class="integration-status integration-status--result" role="status" aria-live="polite"></p>
+        <button id="restartButton" class="primary-button">Jogar novamente</button>
+      </section>
+    </main>
+
+    <script src="src/game.js"></script>
+  </body>
+</html>

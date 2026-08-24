@@ -1,7 +1,7 @@
 # Viabilidade dos formatos de atividade
 
 > **Estado:** análise técnica preliminar; nenhuma decisão desta pasta autoriza implementação.
-> **Base avaliada:** portal local Casa Digital Segura em 2026-08-11.
+> **Base avaliada:** portal local Fortifica em 2026-08-11.
 > **Escopo atual:** desktop; adaptação móvel permanece posterior.
 
 Esta pasta avalia os 374 formatos candidatos registrados em [`../estudos-de-formatos`](../estudos-de-formatos/README.md) contra a arquitetura que existe hoje no portal. A pergunta desta etapa é: **o que seria necessário para transformar cada hipótese pedagógica em uma experiência real, segura, acessível e sustentável neste projeto?**

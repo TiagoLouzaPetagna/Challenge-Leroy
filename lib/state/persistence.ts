@@ -32,7 +32,7 @@ export const LOCAL_SECURITY_NOTICE =
 
 type PersistedEnvelope = {
   schemaVersion: typeof APP_SCHEMA_VERSION;
-  appVersion: "mvp-local-v14";
+  appVersion: "mvp-local-v15";
   savedAt: string;
   state: AppState;
 };
@@ -1151,7 +1151,21 @@ function isTeamHistoryEvent(value: unknown): boolean {
   );
 }
 
-function isValidState(value: unknown): value is AppState {
+function isManagementTestUser(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isNonEmptyString(value.id) &&
+    isNonEmptyString(value.employeeId) &&
+    isNonEmptyString(value.name) &&
+    isNonEmptyString(value.sectorId) &&
+    isNonEmptyString(value.sectorName) &&
+    (value.status === "active" || value.status === "inactive") &&
+    isIsoDate(value.createdAt) &&
+    isIsoDate(value.updatedAt)
+  );
+}
+
+export function isValidState(value: unknown): value is AppState {
   if (!isRecord(value)) return false;
   const meta = value.meta;
   const demo = value.demo;
@@ -1320,6 +1334,20 @@ function isValidState(value: unknown): value is AppState {
     (onboarding.tutorial.status !== "completed" ||
       isIsoDate(onboarding.tutorial.completedAt)) &&
     isRecord(admin) &&
+    Array.isArray(admin.testUsers) &&
+    admin.testUsers.every(isManagementTestUser) &&
+    new Set(
+      admin.testUsers.map((user) =>
+        isRecord(user) ? user.id : undefined,
+      ),
+    ).size === admin.testUsers.length &&
+    new Set(
+      admin.testUsers.map((user) =>
+        isRecord(user) && typeof user.employeeId === "string"
+          ? user.employeeId.toLocaleLowerCase("pt-BR")
+          : undefined,
+      ),
+    ).size === admin.testUsers.length &&
     Array.isArray(admin.auditLog) &&
     admin.auditLog.every(
       (entry) =>
@@ -1349,9 +1377,20 @@ function quarantineInvalidState(rawValue: string): void {
 function createEnvelope(state: AppState): PersistedEnvelope {
   return {
     schemaVersion: APP_SCHEMA_VERSION,
-    appVersion: "mvp-local-v14",
+    appVersion: "mvp-local-v15",
     savedAt: new Date().toISOString(),
     state,
+  };
+}
+
+function createMigratedAdminState(value: Record<string, unknown>) {
+  const seed = createDemoState();
+  const previousAdmin = isRecord(value.admin) ? value.admin : {};
+
+  return {
+    ...seed.admin,
+    ...previousAdmin,
+    testUsers: seed.admin.testUsers.map((user) => ({ ...user })),
   };
 }
 
@@ -1386,6 +1425,7 @@ function migrateLegacyState(value: unknown): AppState | null {
         status: "available",
       },
     },
+    admin: createMigratedAdminState(value),
   };
 
   return isValidState(candidate)
@@ -1413,6 +1453,7 @@ function migrateV2State(value: unknown): AppState | null {
         status: "available",
       },
     },
+    admin: createMigratedAdminState(value),
   };
 
   return isValidState(candidate)
@@ -1436,143 +1477,69 @@ function migrateV3State(value: unknown): AppState | null {
         status: "available",
       },
     },
+    admin: createMigratedAdminState(value),
+  };
+
+  return isValidState(candidate) ? candidate : null;
+}
+
+function migrateShapeOnlyState(value: unknown): AppState | null {
+  if (!isRecord(value) || !isRecord(value.meta)) return null;
+
+  const candidate: unknown = {
+    ...value,
+    meta: {
+      ...value.meta,
+      schemaVersion: APP_SCHEMA_VERSION,
+    },
+    admin: createMigratedAdminState(value),
   };
 
   return isValidState(candidate) ? candidate : null;
 }
 
 function migrateV4State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV5State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV6State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV7State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV8State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV9State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV10State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV11State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV12State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
 }
 
 function migrateV13State(value: unknown): AppState | null {
-  if (!isRecord(value) || !isRecord(value.meta)) return null;
-  const candidate: unknown = {
-    ...value,
-    meta: {
-      ...value.meta,
-      schemaVersion: APP_SCHEMA_VERSION,
-    },
-  };
-  return isValidState(candidate) ? candidate : null;
+  return migrateShapeOnlyState(value);
+}
+
+function migrateV14State(value: unknown): AppState | null {
+  return migrateShapeOnlyState(value);
 }
 
 export function loadPersistedState(): AppState | null {
@@ -1590,10 +1557,18 @@ export function loadPersistedState(): AppState | null {
 
     if (
       envelope.schemaVersion === APP_SCHEMA_VERSION &&
-      envelope.appVersion === "mvp-local-v14" &&
+      envelope.appVersion === "mvp-local-v15" &&
       isValidState(envelope.state)
     ) {
       return envelope.state;
+    }
+
+    if (
+      envelope.schemaVersion === 14 &&
+      envelope.appVersion === "mvp-local-v14"
+    ) {
+      const migrated = migrateV14State(envelope.state);
+      if (migrated) return migrated;
     }
 
     if (

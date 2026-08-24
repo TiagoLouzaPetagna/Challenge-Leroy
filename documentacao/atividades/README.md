@@ -65,7 +65,7 @@ A ordem abaixo descreve a integração atual e não a nova sequência ideal de a
 
 | # | Documento | Integração atual | Progresso individual possível | Reformulação |
 |---:|---|---|---|---|
-| 17 | [Quishing: phishing escondido em QR Codes](radar--quishing.md) | Disponível, versão 1 | Não iniciada / Concluída; leitura não persiste Em andamento | Fluxo atual preservado; sem reformulação aprovada |
+| 17 | [Quishing: phishing escondido em QR Codes](radar--quishing.md) | Disponível, versão 1 | Não iniciada / Concluída; leitura não persiste Em andamento | Leitura editorial em seis páginas implementada; contrato e avaliação v1 preservados |
 | 18 | [Anexos inesperados e falsas notas fiscais](radar--anexos-inesperados.md) | Planejado no catálogo, versão 1 | Não aplicável enquanto planejado | Sem reformulação aprovada |
 | 19 | [Quando o golpista se passa por um gestor](radar--falso-gestor.md) | Planejado no catálogo, versão 1 | Não aplicável enquanto planejado | Sem reformulação aprovada |
 | 20 | [Fadiga de MFA: aprovações que você não iniciou](radar--fadiga-mfa.md) | Planejado no catálogo, versão 1 | Não aplicável enquanto planejado | Sem reformulação aprovada |

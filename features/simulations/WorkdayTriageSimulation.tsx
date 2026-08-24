@@ -157,6 +157,9 @@ export function WorkdayTriageSimulation({
 
   const selectedItem =
     content.items.find((item) => item.id === selectedItemId) ?? content.items[0];
+  const selectedItemIndex = content.items.findIndex(
+    (item) => item.id === selectedItem.id,
+  );
   const selectedDraft = drafts[selectedItem.id];
   const finalCount = content.items.filter((item) =>
     ["resolved", "inconclusive"].includes(drafts[item.id]?.queueId),
@@ -168,13 +171,6 @@ export function WorkdayTriageSimulation({
       Boolean(draft.actionId)
     );
   });
-
-  const groupedItems = Object.fromEntries(
-    queueOptions.map((queue) => [
-      queue.id,
-      content.items.filter((item) => drafts[item.id]?.queueId === queue.id),
-    ]),
-  ) as Record<WorkdayDraftQueueId, typeof content.items[number][]>;
 
   const goToStage = (nextStage: number) => {
     setStage(nextStage);
@@ -289,8 +285,8 @@ export function WorkdayTriageSimulation({
       className="page-stack simulation-player-page workday-v2-page"
       activityId={WORKDAY_TRIAGE_ACTIVITY_ID}
     >
-      <section className="simulation-player-shell workday-v2-shell">
-        <header className="simulation-player-header workday-v2-header">
+      <section className="simulation-player-shell workday-v2-shell foundation-shell">
+        <header className="simulation-player-header workday-v2-header foundation-header">
           <div>
             <span className="section-badge">Simulação · versão 2</span>
             <h1>Uma manhã comum</h1>
@@ -306,55 +302,76 @@ export function WorkdayTriageSimulation({
         <ActivityProgress
           steps={steps}
           currentStep={stage}
+          className="workday-foundation-progress"
           ariaLabel="Progresso de Uma manhã comum"
         />
 
-        {stage === 0 ? (
-          <div className="workday-v2-opening">
-            <div>
+        <div className="workday-v2-workspace foundation-workspace" aria-live="polite">
+          {stage === 0 ? (
+          <div className="workday-v2-opening workday-foundation-opening">
+            <div className="workday-opening-copy foundation-opening__copy">
               <span className="section-kicker">O expediente</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>{content.pathLabel}</h2>
               <p>{content.openingContext}</p>
-              <div className="workday-v2-context-grid">
-                <article>
-                  <strong>Seu papel</strong>
-                  <p>Você cuida da entrada de trabalho e precisa manter o fluxo sem liberar uma ação sensível cedo demais.</p>
-                </article>
-                <article>
-                  <strong>Sua tarefa</strong>
-                  <p>{content.task}</p>
-                </article>
-                <article>
-                  <strong>O que você protege</strong>
-                  <p>O trabalho legítimo continua avançando enquanto itens suspeitos ou inconclusivos recebem a verificação necessária.</p>
-                </article>
+              <div className="foundation-safety-note">
+                Ambiente seguro: nenhum item abre links reais e o resultado permanece privado.
               </div>
-              <ul>
-                <li>Você não precisa resolver um item sem informação suficiente.</li>
-                <li>Investigar não significa acusar o remetente.</li>
-                <li>O diagnóstico aparece somente depois da revisão do lote.</li>
-              </ul>
+              <div className="mission-navigation workday-opening-actions">
+                <button type="button" className="primary-button learning-button" onClick={() => goToStage(1)}>
+                  Começar a triagem <span aria-hidden="true">→</span>
+                </button>
+                <button type="button" className="text-button" onClick={onBackToHub}>
+                  Voltar às Simulações
+                </button>
+              </div>
             </div>
-            <aside>
-              <span>Pacote atribuído</span>
-              <strong>{content.items.length} itens de trabalho</strong>
-              <p>E-mail, chat, calendário, avisos e tarefas aparecem juntos.</p>
-              <small>Sem cronômetro · resultado privado · {POINT_RULES.simulation} pontos-base</small>
-            </aside>
-            <div className="mission-navigation">
-              <button type="button" className="primary-button dark" onClick={() => goToStage(1)}>
-                Começar a triagem
-              </button>
-              <button type="button" className="text-button" onClick={onBackToHub}>
-                Voltar às Simulações
-              </button>
+            <div className="workday-opening-visual" aria-label={`Pacote com ${content.items.length} itens de trabalho`}>
+              <div className="workday-opening-inbox" aria-hidden="true">
+                <header>
+                  <span>Caixa de entrada</span>
+                  <strong>{content.items.length}</strong>
+                </header>
+                <div className="workday-opening-inbox__filters">
+                  <span>Entrada</span><span>Investigar</span><span>Resolvidos</span>
+                </div>
+                <div className="workday-opening-inbox__messages">
+                  <article><i>08:12</i><strong>Reunião confirmada</strong><small>Calendário</small></article>
+                  <article><i>08:19</i><strong>Conta bloqueada</strong><small>E-mail</small></article>
+                  <article><i>08:31</i><strong>Pagamento hoje</strong><small>Tarefa</small></article>
+                </div>
+              </div>
+              <aside>
+                <span>Pacote atribuído</span>
+                <strong>{content.items.length} itens de trabalho</strong>
+                <p>E-mail, chat, calendário, avisos e tarefas aparecem juntos.</p>
+                <small>Sem cronômetro · {POINT_RULES.simulation} pontos-base</small>
+              </aside>
             </div>
+            <div className="workday-v2-context-grid">
+              <article>
+                <strong>Seu papel</strong>
+                <p>Você cuida da entrada de trabalho e precisa manter o fluxo sem liberar uma ação sensível cedo demais.</p>
+              </article>
+              <article>
+                <strong>Sua tarefa</strong>
+                <p>{content.task}</p>
+              </article>
+              <article>
+                <strong>O que você protege</strong>
+                <p>O trabalho legítimo continua avançando enquanto itens suspeitos ou inconclusivos recebem a verificação necessária.</p>
+              </article>
+            </div>
+            <ul className="workday-opening-principles">
+              <li>Você não precisa resolver um item sem informação suficiente.</li>
+              <li>Investigar não significa acusar o remetente.</li>
+              <li>O diagnóstico aparece somente depois da revisão do lote.</li>
+            </ul>
           </div>
         ) : null}
 
         {stage === 1 ? (
-          <div className="workday-v2-stage">
-            <div className="decision-heading">
+          <div className="workday-v2-stage foundation-stage">
+            <div className="decision-heading foundation-stage-heading">
               <span className="section-kicker">Triagem em lote</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>Reduza a entrada sem forçar uma certeza</h2>
               <p>
@@ -363,47 +380,61 @@ export function WorkdayTriageSimulation({
               </p>
             </div>
 
-            <div className="workday-v2-board" aria-label="Filas da triagem">
-              {queueOptions.map((queue) => (
-                <section key={queue.id} className={`workday-v2-queue ${queue.id}`}>
-                  <header>
-                    <div><strong>{queue.label}</strong><span>{groupedItems[queue.id].length}</span></div>
-                    <p>{queue.description}</p>
-                  </header>
-                  <div>
-                    {groupedItems[queue.id].map((entry) => (
-                      <button
-                        type="button"
-                        key={entry.id}
-                        className={selectedItem.id === entry.id ? "selected" : ""}
-                        onClick={() => setSelectedItemId(entry.id)}
-                        aria-pressed={selectedItem.id === entry.id}
-                      >
-                        <span>{entry.channelLabel} · {entry.receivedAt}</span>
-                        <strong>{entry.title}</strong>
-                        <small>{entry.impactLabel}</small>
-                      </button>
-                    ))}
-                    {groupedItems[queue.id].length === 0 ? <p>Nenhum item nesta fila.</p> : null}
-                  </div>
-                </section>
-              ))}
-            </div>
-
-            <article className="workday-v2-reader">
+            <section className="workday-v2-inbox-overview" aria-labelledby="workday-inbox-title">
               <header>
                 <div>
-                  <span>{selectedItem.channelLabel} · {selectedItem.receivedAt}</span>
+                  <span className="section-kicker">Caixa de entrada</span>
+                  <h3 id="workday-inbox-title">Todos os e-mails do lote</h3>
+                  <p>Os {content.items.length} itens permanecem aqui. Selecione qualquer linha ou use os botões de anterior e próximo no e-mail aberto.</p>
+                </div>
+                <strong>{finalCount} de {content.items.length} respondidos</strong>
+              </header>
+              <div className="workday-v2-board" aria-label="Todos os e-mails da triagem">
+                {content.items.map((entry, index) => {
+                  const entryDraft = drafts[entry.id];
+                  const hasFinalDestination = entryDraft.queueId === "resolved" || entryDraft.queueId === "inconclusive";
+                  return (
+                    <button
+                      type="button"
+                      key={entry.id}
+                      className={selectedItem.id === entry.id ? "selected" : ""}
+                      onClick={() => setSelectedItemId(entry.id)}
+                      aria-pressed={selectedItem.id === entry.id}
+                    >
+                      <span className="workday-v2-inbox-index">{index + 1}</span>
+                      <span className="workday-v2-inbox-sender">{entry.senderLabel}</span>
+                      <strong>{entry.title}</strong>
+                      <small>{entry.preview}</small>
+                      <time>{entry.receivedAt}</time>
+                      <em className={hasFinalDestination && entryDraft.actionId ? "answered" : "pending"}>
+                        {hasFinalDestination && entryDraft.actionId ? queueLabels[entryDraft.queueId] : "A responder"}
+                      </em>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <article className="workday-v2-reader">
+              <div className="workday-v2-mail-toolbar">
+                <span>Caixa de entrada</span>
+                <strong>E-mail {selectedItemIndex + 1} de {content.items.length}</strong>
+              </div>
+              <header>
+                <div>
+                  <span>{selectedItem.channelLabel} · recebido às {selectedItem.receivedAt}</span>
                   <h3>{selectedItem.title}</h3>
-                  <p>{selectedItem.senderLabel}</p>
+                  <p><b>De:</b> {selectedItem.senderLabel}</p>
                 </div>
                 <strong>{selectedItem.impactLabel}</strong>
               </header>
-              <dl>
+              <dl className="workday-v2-mail-meta">
                 <div><dt>Origem exibida</dt><dd>{selectedItem.sourceLabel}</dd></div>
-                <div><dt>Resumo</dt><dd>{selectedItem.preview}</dd></div>
+                <div><dt>Prévia</dt><dd>{selectedItem.preview}</dd></div>
               </dl>
-              <p className="workday-v2-body">{selectedItem.body}</p>
+              <div className="workday-v2-mail-content">
+                <p className="workday-v2-body">{selectedItem.body}</p>
+              </div>
 
               <section className="workday-v2-evidence" aria-labelledby="workday-evidence-title">
                 <div>
@@ -456,6 +487,29 @@ export function WorkdayTriageSimulation({
                   <small>Para concluir o lote, todos os itens devem terminar em Resolvidos ou Inconclusivos.</small>
                 </label>
               </div>
+
+              <nav className="workday-v2-mail-navigation" aria-label="Navegação entre e-mails">
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={selectedItemIndex === 0}
+                  onClick={() => setSelectedItemId(content.items[selectedItemIndex - 1].id)}
+                >
+                  ← E-mail anterior
+                </button>
+                <p>
+                  <strong>{selectedItemIndex + 1} de {content.items.length}</strong>
+                  <span>{selectedDraft.actionId && (selectedDraft.queueId === "resolved" || selectedDraft.queueId === "inconclusive") ? queueLabels[selectedDraft.queueId] : "Ainda sem resposta"}</span>
+                </p>
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={selectedItemIndex === content.items.length - 1}
+                  onClick={() => setSelectedItemId(content.items[selectedItemIndex + 1].id)}
+                >
+                  Próximo e-mail →
+                </button>
+              </nav>
             </article>
 
             <div className="workday-v2-footer">
@@ -468,8 +522,8 @@ export function WorkdayTriageSimulation({
         ) : null}
 
         {stage === 2 ? (
-          <div className="workday-v2-stage">
-            <div className="decision-heading">
+          <div className="workday-v2-stage foundation-stage">
+            <div className="decision-heading foundation-stage-heading">
               <span className="section-kicker">Revisão global</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>Confira o lote antes de concluir</h2>
               <p>O gabarito ainda não aparece. Verifique se nenhum item sensível foi liberado sem confirmação e se uma pendência não recebeu certeza artificial.</p>
@@ -495,7 +549,7 @@ export function WorkdayTriageSimulation({
         ) : null}
 
         {stage === 3 ? (
-          <div className="workday-v2-stage workday-v2-transfer">
+          <div className="workday-v2-stage workday-v2-transfer foundation-stage">
             <span className="section-kicker">Transferência curta</span>
             <h2 ref={stageTitleRef} tabIndex={-1}>{content.transfer.title}</h2>
             <p>{content.transfer.context}</p>
@@ -528,7 +582,7 @@ export function WorkdayTriageSimulation({
         ) : null}
 
         {stage === 4 && displayResult ? (
-          <div className="workday-v2-stage workday-v2-result">
+          <div className="workday-v2-stage workday-v2-result foundation-stage">
             <div className={displayResult.needsReview ? "result-summary review" : "result-summary success"}>
               <div className="result-score"><span>Resultado</span><strong>{displayResult.score}</strong><small>de 100</small></div>
               <div>
@@ -586,7 +640,7 @@ export function WorkdayTriageSimulation({
         ) : null}
 
         {stage === 5 && displayResult ? (
-          <div className="workday-v2-stage workday-v2-debrief">
+          <div className="workday-v2-stage workday-v2-debrief foundation-stage">
             <span className="section-kicker">Debrief</span>
             <h2 ref={stageTitleRef} tabIndex={-1}>{contentPackage.debrief.title}</h2>
             <p>{contentPackage.debrief.body}</p>
@@ -607,6 +661,7 @@ export function WorkdayTriageSimulation({
             </div>
           </div>
         ) : null}
+        </div>
       </section>
     </ActivityShell>
   );

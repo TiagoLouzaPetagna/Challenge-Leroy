@@ -4,6 +4,8 @@ import {
   type AchievementDefinition,
   type AchievementId,
 } from "../content/achievement-catalog";
+import { findBankChangeProcessV2Package } from "../content/activities/bank-change/v2";
+import { findWorkdayTriageV2Package } from "../content/activities/workday-triage/v2";
 import { WORKDAY_MESSAGES } from "../content/simulation-catalog";
 import { TEAM_CHALLENGE_CASES } from "../content/team-challenge-catalog";
 import type { AppState, LearningAttempt } from "./types";
@@ -20,13 +22,20 @@ function attempts(state: AppState): LearningAttempt[] {
 }
 
 function hasCompleteMissionInvestigation(state: AppState): boolean {
-  return attempts(state).some(
-    (attempt) =>
+  return attempts(state).some((attempt) => {
+    if ("requestImpactPoints" in attempt.result) {
+      return attempt.result.requestImpactPoints === 20;
+    }
+
+    return (
       "decision" in attempt &&
       ["sender", "link", "context"].every((evidence) =>
-        attempt.inspectedEvidence.includes(evidence as "sender" | "link" | "context"),
-      ),
-  );
+        attempt.inspectedEvidence.includes(
+          evidence as "sender" | "link" | "context",
+        ),
+      )
+    );
+  });
 }
 
 function hasCorrectVerification(state: AppState): boolean {
@@ -54,6 +63,34 @@ function hasCorrectVerification(state: AppState): boolean {
       return attempt.caseDecisions.some(
         (decision) =>
           decision.action === "verify" && verificationCaseIds.has(decision.caseId),
+      );
+    }
+
+    if ("itemDecisions" in attempt) {
+      const contentPackage = findWorkdayTriageV2Package(
+        attempt.casePackageId,
+      );
+
+      return Boolean(
+        contentPackage &&
+          attempt.itemDecisions.some(
+            (decision) =>
+              decision.actionId === "verify" &&
+              contentPackage.allowlists.correctActionByItemId[
+                decision.itemId
+              ] === "verify",
+          ),
+      );
+    }
+
+    if ("contactSourceId" in attempt) {
+      const contentPackage = findBankChangeProcessV2Package(
+        attempt.casePackageId,
+      );
+
+      return (
+        contentPackage?.allowlists.correctContactSourceId ===
+        attempt.contactSourceId
       );
     }
 

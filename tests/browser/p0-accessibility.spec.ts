@@ -189,10 +189,10 @@ test("opera a fundação PARE v2 por teclado, move o foco e mantém a página ac
 
   await expect(missionProgress.getByRole("progressbar")).toHaveAttribute(
     "aria-label",
-    "Etapa 19 de 20: Resultado",
+    "Etapa 20 de 20: Resultado",
   );
-  await expect(missionProgress).toContainText("19 / 20");
-  await expect(missionProgress).toContainText("Concluir");
+  await expect(missionProgress).toContainText("20 / 20");
+  await expect(missionProgress).toContainText("Missão concluída");
 
   const resultDetails = page.locator("details.foundation-result-details");
   await expect(resultDetails).toHaveJSProperty("open", false);
@@ -299,6 +299,55 @@ test("rotas planejadas e desconhecidas mantêm estado explícito no navegador", 
   expectNoBrowserErrors();
 });
 
+test("hubs de prática distinguem disponível e planejado sem barreiras de acesso", async ({
+  page,
+}) => {
+  const expectNoBrowserErrors = captureBrowserErrors(page);
+  await completeRequiredTutorial(page);
+
+  await page.goto("/simulacoes");
+  await expect(
+    page.getByRole("heading", { name: "Escolha seu cenário." }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Uma manhã comum" })).toBeVisible();
+  const simulationProduction = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Em produção", exact: true }),
+  });
+  await expect(simulationProduction.getByRole("button")).toHaveCount(0);
+  await expect(simulationProduction.locator("article")).toHaveCount(2);
+  for (const scenarioName of ["Central de mensagens", "Ataque multicanal"]) {
+    const scenario = simulationProduction.locator("article").filter({
+      has: page.getByRole("heading", { name: scenarioName }),
+    });
+    await expect(scenario.getByText(/Em produção/i).first()).toBeVisible();
+  }
+  const simulationAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(
+    simulationAccessibility.violations.filter((violation) =>
+      ["serious", "critical"].includes(violation.impact ?? ""),
+    ),
+  ).toEqual([]);
+  await expectNoHorizontalOverflow(page);
+
+  await page.goto("/phishlab");
+  await expect(page.getByText("O que você quer investigar?", { exact: true })).toBeVisible();
+  for (const stationId of ["mirror-page", "incident-line"]) {
+    const station = page.locator(`[data-station-id="${stationId}"]`);
+    await expect(station.getByText("Em produção").first()).toBeVisible();
+    await expect(station.getByRole("button")).toHaveCount(0);
+  }
+  const phishLabAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(
+    phishLabAccessibility.violations.filter((violation) =>
+      ["serious", "critical"].includes(violation.impact ?? ""),
+    ),
+  ).toEqual([]);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expectNoHorizontalOverflow(page);
+  expectNoBrowserErrors();
+});
+
 test("conclui a anatomia de URL v2 por teclado e persiste o envelope atual", async ({
   page,
 }) => {
@@ -337,15 +386,23 @@ test("conclui a anatomia de URL v2 por teclado e persiste o envelope atual", asy
   ).toBeFocused();
 
   const roleAssignments = [
-    "protocol",
-    "subdomain",
-    "registeredDomain",
-    "path",
-    "parameter",
+    "Protocolo",
+    "Subdomínio",
+    "Domínio registrado",
+    "Caminho",
+    "Parâmetro",
   ];
-  const roleSelectors = page.getByRole("combobox");
+  await expect(
+    page.getByRole("heading", { name: "Monte a anatomia do endereço" }),
+  ).toBeVisible();
+  await expect(page.getByRole("combobox")).toHaveCount(0);
   for (let index = 0; index < roleAssignments.length; index += 1) {
-    await roleSelectors.nth(index).selectOption(roleAssignments[index]);
+    await page
+      .getByRole("button", { name: new RegExp(`^${roleAssignments[index]}`) })
+      .press("Enter");
+    await page
+      .getByRole("button", { name: new RegExp(`^Trecho ${index + 1},`) })
+      .press("Enter");
   }
   await page
     .getByRole("button", { name: "Concluir a anatomia e decidir" })

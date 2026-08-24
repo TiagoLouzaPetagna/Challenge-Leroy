@@ -69,6 +69,7 @@ import {
   selectActivityTimeline,
   selectRecentActivity,
   selectLevelProgress,
+  selectLearnerSector,
   selectMainJourney,
   selectNextStep,
   selectPointOrigins,
@@ -113,7 +114,10 @@ import { RadarArticle, RadarHub } from "@/features/radar/RadarExperience";
 import { TeamChallenge, TeamsHub } from "@/features/teams/TeamsExperience";
 import { BankChangeChallenge } from "@/features/teams/BankChangeChallenge";
 import { ArcadeGameDetail, ArcadeHub } from "@/features/arcade/ArcadeExperience";
-import { ManagementExperience } from "@/features/management/ManagementExperience";
+import {
+  ManagementAccessDenied,
+  ManagementExperience,
+} from "@/features/management/ManagementExperience";
 import { GuidedTutorial } from "@/features/onboarding/GuidedTutorial";
 import {
   ActivityFocusBar,
@@ -373,7 +377,7 @@ const sectionContent: Record<Exclude<ViewKey, "inicio" | "missao">, SectionConte
     badge: "Defesa coletiva",
     title: "Segurança se constrói em equipe",
     summary:
-      "As atividades individuais contribuem para um escudo coletivo. Lojas e áreas podem cumprir objetivos comuns e acompanhar sua própria evolução.",
+      "As atividades individuais contribuem para um escudo coletivo. Setores podem cumprir objetivos comuns e acompanhar sua própria evolução.",
     purpose:
       "Reforçar colaboração, comunicação e reporte, evitando que a gamificação dependa somente de competição individual.",
     blocks: [
@@ -1426,13 +1430,6 @@ function SectionView({
           >
             Voltar à visão geral
           </button>
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => onNavigate("gestao")}
-          >
-            Ver painel de gestão <span aria-hidden="true">→</span>
-          </button>
         </div>
       </section>
     </div>
@@ -1466,8 +1463,12 @@ export default function Home() {
   const {
     state,
     isHydrated,
+    account,
+    isAuthLoading,
+    authenticationError,
     localSecurityNotice,
     persistenceError,
+    logout,
     submitMission,
     submitPhishingFoundationV2,
     submitConversationReconstructionV2,
@@ -1533,6 +1534,13 @@ export default function Home() {
   const requiredTutorialOpen = requiredTutorialActive && pathname === "/";
   const guidedTutorialOpen = requiredTutorialOpen || tutorialReplayOpen;
   const modalOpen = guidedTutorialOpen;
+  const authenticationPending = isAuthLoading || !account;
+
+  useEffect(() => {
+    if (isAuthLoading || account || pathname === "/login") return;
+    const returnTo = pathname && pathname !== "/" ? pathname : "/";
+    router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [account, isAuthLoading, pathname, router]);
 
   useEffect(() => {
     if (requiredTutorialActive && pathname !== "/") {
@@ -1656,6 +1664,7 @@ export default function Home() {
     [state],
   );
   const totalPoints = useMemo(() => selectTotalPoints(state), [state]);
+  const learnerSector = useMemo(() => selectLearnerSector(state), [state]);
   const currentLevel = useMemo(() => selectCurrentLevel(state), [state]);
   const teamShield = useMemo(() => selectTeamShield(state), [state]);
   const mainJourney = useMemo(() => selectMainJourney(state), [state]);
@@ -1946,14 +1955,14 @@ export default function Home() {
         isAvailable: true,
       },
       {
-        id: "arcade:detector",
+        id: "arcade:overlooked",
         categoryLabel: "Arcade",
-        title: "Detector Relâmpago",
+        title: "Overlooked",
         summary:
-          "Atividade rápida para reconhecer sinais sem substituir a jornada principal.",
-        rewardLabel: "Missão secundária futura · 40 pontos",
+          "Jogo cooperativo para reconhecer phishing e processar solicitações legítimas.",
+        rewardLabel: "Ranking próprio · até 155 pontos",
         statusLabel: journeyMissionResult ? "Disponível" : "Após a Missão 01",
-        actionLabel: journeyMissionResult ? "Ver proposta" : "Ainda bloqueada",
+        actionLabel: journeyMissionResult ? "Jogar" : "Ainda bloqueada",
         isAvailable: Boolean(journeyMissionResult),
       },
     ],
@@ -1969,8 +1978,8 @@ export default function Home() {
 
   const profileModel = useMemo<ProfileViewModel>(
     () => ({
-      learnerName: state.demo.learner.name,
-      location: `${state.demo.learner.store} · ${state.demo.learner.area}`,
+      learnerName: account?.name ?? state.demo.learner.name,
+      location: account?.sectorName ?? learnerSector.name,
       totalPoints,
       levelLabel: levelProgress.currentLevel.label,
       levelProgress: levelProgress.progressPercentage,
@@ -2035,7 +2044,7 @@ export default function Home() {
         points: origin.points,
         status: origin.status,
       })),
-      teamName: state.teams.name,
+      teamName: learnerSector.name,
       teamShield,
       teamContributionStatus: bankChangeContribution ?? teamChallengeContribution
         ? {
@@ -2050,17 +2059,19 @@ export default function Home() {
     }),
     [
       activeReview,
+      account?.name,
+      account?.sectorName,
       achievements,
       bestMission,
       competencyOverview,
       learningPath,
       activityTimeline,
       levelProgress,
+      learnerSector.name,
       pointOrigins,
       bankChangeContribution,
       teamChallengeContribution,
       state.demo.learner,
-      state.teams.name,
       teamShield,
       totalPoints,
     ],
@@ -2179,14 +2190,14 @@ export default function Home() {
 
   const restartDemo = () => {
     const confirmed = window.confirm(
-      "Reiniciar a demonstração? O progresso salvo neste navegador será apagado.",
+      "Reiniciar seu progresso? As atividades e recompensas desta conta serão apagadas.",
     );
     if (!confirmed) return;
 
     resetDemo();
     setTutorialReplayOpen(false);
     router.push(PORTAL_VIEW_ROUTES.inicio);
-    setNotice("Demonstração reiniciada com os dados fictícios iniciais.");
+    setNotice("O progresso desta conta foi reiniciado.");
     window.scrollTo({
       top: 0,
       behavior: effectivePreferences.reducedMotion ? "auto" : "smooth",
@@ -2194,8 +2205,26 @@ export default function Home() {
   };
 
   return (
+    <>
+      {authenticationPending ? (
+        <div className="auth-session-gate" role="status" aria-live="polite">
+          <div className="auth-session-gate-card">
+            <span>Casa Digital</span>
+            <strong>
+              {authenticationError ? "Acesso indisponível" : "Validando seu acesso"}
+            </strong>
+            <p>
+              {authenticationError
+                ? authenticationError
+                : "Aguarde enquanto associamos esta sessão à sua conta."}
+            </p>
+          </div>
+        </div>
+      ) : null}
     <div
       className="app-shell"
+      inert={authenticationPending ? true : undefined}
+      aria-hidden={authenticationPending ? "true" : undefined}
       data-high-contrast={effectivePreferences.highContrast ? "true" : "false"}
       data-text-size={effectivePreferences.textSize}
       data-reduced-motion={effectivePreferences.reducedMotion ? "true" : "false"}
@@ -2221,6 +2250,7 @@ export default function Home() {
           <PortalSidebar
             activeView={activeView}
             onNavigate={navigate}
+            canAccessManagement={account?.role === "administrator"}
             data-learning-tour="learning-navigation"
             data-profile-tour="profile-navigation"
           />
@@ -2234,10 +2264,12 @@ export default function Home() {
         {!isFocusMode ? (
           <>
             <PortalTopbar
-              learnerName={state.demo.learner.name}
+              learnerName={account?.name ?? state.demo.learner.name}
               points={totalPoints}
               levelLabel={currentLevel.label}
               isHydrated={isHydrated}
+              mode={account?.role === "administrator" ? "management" : "learning"}
+              onLogout={logout}
               data-tour="progress-summary"
             />
             <div className="mobile-view-label" aria-live="polite">
@@ -2262,7 +2294,7 @@ export default function Home() {
             />
           ) : activeView === "inicio" ? (
             <HomeView
-              learnerName={state.demo.learner.name}
+              learnerName={account?.name ?? state.demo.learner.name}
               onNavigate={navigate}
               onOpenRecommendation={() => router.push(nextStep.href)}
               sectorMetrics={sectorMetrics}
@@ -2344,7 +2376,7 @@ export default function Home() {
                   router.push("/phishlab/analisador-de-links");
                   return;
                 }
-                router.push("/arcade/detector-relampago");
+                router.push("/arcade/overlooked");
               }}
               onOpenLatestResult={() => navigate("missao")}
               onOpenReview={() => router.push(nextStep.href)}
@@ -2561,6 +2593,7 @@ export default function Home() {
               isHydrated={isHydrated}
               onSavePreferences={savePreferences}
               onPreviewPreferences={setPreferencePreview}
+              onLogout={logout}
               onBackToOverview={() => navigate("inicio")}
               onOpenMission={() => navigate("missoes")}
               onOpenReview={() => router.push(nextStep.href)}
@@ -2620,7 +2653,7 @@ export default function Home() {
               />
             ) : (
               <TeamsHub
-                teamName={state.teams.name}
+                teamName={learnerSector.name}
                 metrics={sectorMetrics}
                 aggregate={state.teams.sectorAggregate}
                 ranking={sectorRanking}
@@ -2636,11 +2669,16 @@ export default function Home() {
                 onOpenLegacyChallenge={() =>
                   router.push("/equipes/caixa-de-entrada-segura")
                 }
+                onOpenProfile={() => navigate("perfil")}
                 onBackToOverview={() => navigate("inicio")}
               />
             )
           ) : activeView === "gestao" ? (
-            <ManagementExperience />
+            account?.role === "administrator" ? (
+              <ManagementExperience />
+            ) : (
+              <ManagementAccessDenied onBack={() => navigate("inicio")} />
+            )
           ) : (
             <SectionView
               content={sectionContent[activeView]}
@@ -2652,7 +2690,7 @@ export default function Home() {
           <div className="footer-copy">
             <p>Casa Digital Segura · Protótipo funcional para LEROY MERLIN</p>
             <span title={localSecurityNotice}>
-              Demonstração local · dados salvos somente neste navegador.
+              Conta conectada · progresso associado à sua sessão.
             </span>
             {persistenceError ? <span role="alert">{persistenceError}</span> : null}
           </div>
@@ -2662,7 +2700,7 @@ export default function Home() {
             onClick={restartDemo}
             disabled={!isHydrated}
           >
-            Reiniciar demonstração
+            Reiniciar meu progresso
           </button>
         </footer> : null}
         </main>
@@ -2680,5 +2718,6 @@ export default function Home() {
         />
       ) : null}
     </div>
+    </>
   );
 }

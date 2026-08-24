@@ -70,7 +70,9 @@ import type {
   LearningAttempt,
   ConversationReconstructionV2Submission,
   DomainAnalyzerV2Submission,
+  LearnerRegistration,
   LearnerPreferences,
+  ManagementTestUser,
   MissionSubmission,
   MfaConsoleV2Submission,
   PhishingFoundationV2Submission,
@@ -130,6 +132,35 @@ export type AppAction =
       type: "PREFERENCES_SAVED";
       payload: {
         preferences: LearnerPreferences;
+        changedAt: string;
+      };
+    }
+  | {
+      type: "LEARNER_PROFILE_REGISTERED";
+      payload: {
+        registration: LearnerRegistration;
+        changedAt: string;
+      };
+    }
+  | {
+      type: "DEMO_ROLE_CHANGED";
+      payload: {
+        role: "learner" | "administrator";
+        changedAt: string;
+      };
+    }
+  | {
+      type: "MANAGEMENT_TEST_USER_SAVED";
+      payload: {
+        user: ManagementTestUser;
+        changedAt: string;
+      };
+    }
+  | {
+      type: "MANAGEMENT_TEST_USER_STATUS_CHANGED";
+      payload: {
+        userId: string;
+        status: "active" | "inactive";
         changedAt: string;
       };
     }
@@ -2336,6 +2367,250 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...action.payload.preferences,
         },
       };
+    case "DEMO_ROLE_CHANGED": {
+      if (
+        action.payload.role !== "learner" &&
+        action.payload.role !== "administrator"
+      ) {
+        return state;
+      }
+
+      if (state.demo.activeRole === action.payload.role) {
+        return state;
+      }
+
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          revision: state.meta.revision + 1,
+          savedAt: action.payload.changedAt,
+        },
+        demo: {
+          ...state.demo,
+          activeRole: action.payload.role,
+        },
+      };
+    }
+    case "MANAGEMENT_TEST_USER_SAVED": {
+      if (state.demo.activeRole !== "administrator") {
+        return state;
+      }
+
+      const id = action.payload.user.id.trim();
+      const employeeId = action.payload.user.employeeId.trim();
+      const name = action.payload.user.name.trim();
+      const sectorId = action.payload.user.sectorId.trim();
+      const sectorName = action.payload.user.sectorName.trim();
+      const existing = state.admin.testUsers.find((user) => user.id === id);
+      const duplicateEmployeeId = state.admin.testUsers.some(
+        (user) =>
+          user.id !== id &&
+          user.employeeId.toLocaleLowerCase("pt-BR") ===
+            employeeId.toLocaleLowerCase("pt-BR"),
+      );
+
+      if (
+        id.length < 3 ||
+        employeeId.length < 3 ||
+        employeeId.length > 32 ||
+        name.length < 2 ||
+        name.length > 80 ||
+        sectorId.length < 2 ||
+        sectorId.length > 64 ||
+        sectorName.length < 2 ||
+        sectorName.length > 80 ||
+        duplicateEmployeeId ||
+        (action.payload.user.status !== "active" &&
+          action.payload.user.status !== "inactive") ||
+        Number.isNaN(Date.parse(action.payload.user.createdAt)) ||
+        Number.isNaN(Date.parse(action.payload.user.updatedAt))
+      ) {
+        return state;
+      }
+
+      const savedUser: ManagementTestUser = {
+        ...action.payload.user,
+        id,
+        employeeId,
+        name,
+        sectorId,
+        sectorName,
+        status: existing?.status ?? "active",
+        createdAt: existing?.createdAt ?? action.payload.user.createdAt,
+        updatedAt: action.payload.changedAt,
+      };
+      const nextUsers = existing
+        ? state.admin.testUsers.map((user) =>
+            user.id === savedUser.id ? savedUser : user,
+          )
+        : [...state.admin.testUsers, savedUser];
+
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          revision: state.meta.revision + 1,
+          savedAt: action.payload.changedAt,
+        },
+        admin: {
+          ...state.admin,
+          testUsers: nextUsers,
+          auditLog: [
+            ...state.admin.auditLog,
+            {
+              id: `audit:test-user:${savedUser.id}:${action.payload.changedAt}`,
+              action: existing
+                ? "managementTestUserUpdated"
+                : "managementTestUserCreated",
+              actorId: state.demo.administrator.id,
+              createdAt: action.payload.changedAt,
+            },
+          ],
+        },
+      };
+    }
+    case "MANAGEMENT_TEST_USER_STATUS_CHANGED": {
+      if (
+        state.demo.activeRole !== "administrator" ||
+        (action.payload.status !== "active" &&
+          action.payload.status !== "inactive")
+      ) {
+        return state;
+      }
+
+      const existing = state.admin.testUsers.find(
+        (user) => user.id === action.payload.userId,
+      );
+      if (!existing || existing.status === action.payload.status) {
+        return state;
+      }
+
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          revision: state.meta.revision + 1,
+          savedAt: action.payload.changedAt,
+        },
+        admin: {
+          ...state.admin,
+          testUsers: state.admin.testUsers.map((user) =>
+            user.id === existing.id
+              ? {
+                  ...user,
+                  status: action.payload.status,
+                  updatedAt: action.payload.changedAt,
+                }
+              : user,
+          ),
+          auditLog: [
+            ...state.admin.auditLog,
+            {
+              id: `audit:test-user-status:${existing.id}:${action.payload.changedAt}`,
+              action:
+                action.payload.status === "active"
+                  ? "managementTestUserActivated"
+                  : "managementTestUserDeactivated",
+              actorId: state.demo.administrator.id,
+              createdAt: action.payload.changedAt,
+            },
+          ],
+        },
+      };
+    }
+    case "LEARNER_PROFILE_REGISTERED": {
+      const employeeId = action.payload.registration.employeeId.trim();
+      const learnerName = action.payload.registration.name.trim();
+      const sectorId = action.payload.registration.sectorId.trim();
+      const sectorName = action.payload.registration.sectorName.trim();
+      const leaderboardIdentity =
+        action.payload.registration.leaderboardIdentity;
+
+      if (
+        employeeId.length < 3 ||
+        employeeId.length > 32 ||
+        learnerName.length < 2 ||
+        learnerName.length > 80 ||
+        sectorId.length < 2 ||
+        sectorId.length > 64 ||
+        sectorName.length < 2 ||
+        sectorName.length > 80 ||
+        (leaderboardIdentity !== "initials" &&
+          leaderboardIdentity !== "displayName" &&
+          leaderboardIdentity !== "anonymous")
+      ) {
+        return state;
+      }
+
+      const normalizedSectorName = sectorName.toLocaleLowerCase("pt-BR");
+      const existingSectorEntry = state.teams.ranking.find(
+        (entry) =>
+          entry.id === sectorId ||
+          entry.name
+            .replace(/^Loja\s+\d+\s*·\s*/i, "")
+            .trim()
+            .toLocaleLowerCase("pt-BR") === normalizedSectorName,
+      );
+      const nextRanking = existingSectorEntry
+        ? state.teams.ranking.map((entry) =>
+            entry.id === existingSectorEntry.id
+              ? { ...entry, id: sectorId, name: sectorName }
+              : entry,
+          )
+        : [
+            ...state.teams.ranking,
+            {
+              id: sectorId,
+              name: sectorName,
+              score: state.teams.baseShield,
+            },
+          ];
+
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          revision: state.meta.revision + 1,
+          savedAt: action.payload.changedAt,
+        },
+        demo: {
+          ...state.demo,
+          learner: {
+            id: employeeId,
+            name: learnerName,
+            store: "Unidade não utilizada no P1",
+            area: sectorName,
+          },
+          activeRole: "learner",
+        },
+        teams: {
+          ...state.teams,
+          id: sectorId,
+          name: sectorName,
+          ranking: nextRanking,
+        },
+        preferences: {
+          ...state.preferences,
+          leaderboardParticipation:
+            action.payload.registration.leaderboardParticipation,
+          leaderboardIdentity:
+            leaderboardIdentity,
+        },
+        admin: {
+          ...state.admin,
+          auditLog: [
+            ...state.admin.auditLog,
+            {
+              id: `audit:learner-profile:${action.payload.changedAt}`,
+              action: "learnerProfileRegisteredInLocalDemo",
+              actorId: employeeId,
+              createdAt: action.payload.changedAt,
+            },
+          ],
+        },
+      };
+    }
     case "TUTORIAL_STARTED":
       return {
         ...state,

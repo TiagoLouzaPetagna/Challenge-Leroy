@@ -38,7 +38,7 @@ export function createDemoState(): AppState {
     },
     teams: {
       id: "loja-047-casa-decoracao",
-      name: "Loja 047 · Casa & Decoração",
+      name: "Casa & Decoração",
       baseShield: 71,
       contributionClaims: {},
       aggregateClaims: {},
@@ -92,6 +92,38 @@ export function createDemoState(): AppState {
       },
     },
     admin: {
+      testUsers: [
+        {
+          id: "test-user:ana-logistica",
+          employeeId: "TESTE-1001",
+          name: "Ana Souza",
+          sectorId: "logistica",
+          sectorName: "Logística",
+          status: "active",
+          createdAt: DEMO_STARTED_AT,
+          updatedAt: DEMO_STARTED_AT,
+        },
+        {
+          id: "test-user:bruno-ferramentas",
+          employeeId: "TESTE-1002",
+          name: "Bruno Lima",
+          sectorId: "ferramentas",
+          sectorName: "Ferramentas",
+          status: "active",
+          createdAt: DEMO_STARTED_AT,
+          updatedAt: DEMO_STARTED_AT,
+        },
+        {
+          id: "test-user:carla-tintas",
+          employeeId: "TESTE-1003",
+          name: "Carla Mendes",
+          sectorId: "tintas",
+          sectorName: "Tintas",
+          status: "inactive",
+          createdAt: DEMO_STARTED_AT,
+          updatedAt: DEMO_STARTED_AT,
+        },
+      ],
       auditLog: [],
     },
   };

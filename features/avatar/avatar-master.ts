@@ -1,4 +1,10 @@
-export const MASTER_AVATAR_VIEWBOX = "0 0 320 520";
+export const MASTER_AVATAR_GRID = {
+  width: 64,
+  height: 96,
+  centerX: 32,
+} as const;
+
+export const MASTER_AVATAR_VIEWBOX = "0 0 64 96";
 
 export const MASTER_AVATAR_LAYER_ORDER = [
   "hair-back",
@@ -6,10 +12,7 @@ export const MASTER_AVATAR_LAYER_ORDER = [
   "lower-clothing",
   "shoes",
   "upper-clothing",
-  "head",
-  "eyes",
-  "eyebrows",
-  "mouth",
+  "face",
   "hair-front",
   "glasses",
   "head-accessory",
@@ -18,45 +21,56 @@ export const MASTER_AVATAR_LAYER_ORDER = [
 
 export type MasterAvatarLayer = (typeof MASTER_AVATAR_LAYER_ORDER)[number];
 
+export const DEFAULT_MASTER_AVATAR_LAYERS: Readonly<
+  Record<MasterAvatarLayer, string | null>
+> = {
+  "hair-back": null,
+  body: "/avatar/base/body-base.png",
+  "lower-clothing": "/avatar/bottoms/base-underwear.png",
+  shoes: null,
+  "upper-clothing": null,
+  face: "/avatar/face/face-01.png",
+  "hair-front": null,
+  glasses: null,
+  "head-accessory": null,
+  "special-accessory": null,
+};
+
 export const MASTER_AVATAR_ANCHORS = {
-  canvas: { width: 320, height: 520, centerX: 160 },
-  head: { x: 92, y: 32, width: 136, height: 155, centerX: 160 },
-  ears: { leftX: 82, rightX: 208, y: 101, width: 30, height: 43 },
-  eyes: { leftX: 136, rightX: 184, y: 111, radius: 8 },
-  eyebrows: { leftX: 124, rightX: 172, y: 91, width: 24 },
-  mouth: { x: 136, y: 137, width: 48, height: 34 },
-  neck: { x: 135, y: 172, width: 50, height: 60 },
-  shoulders: { leftX: 95, rightX: 225, y: 190 },
-  arms: { leftX: 70, rightX: 212, y: 216, width: 38, height: 174 },
-  hands: { leftX: 89, rightX: 231, y: 389, radius: 25 },
-  torso: { x: 102, y: 180, width: 116, height: 162 },
-  waist: { x: 112, y: 333, width: 96, height: 36 },
-  legs: { leftX: 112, rightX: 165, y: 357, width: 43, height: 108 },
-  feet: { leftX: 96, rightX: 164, y: 451, width: 60, height: 37 },
+  canvas: MASTER_AVATAR_GRID,
+  head: { x: 16, y: 9, width: 32, height: 31, centerX: 32 },
+  eyes: { leftX: 25, rightX: 36, y: 24, width: 3, height: 7 },
+  neck: { x: 28, y: 39, width: 8, height: 5 },
+  shoulders: { leftX: 22, rightX: 42, y: 41 },
+  arms: { leftX: 14, rightX: 40, y: 42, width: 10, height: 27 },
+  torso: { x: 22, y: 41, width: 20, height: 21 },
+  waist: { x: 23, y: 59, width: 18, height: 11 },
+  legs: { leftX: 25, rightX: 33, y: 68, width: 6, height: 20 },
+  feet: { leftX: 23, rightX: 33, y: 84, width: 9, height: 5 },
 } as const;
 
 export type MasterAvatarPalette = {
+  outline: string;
+  outlineSoft: string;
   skin: string;
-  skinDetail: string;
+  skinLight: string;
+  skinShadow: string;
   eyes: string;
-  eyebrows: string;
-  mouth: string;
-  shirt: string;
-  shirtDetail: string;
-  pants: string;
-  shoes: string;
-  shoeSole: string;
+  eyeLight: string;
+  cloth: string;
+  clothShadow: string;
+  clothLight: string;
 };
 
 export const DEFAULT_MASTER_AVATAR_PALETTE: Readonly<MasterAvatarPalette> = {
-  skin: "#E4A077",
-  skinDetail: "#D98D68",
-  eyes: "#173F35",
-  eyebrows: "#81523E",
-  mouth: "#FFFFFF",
-  shirt: "#F7F7F2",
-  shirtDetail: "#DDE1DA",
-  pants: "#324A43",
-  shoes: "#A56F5B",
-  shoeSole: "#714A3D",
+  outline: "#4A2026",
+  outlineSoft: "#71333A",
+  skin: "#FFAE7D",
+  skinLight: "#FFC190",
+  skinShadow: "#E8785D",
+  eyes: "#2D1717",
+  eyeLight: "#D9D2CC",
+  cloth: "#F2F4F5",
+  clothShadow: "#C8CED6",
+  clothLight: "#FFFFFF",
 };

@@ -89,25 +89,224 @@ type Props = {
   onOpenProfile: () => void;
 };
 
+type ChoicePresentation =
+  | "action"
+  | "object"
+  | "relation"
+  | "pause"
+  | "analysis"
+  | "route"
+  | "verdict"
+  | "response"
+  | "transfer";
+
+type ChoiceGlyphKind =
+  | "button"
+  | "document"
+  | "person"
+  | "account"
+  | "calendar"
+  | "package"
+  | "exposure"
+  | "clock"
+  | "delete"
+  | "pause"
+  | "open"
+  | "connect"
+  | "appearance"
+  | "urgency"
+  | "official"
+  | "search"
+  | "reply"
+  | "suspicious"
+  | "malicious"
+  | "legitimate"
+  | "report"
+  | "secret";
+
+const CHOICE_GLYPHS: Record<string, ChoiceGlyphKind> = {
+  "confirm-account-from-message": "button",
+  "read-notice-only": "document",
+  "wait-for-manager": "person",
+  "corporate-account": "account",
+  "meeting-calendar": "calendar",
+  "delivery-record": "package",
+  "credential-or-session-exposure": "exposure",
+  "temporary-delay": "clock",
+  "message-deletion": "delete",
+  "pause-before-message-action": "pause",
+  "open-message-first": "open",
+  "delete-without-review": "delete",
+  "connect-request-asset-consequence": "connect",
+  "trust-corporate-appearance": "appearance",
+  "treat-urgency-as-proof": "urgency",
+  "known-official-reference": "official",
+  "generic-search": "search",
+  "message-button": "button",
+  "reply-to-message": "reply",
+  "suspicious-unconfirmed": "suspicious",
+  "confirmed-malicious": "malicious",
+  legitimate: "legitimate",
+  "keep-account-and-report": "report",
+  "delete-only": "delete",
+  "continue-through-message": "button",
+  "share-secret-with-support": "secret",
+  "use-known-route-no-incident": "official",
+  "report-as-attack": "report",
+  "discard-without-checking": "delete",
+  "follow-message-instruction": "open",
+};
+
+function ChoiceGlyph({ kind }: { kind: ChoiceGlyphKind }) {
+  const commonProps = {
+    viewBox: "0 0 64 64",
+    "aria-hidden": true,
+    focusable: "false",
+  } as const;
+
+  if (kind === "button" || kind === "open") {
+    return (
+      <svg {...commonProps}>
+        <rect x="8" y="13" width="48" height="31" rx="7" />
+        <path d="M20 25h24M39 49l6-14 7 13-6-2-4 6z" />
+      </svg>
+    );
+  }
+
+  if (kind === "document" || kind === "delete") {
+    return (
+      <svg {...commonProps}>
+        <path d="M18 7h21l9 9v40H18zM39 7v11h9M25 29h16M25 37h13" />
+        {kind === "delete" ? <path d="M22 50h24M27 50l2-12h10l2 12" /> : null}
+      </svg>
+    );
+  }
+
+  if (kind === "person" || kind === "reply") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="27" cy="20" r="9" />
+        <path d="M11 53c2-12 8-18 16-18s14 6 16 18M38 29h16M47 22l7 7-7 7" />
+      </svg>
+    );
+  }
+
+  if (kind === "account" || kind === "secret") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="23" cy="32" r="11" />
+        <path d="M34 32h22M48 32v8M42 32v6M18 32h10" />
+        {kind === "secret" ? <path d="M10 51c10-7 19-7 28 0" /> : null}
+      </svg>
+    );
+  }
+
+  if (kind === "calendar" || kind === "clock" || kind === "urgency") {
+    return kind === "calendar" ? (
+      <svg {...commonProps}>
+        <rect x="10" y="14" width="44" height="39" rx="7" />
+        <path d="M10 25h44M22 9v11M42 9v11M22 34h7M35 34h7M22 43h7" />
+      </svg>
+    ) : (
+      <svg {...commonProps}>
+        <circle cx="32" cy="32" r="23" />
+        <path d="M32 18v15l10 7" />
+        {kind === "urgency" ? <path d="M24 5h16M32 2v6" /> : null}
+      </svg>
+    );
+  }
+
+  if (kind === "package") {
+    return (
+      <svg {...commonProps}>
+        <path d="M9 20 32 8l23 12v26L32 57 9 46zM9 20l23 12 23-12M32 32v25M21 14l23 12" />
+      </svg>
+    );
+  }
+
+  if (kind === "exposure" || kind === "connect") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="13" cy="32" r="7" />
+        <circle cx="51" cy="16" r="7" />
+        <circle cx="51" cy="48" r="7" />
+        <path d="M20 30c12-1 15-10 24-12M20 34c12 1 15 10 24 12" />
+        {kind === "exposure" ? <path d="m29 25 7 7-7 7" /> : null}
+      </svg>
+    );
+  }
+
+  if (kind === "pause") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="32" cy="32" r="23" />
+        <path d="M25 20v24M39 20v24" />
+      </svg>
+    );
+  }
+
+  if (kind === "appearance") {
+    return (
+      <svg {...commonProps}>
+        <rect x="7" y="11" width="50" height="39" rx="8" />
+        <path d="M7 21h50M14 16h1M21 16h1M26 36c5-8 11-8 16 0-5 8-11 8-16 0z" />
+        <circle cx="34" cy="36" r="3" />
+      </svg>
+    );
+  }
+
+  if (kind === "official" || kind === "legitimate" || kind === "report") {
+    return (
+      <svg {...commonProps}>
+        <path d="M32 6c7 6 14 8 22 9v15c0 14-8 23-22 29C18 53 10 44 10 30V15c8-1 15-3 22-9z" />
+        <path d="m21 32 7 7 15-17" />
+        {kind === "report" ? <path d="M40 46h12M46 40v12" /> : null}
+      </svg>
+    );
+  }
+
+  if (kind === "search") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="27" cy="27" r="17" />
+        <path d="m39 39 15 15M20 22h14M20 30h10" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...commonProps}>
+      <path d="M32 7 57 53H7z" />
+      <path d="M32 23v14M32 45h.1" />
+      {kind === "malicious" ? <circle cx="32" cy="32" r="22" /> : null}
+    </svg>
+  );
+}
+
 function RadioGroup<T extends string>({
   legend,
   name,
   value,
   options,
+  presentation,
   onChange,
 }: {
   legend: string;
   name: string;
   value: T | null;
   options: readonly { id: T; label: string; detail?: string }[];
+  presentation: ChoicePresentation;
   onChange: (value: T) => void;
 }) {
   return (
-    <fieldset className="foundation-choice-group">
+    <fieldset
+      className={`foundation-choice-group foundation-choice-scene foundation-choice-scene--${presentation}`}
+    >
       <legend>{legend}</legend>
       {options.map((option) => (
         <label
           key={option.id}
+          data-choice-id={option.id}
           className={value === option.id ? "selected" : ""}
         >
           <input
@@ -116,6 +315,9 @@ function RadioGroup<T extends string>({
             checked={value === option.id}
             onChange={() => onChange(option.id)}
           />
+          <span className="foundation-choice-visual">
+            <ChoiceGlyph kind={CHOICE_GLYPHS[option.id] ?? "document"} />
+          </span>
           <span>
             <strong>{option.label}</strong>
           </span>
@@ -132,7 +334,24 @@ function optionLabel(
   return options.find((option) => option.id === id)?.label ?? "Não respondido";
 }
 
+function AddressWithHighlightedDomain({ address }: { address: string }) {
+  const separatorIndex = address.lastIndexOf("@");
+
+  if (separatorIndex < 0) {
+    return <>{address}</>;
+  }
+
+  return (
+    <>
+      <span>{address.slice(0, separatorIndex + 1)}</span>
+      <mark>{address.slice(separatorIndex + 1)}</mark>
+    </>
+  );
+}
+
 function MissionProgress({ stage }: { stage: number }) {
+  const missionComplete = stage >= RESULT_STAGE;
+  const visibleStep = missionComplete ? STAGES.length : stage + 1;
   const macroIndex = Math.max(
     MACRO_PHASES.findIndex(
       (phase) => stage >= phase.start && stage <= phase.end,
@@ -149,31 +368,35 @@ function MissionProgress({ stage }: { stage: number }) {
       <div className="foundation-progress-heading">
         <div aria-live="polite">
           <span>Fase {macroIndex + 1} de {MACRO_PHASES.length}</span>
-          <strong aria-current="step">{macro.label}</strong>
+          <strong aria-current={missionComplete ? undefined : "step"}>
+            {missionComplete ? "Missão concluída" : macro.label}
+          </strong>
         </div>
         <b>
-          {stage + 1} / {STAGES.length}
+          {visibleStep} / {STAGES.length}
         </b>
       </div>
       <progress
         max={STAGES.length}
-        value={stage + 1}
-        aria-label={`Etapa ${stage + 1} de ${STAGES.length}: ${STAGES[stage]}`}
+        value={visibleStep}
+        aria-label={`Etapa ${visibleStep} de ${STAGES.length}: ${STAGES[stage]}`}
       />
       <ol className="foundation-progress-phases" aria-label="Fases da missão">
         {MACRO_PHASES.map((phase, index) => (
           <li
             key={phase.label}
             className={
-              index < macroIndex
+              missionComplete || index < macroIndex
                 ? "complete"
                 : index === macroIndex
                   ? "active"
                   : ""
             }
-            aria-current={index === macroIndex ? "step" : undefined}
+            aria-current={!missionComplete && index === macroIndex ? "step" : undefined}
           >
-            <span aria-hidden="true">{index < macroIndex ? "✓" : index + 1}</span>
+            <span aria-hidden="true">
+              {missionComplete || index < macroIndex ? "✓" : index + 1}
+            </span>
             <strong>{phase.shortLabel}</strong>
           </li>
         ))}
@@ -472,7 +695,11 @@ export function PhishingFoundationMission({
                   </svg>
                   <div className="foundation-sender-diagram__node emphasis">
                     <small>Endereço completo</small>
-                    <strong>{content.message.senderAddress}</strong>
+                    <strong>
+                      <AddressWithHighlightedDomain
+                        address={content.message.senderAddress}
+                      />
+                    </strong>
                   </div>
                   <p>A aparência apresenta. O endereço ajuda a investigar.</p>
                 </div>
@@ -504,6 +731,7 @@ export function PhishingFoundationMission({
                   name="foundation-request"
                   value={requestedActionId}
                   options={FOUNDATION_REQUESTED_ACTION_OPTIONS}
+                  presentation="action"
                   onChange={setRequestedActionId}
                 />
               </div>
@@ -541,6 +769,7 @@ export function PhishingFoundationMission({
                   name="foundation-asset"
                   value={protectedAssetId}
                   options={FOUNDATION_ASSET_OPTIONS}
+                  presentation="object"
                   onChange={setProtectedAssetId}
                 />
               </div>
@@ -571,6 +800,7 @@ export function PhishingFoundationMission({
                   name="foundation-consequence"
                   value={potentialConsequenceId}
                   options={FOUNDATION_CONSEQUENCE_OPTIONS}
+                  presentation="relation"
                   onChange={setPotentialConsequenceId}
                 />
               </div>
@@ -629,6 +859,7 @@ export function PhishingFoundationMission({
                   name="foundation-pause"
                   value={pauseDecisionId}
                   options={FOUNDATION_PAUSE_OPTIONS}
+                  presentation="pause"
                   onChange={setPauseDecisionId}
                 />
               </div>
@@ -697,6 +928,7 @@ export function PhishingFoundationMission({
                   name="foundation-evaluation"
                   value={evaluationId}
                   options={FOUNDATION_EVALUATION_OPTIONS}
+                  presentation="analysis"
                   onChange={setEvaluationId}
                 />
               </div>
@@ -809,6 +1041,7 @@ export function PhishingFoundationMission({
                   name="foundation-confirmation"
                   value={confirmationRouteId}
                   options={FOUNDATION_CONFIRMATION_OPTIONS}
+                  presentation="route"
                   onChange={setConfirmationRouteId}
                 />
               </div>
@@ -873,6 +1106,7 @@ export function PhishingFoundationMission({
                   name="foundation-assessment"
                   value={finalAssessmentId}
                   options={FOUNDATION_ASSESSMENT_OPTIONS}
+                  presentation="verdict"
                   onChange={setFinalAssessmentId}
                 />
               </div>
@@ -904,6 +1138,7 @@ export function PhishingFoundationMission({
                   name="foundation-action"
                   value={finalActionId}
                   options={FOUNDATION_FINAL_ACTION_OPTIONS}
+                  presentation="response"
                   onChange={setFinalActionId}
                 />
               </div>
@@ -1010,6 +1245,7 @@ export function PhishingFoundationMission({
                   name="foundation-transfer"
                   value={transferDecisionId}
                   options={FOUNDATION_TRANSFER_OPTIONS}
+                  presentation="transfer"
                   onChange={setTransferDecisionId}
                 />
               </div>
@@ -1098,7 +1334,7 @@ export function PhishingFoundationMission({
 
               <nav className="foundation-nav" aria-label="Ações do resultado">
                 <button type="button" className="primary-button dark" onClick={() => moveTo(DEBRIEF_STAGE)}>
-                  Entender o modelo PARE
+                  Entenda por que funcionou
                 </button>
                 <button type="button" className="text-button" onClick={onOpenProfile}>
                   Ver meu perfil

@@ -18,8 +18,9 @@ export const ACHIEVEMENT_CATALOG: readonly AchievementDefinition[] = [
   {
     id: "olhar-atento",
     title: "Olhar atento",
-    description: "Concluiu uma investigação completa antes de decidir.",
-    condition: "Inspecione remetente, link e contexto em uma Missão.",
+    description: "Relacionou o pedido, o ativo protegido e a consequência.",
+    condition:
+      "Identifique corretamente pedido, ativo e consequência na primeira Missão.",
     rewardPoints: 100,
   },
   {

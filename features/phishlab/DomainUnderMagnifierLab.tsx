@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type PointerEvent,
+} from "react";
 
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import {
@@ -64,7 +70,7 @@ function packageById(casePackageId: string): DomainAnalyzerV2Package {
   );
 }
 
-function SegmentTable({
+function SegmentDragBoard({
   segments,
   assignments,
   roleOptions,
@@ -75,53 +81,210 @@ function SegmentTable({
   roleOptions: DomainAnalyzerV2Package["content"]["roleOptions"];
   onAssign: (segmentId: string, roleId: UrlSegmentRoleId) => void;
 }) {
+  const [heldRoleId, setHeldRoleId] = useState<UrlSegmentRoleId | null>(null);
+  const [dragOverSegmentId, setDragOverSegmentId] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState(
+    "Arraste uma função até o trecho correspondente.",
+  );
+  const pointerStartRef = useRef<{
+    pointerId: number;
+    roleId: UrlSegmentRoleId;
+    x: number;
+    y: number;
+  } | null>(null);
+  const pointerMovedRef = useRef(false);
+  const suppressClickRef = useRef(false);
+
+  const roleLabel = (roleId: UrlSegmentRoleId) =>
+    roleOptions.find((role) => role.id === roleId)?.label ?? "Função";
+
+  const placeRole = (segmentId: string, roleId: UrlSegmentRoleId) => {
+    onAssign(segmentId, roleId);
+    const segment = segments.find((candidate) => candidate.id === segmentId);
+    setHeldRoleId(null);
+    setDragOverSegmentId(null);
+    setAnnouncement(
+      `${roleLabel(roleId)} foi colocado em ${segment?.value || "sem subdomínio"}.`,
+    );
+  };
+
+  const roleFromDrag = (event: DragEvent<HTMLElement>) =>
+    (event.dataTransfer.getData("application/x-url-role") ||
+      event.dataTransfer.getData("text/plain")) as UrlSegmentRoleId;
+
+  const segmentUnderPointer = (clientX: number, clientY: number) =>
+    document
+      .elementFromPoint(clientX, clientY)
+      ?.closest<HTMLElement>("[data-url-drop-segment]")
+      ?.dataset.urlDropSegment ?? null;
+
+  const beginTouchDrag = (
+    event: PointerEvent<HTMLButtonElement>,
+    roleId: UrlSegmentRoleId,
+  ) => {
+    if (event.pointerType === "mouse") return;
+    pointerStartRef.current = {
+      pointerId: event.pointerId,
+      roleId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    pointerMovedRef.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setHeldRoleId(roleId);
+  };
+
+  const moveTouchDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    const start = pointerStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) {
+      pointerMovedRef.current = true;
+    }
+    if (!pointerMovedRef.current) return;
+    event.preventDefault();
+    setDragOverSegmentId(segmentUnderPointer(event.clientX, event.clientY));
+  };
+
+  const finishTouchDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    const start = pointerStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const segmentId = segmentUnderPointer(event.clientX, event.clientY);
+    if (pointerMovedRef.current) {
+      suppressClickRef.current = true;
+      if (segmentId) placeRole(segmentId, start.roleId);
+      else {
+        setHeldRoleId(null);
+        setDragOverSegmentId(null);
+        setAnnouncement("A função voltou para a bandeja. Tente arrastá-la até um trecho.");
+      }
+    }
+    pointerStartRef.current = null;
+    pointerMovedRef.current = false;
+  };
+
   return (
-    <div className="url-anatomy-table-wrap">
-      <table className="url-anatomy-table">
-        <caption>
-          Atribua uma função a cada trecho. A pontuação e a resposta só aparecem
-          depois do envio.
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Trecho</th>
-            <th scope="col">Função atribuída</th>
-          </tr>
-        </thead>
-        <tbody>
-          {segments.map((segment, index) => (
-            <tr key={segment.id}>
-              <th scope="row">
-                <span>Trecho {index + 1}</span>
-                <code>{segment.value || "(sem subdomínio)"}</code>
-              </th>
-              <td>
-                <label>
-                  <span className="sr-only">
-                    Função do trecho {segment.value || "sem subdomínio"}
-                  </span>
-                  <select
-                    value={assignments[segment.id] ?? ""}
-                    onChange={(event) =>
-                      onAssign(
-                        segment.id,
-                        event.target.value as UrlSegmentRoleId,
-                      )
-                    }
-                  >
-                    <option value="">Selecione</option>
-                    {roleOptions.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="url-drag-board" aria-describedby="url-drag-instructions">
+      <div className="url-drag-board__heading">
+        <div>
+          <span className="pare-step-badge">Arraste e solte</span>
+          <h3>Monte a anatomia do endereço</h3>
+        </div>
+        <p id="url-drag-instructions">
+          Arraste cada função até o trecho correspondente. No teclado ou no toque,
+          escolha uma função e depois escolha o destino.
+        </p>
+      </div>
+
+      <section className="url-role-palette" aria-label="Funções disponíveis">
+        <span>Funções para posicionar</span>
+        <div>
+          {roleOptions.map((role) => {
+            const assignedSegment = segments.find(
+              (segment) => assignments[segment.id] === role.id,
+            );
+            const isHeld = heldRoleId === role.id;
+            return (
+              <button
+                key={role.id}
+                type="button"
+                draggable
+                className={`${isHeld ? "is-held" : ""} ${assignedSegment ? "is-assigned" : ""}`.trim()}
+                aria-pressed={isHeld}
+                onClick={() => {
+                  if (suppressClickRef.current) {
+                    suppressClickRef.current = false;
+                    return;
+                  }
+                  setHeldRoleId((current) => (current === role.id ? null : role.id));
+                  setAnnouncement(
+                    isHeld
+                      ? `${role.label} voltou para a bandeja.`
+                      : `${role.label} selecionado. Agora escolha um trecho.`,
+                  );
+                }}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("application/x-url-role", role.id);
+                  event.dataTransfer.setData("text/plain", role.id);
+                  setHeldRoleId(role.id);
+                  setAnnouncement(`${role.label} em movimento.`);
+                }}
+                onDragEnd={() => {
+                  setHeldRoleId(null);
+                  setDragOverSegmentId(null);
+                }}
+                onPointerDown={(event) => beginTouchDrag(event, role.id)}
+                onPointerMove={moveTouchDrag}
+                onPointerUp={finishTouchDrag}
+                onPointerCancel={() => {
+                  pointerStartRef.current = null;
+                  pointerMovedRef.current = false;
+                  setHeldRoleId(null);
+                  setDragOverSegmentId(null);
+                }}
+              >
+                <span aria-hidden="true">⋮⋮</span>
+                <strong>{role.label}</strong>
+                <small>
+                  {assignedSegment
+                    ? `Em ${assignedSegment.value || "sem subdomínio"}`
+                    : "Disponível"}
+                </small>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="url-segment-drop-grid" aria-label="Trechos do endereço">
+        {segments.map((segment, index) => {
+          const assignedRoleId = assignments[segment.id];
+          const isOver = dragOverSegmentId === segment.id;
+          return (
+            <button
+              key={segment.id}
+              type="button"
+              data-url-drop-segment={segment.id}
+              className={`${assignedRoleId ? "has-role" : ""} ${isOver ? "is-over" : ""}`.trim()}
+              onClick={() => {
+                if (heldRoleId) placeRole(segment.id, heldRoleId);
+              }}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragOverSegmentId(segment.id);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  setDragOverSegmentId(null);
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const roleId = roleFromDrag(event);
+                if (roleOptions.some((role) => role.id === roleId)) {
+                  placeRole(segment.id, roleId);
+                }
+              }}
+              aria-label={`Trecho ${index + 1}, ${segment.value || "sem subdomínio"}. ${
+                assignedRoleId
+                  ? `Função ${roleLabel(assignedRoleId)} atribuída.`
+                  : "Sem função atribuída."
+              }`}
+            >
+              <span>Trecho {String(index + 1).padStart(2, "0")}</span>
+              <code>{segment.value || "(sem subdomínio)"}</code>
+              <strong>
+                {assignedRoleId ? roleLabel(assignedRoleId) : "Solte uma função aqui"}
+              </strong>
+            </button>
+          );
+        })}
+      </section>
+      <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     </div>
   );
 }
@@ -259,7 +422,16 @@ export function DomainUnderMagnifierLab({
   };
 
   const assignRole = (segmentId: string, roleId: UrlSegmentRoleId) => {
-    setSegmentRoleById((current) => ({ ...current, [segmentId]: roleId }));
+    setSegmentRoleById((current) => {
+      const next = Object.fromEntries(
+        Object.entries(current).filter(
+          ([currentSegmentId, currentRoleId]) =>
+            currentSegmentId === segmentId || currentRoleId !== roleId,
+        ),
+      ) as Record<string, UrlSegmentRoleId>;
+      next[segmentId] = roleId;
+      return next;
+    });
   };
 
   const openRoleReference = () => {
@@ -486,8 +658,8 @@ export function DomainUnderMagnifierLab({
       className="page-stack lab-player-page url-anatomy-page"
       activityId={DOMAIN_ANALYZER_V2_ACTIVITY_ID}
     >
-      <section className="lab-player-shell url-anatomy-shell">
-        <header className="lab-player-header">
+      <section className="lab-player-shell url-anatomy-shell foundation-shell">
+        <header className="lab-player-header foundation-header">
           <div>
             <span className="section-badge">PhishLab · versão 2</span>
             <h1>Domínio sob a lupa</h1>
@@ -506,13 +678,14 @@ export function DomainUnderMagnifierLab({
         <ActivityProgress
           steps={steps}
           currentStep={stage}
+          className="url-foundation-progress"
           ariaLabel="Progresso de Domínio sob a lupa"
         />
 
-        <div className="url-anatomy-workspace" aria-live="polite">
+        <div className="url-anatomy-workspace foundation-workspace" aria-live="polite">
           {stage === 0 ? (
-            <div className="url-anatomy-opening">
-              <div className="url-anatomy-opening__heading">
+            <div className="url-anatomy-opening domain-foundation-opening">
+              <div className="url-anatomy-opening__heading foundation-opening__copy">
                 <span className="section-kicker">Antes de começar</span>
                 <h2 ref={stageTitleRef} tabIndex={-1}>
                   Descubra qual domínio controla a origem do endereço
@@ -521,36 +694,51 @@ export function DomainUnderMagnifierLab({
                   Este laboratório atribui um caso por tentativa. Você primeiro verá
                   um exemplo resolvido e depois fará a análise sem marcações prontas.
                 </p>
+                <div className="foundation-safety-note">
+                  Ambiente seguro: os endereços são fictícios e nenhuma página será aberta.
+                </div>
+                <div className="lab-player-actions domain-opening-actions">
+                  <button
+                    type="button"
+                    className="primary-button learning-button"
+                    onClick={() => goTo(1)}
+                  >
+                    Aprender a separar o endereço <span aria-hidden="true">→</span>
+                  </button>
+                  <button type="button" className="text-button" onClick={onBackToHub}>
+                    Voltar às estações
+                  </button>
+                </div>
               </div>
-              <aside className="url-anatomy-assigned-case">
-                <span>Caso atribuído</span>
-                <strong>{content.pathLabel}</strong>
-                <p>{content.summary}</p>
-                <small>Os outros casos ficam disponíveis quando você escolher praticar novamente.</small>
-              </aside>
+              <div className="domain-opening-visual">
+                <div className="domain-opening-browser" aria-hidden="true">
+                  <div><span /><span /><span /></div>
+                  <p>
+                    <span>https://</span>
+                    <b>leroymerlin.conta.</b>
+                    <strong>seguranca-contas.example</strong>
+                    <em>/confirmar</em>
+                  </p>
+                  <small>Qual trecho controla a origem?</small>
+                </div>
+                <aside className="url-anatomy-assigned-case">
+                  <span>Caso atribuído</span>
+                  <strong>{content.pathLabel}</strong>
+                  <p>{content.summary}</p>
+                  <small>Os outros casos ficam disponíveis quando você escolher praticar novamente.</small>
+                </aside>
+              </div>
               <div className="url-anatomy-briefing-grid">
                 <article><span>Seu papel</span><p>{content.role}</p></article>
                 <article><span>O que aconteceu</span><p>{content.situation}</p></article>
                 <article><span>Sua tarefa</span><p>{content.task}</p></article>
                 <article><span>O que esta análise protege</span><p>{content.protectedConsequence}</p></article>
               </div>
-              <div className="lab-player-actions">
-                <button
-                  type="button"
-                  className="primary-button dark"
-                  onClick={() => goTo(1)}
-                >
-                  Aprender a separar o endereço
-                </button>
-                <button type="button" className="text-button" onClick={onBackToHub}>
-                  Voltar às estações
-                </button>
-              </div>
             </div>
           ) : null}
 
           {stage === 1 ? (
-            <div className="url-anatomy-investigation">
+            <div className="url-anatomy-investigation foundation-stage">
               {!calibrationAcknowledged ? (
                 <section className="url-calibration-card">
                   <span className="section-kicker">Calibração curta</span>
@@ -614,7 +802,7 @@ export function DomainUnderMagnifierLab({
                       ? "Referência aberta: protocolo inicia; caminho e parâmetro vêm depois do domínio."
                       : "Abrir referência das funções"}
                   </button>
-                  <SegmentTable
+                  <SegmentDragBoard
                     segments={content.mainCase.segments}
                     assignments={segmentRoleById}
                     roleOptions={content.roleOptions}
@@ -639,7 +827,7 @@ export function DomainUnderMagnifierLab({
           ) : null}
 
           {stage === 2 ? (
-            <div className="url-anatomy-decision">
+            <div className="url-anatomy-decision foundation-stage">
               <span className="section-kicker">Decisão inicial</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 O que a estrutura permite concluir?
@@ -693,7 +881,7 @@ export function DomainUnderMagnifierLab({
           ) : null}
 
           {stage === 3 ? (
-            <div className="url-anatomy-consequence">
+            <div className="url-anatomy-consequence foundation-stage">
               <span className="section-kicker">Consequência cenográfica</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 Sua escolha definiria por onde o processo continuaria
@@ -718,7 +906,7 @@ export function DomainUnderMagnifierLab({
           ) : null}
 
           {stage === 4 ? (
-            <div className="url-anatomy-review">
+            <div className="url-anatomy-review foundation-stage">
               <span className="section-kicker">Revisão editável</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 Confira a anatomia, a origem e a rota
@@ -768,7 +956,7 @@ export function DomainUnderMagnifierLab({
           ) : null}
 
           {stage === 5 ? (
-            <div className="url-anatomy-final">
+            <div className="url-anatomy-final foundation-stage">
               <span className="section-kicker">Decisão final</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 Confirme o caso principal antes da transferência
@@ -793,7 +981,7 @@ export function DomainUnderMagnifierLab({
           ) : null}
 
           {stage === 6 ? (
-            <div className="url-anatomy-transfer">
+            <div className="url-anatomy-transfer foundation-stage">
               <span className="section-kicker">Transferência curta</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 {content.transferCase.title}
@@ -925,7 +1113,7 @@ export function DomainUnderMagnifierLab({
           ) : null}
 
           {stage === 8 && displayResult ? (
-            <div className="url-anatomy-debrief">
+            <div className="url-anatomy-debrief foundation-stage">
               <span className="section-kicker">Debrief</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 {isV2Result

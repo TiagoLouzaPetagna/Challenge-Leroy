@@ -5,6 +5,7 @@ import "@fontsource-variable/manrope/wght.css";
 import { AppProvider } from "./providers";
 import "./globals.css";
 import "./design-system.css";
+import "./styles/mission-foundation.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();

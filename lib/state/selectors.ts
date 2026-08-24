@@ -66,6 +66,22 @@ export function selectTotalPoints(state: AppState): number {
   );
 }
 
+function sectorDisplayName(value: string): string {
+  return value.replace(/^Loja\s+\d+\s*·\s*/i, "").trim();
+}
+
+export function selectLearnerSector(state: AppState): {
+  id: string;
+  name: string;
+} {
+  const storedName = state.teams.name || state.demo.learner.area;
+
+  return {
+    id: state.teams.id,
+    name: sectorDisplayName(storedName),
+  };
+}
+
 export function selectBestMissionSummary(state: AppState): {
   activityId: string;
   title: string;
@@ -838,7 +854,9 @@ export function selectSectorRanking(state: AppState) {
   const currentScore = selectSectorMetrics(state).score;
   return state.teams.ranking
     .map((entry) =>
-      entry.id === state.teams.id ? { ...entry, score: currentScore } : entry,
+      entry.id === state.teams.id
+        ? { ...entry, name: sectorDisplayName(entry.name), score: currentScore }
+        : { ...entry, name: sectorDisplayName(entry.name) },
     )
     .sort((left, right) => right.score - left.score)
     .map((entry, index) => ({

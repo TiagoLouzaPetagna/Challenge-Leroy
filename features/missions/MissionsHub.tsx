@@ -1,6 +1,7 @@
 "use client";
 
 import { ProgressJourney } from "@/features/ui/LearningUI";
+import styles from "./MissionsLower.module.css";
 
 export type MissionJourneyStatus =
   | "available"
@@ -111,10 +112,10 @@ export type MissionsHubProps = {
 };
 
 const statusClassNames: Record<MissionJourneyStatus, string> = {
-  available: "is-available",
-  in_progress: "is-in-progress",
-  completed: "is-completed",
-  locked: "is-locked",
+  available: styles.isAvailable,
+  in_progress: styles.isInProgress,
+  completed: styles.isCompleted,
+  locked: styles.isLocked,
 };
 
 const learningPathStatusClassNames: Record<LearningPathStepStatus, string> = {
@@ -288,226 +289,250 @@ export function MissionsHub({
         </aside>
       </section>
 
-      <section
-        className="missions-hub__section missions-hub__prototype-roadmap"
-        aria-labelledby="main-missions-title"
-      >
-        <details>
-          <summary>
-            <span>
-              <span className="missions-hub__eyebrow">
-                Visão futura e legado
+      <div className={styles.lowerPage}>
+        <section
+          className={`${styles.section} ${styles.roadmap}`}
+          aria-labelledby="main-missions-title"
+        >
+          <details className={styles.roadmapDisclosure}>
+            <summary className={styles.roadmapSummary}>
+              <span className={styles.roadmapHeading}>
+                <span className={styles.eyebrow}>Visão futura e legado</span>
+                <h2 id="main-missions-title">Roadmap do protótipo</h2>
               </span>
-              <strong id="main-missions-title">Roadmap do protótipo</strong>
-            </span>
-            <span>{missions.length} missões mapeadas</span>
-          </summary>
-          <p>
-            Esta lista preserva a sequência anterior e os conteúdos previstos.
-            Use a jornada acima para seguir as atividades publicadas agora.
-          </p>
+              <span className={styles.roadmapCount}>
+                <strong>{missions.length}</strong>
+                <span>missões mapeadas</span>
+                <span className={styles.disclosureIcon} aria-hidden="true" />
+              </span>
+            </summary>
 
-          <ol className="missions-hub__mission-map">
-            {missions.map((mission) => {
-              const isPlanned = Boolean(mission.isActionDisabled);
-              const isLocked = mission.status === "locked" && !isPlanned;
-              const visualStatusClass = isPlanned
-                ? "is-planned"
-                : statusClassNames[mission.status];
-              const visualStatusLabel = isPlanned
-                ? "Conteúdo previsto"
-                : mission.statusLabel;
-
-              return (
-                <li
-                  className={`missions-hub__mission-card ${visualStatusClass}`}
-                  key={mission.id}
-                >
-                  <article aria-labelledby={`mission-${mission.id}-title`}>
-                    <div className="missions-hub__mission-topline">
-                      <span className="missions-hub__sequence">
-                        {mission.sequenceLabel}
-                      </span>
-                      <span className="missions-hub__status">
-                        {visualStatusLabel}
-                      </span>
-                    </div>
-
-                    <div className="missions-hub__mission-copy">
-                      <h3 id={`mission-${mission.id}-title`}>
-                        {mission.title}
-                      </h3>
-                      {mission.isPilot ? (
-                        <span className="missions-hub__pilot-label">
-                          Missão piloto
-                        </span>
-                      ) : null}
-                      <p>{mission.summary}</p>
-                    </div>
-
-                    <div className="missions-hub__mission-footer">
-                      <span>{mission.metaLabel}</span>
-                      {isPlanned || isLocked ? (
-                        <span className="missions-hub__unavailable-action">
-                          {isPlanned
-                            ? "Disponibilidade futura"
-                            : mission.actionLabel}
-                        </span>
-                      ) : (
-                        <button
-                          className="missions-hub__primary-action"
-                          onClick={() => onOpenMission(mission.id)}
-                          type="button"
-                          aria-label={`${mission.actionLabel}: ${mission.title}`}
-                        >
-                          {mission.actionLabel}
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                </li>
-              );
-            })}
-          </ol>
-        </details>
-      </section>
-
-      <section
-        className="missions-hub__section missions-hub__learning-loop"
-        aria-labelledby="learning-loop-title"
-      >
-        <div className="missions-hub__section-heading">
-          <div>
-            <p className="missions-hub__eyebrow">Apoio na medida certa</p>
-            <h2 id="learning-loop-title">Reforço adaptativo</h2>
-          </div>
-        </div>
-
-        <div className="missions-hub__reinforcement-note" role="note">
-          <strong>Recomendação, não bloqueio</strong>
-          <p>{reinforcementExplanation}</p>
-        </div>
-
-        <div className="missions-hub__context-grid">
-          {latestResult ? (
-            <article
-              className="missions-hub__context-card"
-              aria-labelledby="latest-result-title"
-            >
-              <p className="missions-hub__eyebrow">Último resultado</p>
-              <h3 id="latest-result-title">{latestResult.missionTitle}</h3>
-              <dl className="missions-hub__result-summary">
-                <div>
-                  <dt>Desempenho</dt>
-                  <dd>{latestResult.scoreLabel}</dd>
-                </div>
-                <div>
-                  <dt>Pontos recebidos</dt>
-                  <dd>{latestResult.pointsLabel}</dd>
-                </div>
-              </dl>
-              <p>{latestResult.summary}</p>
-              {onOpenLatestResult ? (
-                <button
-                  className="missions-hub__secondary-action"
-                  onClick={onOpenLatestResult}
-                  type="button"
-                >
-                  {latestResult.actionLabel}
-                </button>
-              ) : null}
-            </article>
-          ) : (
-            <article className="missions-hub__context-card is-empty">
-              <p className="missions-hub__eyebrow">Último resultado</p>
-              <h3>Pronto para começar</h3>
-              <p>
-                Resultados e pontos aparecerão aqui após a primeira missão.
+            <div className={styles.roadmapBody}>
+              <p className={styles.roadmapIntro}>
+                Esta lista preserva a sequência anterior e os conteúdos previstos.
+                Use a jornada acima para seguir as atividades publicadas agora.
               </p>
-            </article>
-          )}
 
-          {review ? (
-            <article
-              className="missions-hub__context-card"
-              aria-labelledby="mission-review-title"
-            >
-              <div className="missions-hub__mission-topline">
-                <p className="missions-hub__eyebrow">{review.eyebrow}</p>
-                <span className="missions-hub__status">
-                  {review.statusLabel}
-                </span>
+              <ol className={styles.roadmapList}>
+                {missions.map((mission) => {
+                  const isPlanned = Boolean(mission.isActionDisabled);
+                  const isLocked = mission.status === "locked" && !isPlanned;
+                  const visualStatusClass = isPlanned
+                    ? styles.isPlanned
+                    : statusClassNames[mission.status];
+                  const visualStatusLabel = isPlanned
+                    ? "Conteúdo previsto"
+                    : mission.statusLabel;
+
+                  return (
+                    <li
+                      className={`${styles.roadmapItem} ${visualStatusClass}`}
+                      key={mission.id}
+                    >
+                      <article aria-labelledby={`mission-${mission.id}-title`}>
+                        <span className={styles.sequence} aria-hidden="true">
+                          {mission.sequenceLabel}
+                        </span>
+
+                        <div className={styles.roadmapCopy}>
+                          <div className={styles.itemTopline}>
+                            <span className={styles.status}>
+                              {visualStatusLabel}
+                            </span>
+                            {mission.isPilot ? (
+                              <span className={styles.pilotLabel}>Missão piloto</span>
+                            ) : null}
+                          </div>
+                          <h3 id={`mission-${mission.id}-title`}>
+                            {mission.title}
+                          </h3>
+                          <p>{mission.summary}</p>
+                        </div>
+
+                        <div className={styles.roadmapMeta}>
+                          <span>{mission.metaLabel}</span>
+                          {isPlanned || isLocked ? (
+                            <span className={styles.unavailableAction}>
+                              {isPlanned
+                                ? "Disponibilidade futura"
+                                : mission.actionLabel}
+                            </span>
+                          ) : (
+                            <button
+                              className={styles.primaryAction}
+                              onClick={() => onOpenMission(mission.id)}
+                              type="button"
+                              aria-label={`${mission.actionLabel}: ${mission.title}`}
+                            >
+                              {mission.actionLabel}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </details>
+        </section>
+
+        <section
+          className={`${styles.section} ${styles.reinforcement}`}
+          aria-labelledby="learning-loop-title"
+        >
+          <div className={styles.reinforcementHeader}>
+            <div>
+              <p className={styles.eyebrow}>Apoio na medida certa</p>
+              <h2 id="learning-loop-title">Reforço adaptativo</h2>
+            </div>
+
+            <div className={styles.reinforcementNote} role="note">
+              <span className={styles.supportMark} aria-hidden="true">✓</span>
+              <div>
+                <strong>Recomendação, não bloqueio</strong>
+                <p>{reinforcementExplanation}</p>
               </div>
-              <h3 id="mission-review-title">{review.title}</h3>
-              <p>{review.summary}</p>
-              {onOpenReview ? (
-                <button
-                  className="missions-hub__secondary-action"
-                  onClick={onOpenReview}
-                  type="button"
-                >
-                  {review.actionLabel}
-                </button>
-              ) : null}
-            </article>
-          ) : (
-            <article className="missions-hub__context-card is-empty">
-              <p className="missions-hub__eyebrow">Revisão</p>
-              <h3>Nenhum reforço pendente</h3>
-              <p>
-                Se precisar praticar, você receberá uma sugestão sem bloquear a
-                jornada.
-              </p>
-            </article>
-          )}
-        </div>
-      </section>
-
-      <section
-        className="missions-hub__section"
-        aria-labelledby="secondary-missions-title"
-      >
-        <div className="missions-hub__section-heading">
-          <div>
-            <p className="missions-hub__eyebrow">Pratique por habilidade</p>
-            <h2 id="secondary-missions-title">Práticas complementares</h2>
+            </div>
           </div>
-          <p>Atividades opcionais para reforçar competências específicas.</p>
-        </div>
 
-        <ul className="missions-hub__secondary-grid">
-          {secondaryMissions.map((mission) => (
-            <li key={mission.id}>
+          <div className={styles.contextGrid}>
+            {latestResult ? (
               <article
-                className={`missions-hub__secondary-card${mission.isAvailable ? " is-available" : " is-locked"}`}
-                aria-labelledby={`secondary-${mission.id}-title`}
+                className={styles.contextCard}
+                aria-labelledby="latest-result-title"
               >
-                <div className="missions-hub__mission-topline">
-                  <span className="missions-hub__category">
-                    {mission.categoryLabel}
-                  </span>
-                  <span className="missions-hub__status">
-                    {mission.statusLabel}
-                  </span>
-                </div>
-                <h3 id={`secondary-${mission.id}-title`}>{mission.title}</h3>
-                <p>{mission.summary}</p>
-                <div className="missions-hub__mission-footer">
-                  <span>{mission.rewardLabel}</span>
+                <p className={styles.eyebrow}>Último resultado</p>
+                <h3 id="latest-result-title">{latestResult.missionTitle}</h3>
+                <dl className={styles.resultSummary}>
+                  <div>
+                    <dt>Desempenho</dt>
+                    <dd>{latestResult.scoreLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>Pontos recebidos</dt>
+                    <dd>{latestResult.pointsLabel}</dd>
+                  </div>
+                </dl>
+                <p>{latestResult.summary}</p>
+                {onOpenLatestResult ? (
                   <button
-                    className="missions-hub__secondary-action"
-                    disabled={!mission.isAvailable}
-                    onClick={() => onOpenSecondaryMission(mission.id)}
+                    className={styles.textAction}
+                    onClick={onOpenLatestResult}
                     type="button"
                   >
-                    {mission.actionLabel}
+                    {latestResult.actionLabel}
+                    <span aria-hidden="true"> →</span>
                   </button>
-                </div>
+                ) : null}
               </article>
-            </li>
-          ))}
-        </ul>
-      </section>
+            ) : (
+              <article className={`${styles.contextCard} ${styles.isEmpty}`}>
+                <p className={styles.eyebrow}>Último resultado</p>
+                <h3>Pronto para começar</h3>
+                <p>
+                  Resultados e pontos aparecerão aqui após a primeira missão.
+                </p>
+              </article>
+            )}
+
+            {review ? (
+              <article
+                className={`${styles.contextCard} ${styles.recommendedCard}`}
+                aria-labelledby="mission-review-title"
+              >
+                <div className={styles.itemTopline}>
+                  <p className={styles.eyebrow}>{review.eyebrow}</p>
+                  <span className={styles.status}>{review.statusLabel}</span>
+                </div>
+                <h3 id="mission-review-title">{review.title}</h3>
+                <p>{review.summary}</p>
+                {onOpenReview ? (
+                  <button
+                    className={styles.secondaryAction}
+                    onClick={onOpenReview}
+                    type="button"
+                  >
+                    {review.actionLabel}
+                  </button>
+                ) : null}
+              </article>
+            ) : (
+              <article className={`${styles.contextCard} ${styles.isEmpty}`}>
+                <div className={styles.itemTopline}>
+                  <p className={styles.eyebrow}>Revisão</p>
+                  <span className={styles.optionalLabel}>Opcional</span>
+                </div>
+                <h3>Nenhum reforço pendente</h3>
+                <p>
+                  Se precisar praticar, você receberá uma sugestão sem bloquear a
+                  jornada.
+                </p>
+              </article>
+            )}
+          </div>
+        </section>
+
+        <section
+          className={`${styles.section} ${styles.practices}`}
+          aria-labelledby="secondary-missions-title"
+        >
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Pratique por habilidade</p>
+              <h2 id="secondary-missions-title">Práticas complementares</h2>
+            </div>
+            <p>Atividades opcionais para reforçar competências específicas.</p>
+          </div>
+
+          <ul className={styles.practiceShelf}>
+            {secondaryMissions.map((mission) => (
+              <li key={mission.id}>
+                <article
+                  className={`${styles.practiceCard} ${mission.isAvailable ? styles.isAvailable : styles.isLocked}`}
+                  aria-labelledby={`secondary-${mission.id}-title`}
+                >
+                  <div className={styles.itemTopline}>
+                    <span className={styles.category}>
+                      {mission.categoryLabel}
+                    </span>
+                    <span className={styles.status}>
+                      {mission.statusLabel}
+                    </span>
+                  </div>
+                  <h3 id={`secondary-${mission.id}-title`}>{mission.title}</h3>
+                  <p>{mission.summary}</p>
+                  <div className={styles.practiceFooter}>
+                    <span>{mission.rewardLabel}</span>
+                    {mission.isAvailable ? (
+                      <button
+                        className={styles.secondaryAction}
+                        onClick={() => onOpenSecondaryMission(mission.id)}
+                        type="button"
+                      >
+                        {mission.actionLabel}
+                      </button>
+                    ) : (
+                      <span className={styles.lockedAction}>
+                        <span aria-hidden="true">●</span>
+                        {mission.actionLabel}
+                      </span>
+                    )}
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <footer className={styles.closingNote}>
+          <span className={styles.closingMark} aria-hidden="true">✓</span>
+          <p>
+            <strong>Continue no seu ritmo.</strong>
+            As práticas complementares são opcionais e não bloqueiam sua jornada.
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }

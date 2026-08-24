@@ -41,7 +41,7 @@ import type {
   BankReportBlockId,
 } from "../content/activities/bank-change/v2";
 
-export const APP_SCHEMA_VERSION = 14 as const;
+export const APP_SCHEMA_VERSION = 15 as const;
 
 export const TUTORIAL_VERSION = 1 as const;
 
@@ -1029,6 +1029,36 @@ export type LearnerPreferences = {
   reminderFrequency: "important" | "weekly" | "off";
 };
 
+export type LearnerRegistration = {
+  employeeId: string;
+  name: string;
+  sectorId: string;
+  sectorName: string;
+  leaderboardParticipation: boolean;
+  leaderboardIdentity: LearnerPreferences["leaderboardIdentity"];
+};
+
+export type ManagementTestUserStatus = "active" | "inactive";
+
+export type ManagementTestUser = {
+  id: string;
+  employeeId: string;
+  name: string;
+  sectorId: string;
+  sectorName: string;
+  status: ManagementTestUserStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ManagementTestUserInput = {
+  id?: string;
+  employeeId: string;
+  name: string;
+  sectorId: string;
+  sectorName: string;
+};
+
 export type TeamContribution = {
   claimKey: string;
   sourceId: string;
@@ -1137,6 +1167,7 @@ export type AppState = {
     tutorial: TutorialState;
   };
   admin: {
+    testUsers: ManagementTestUser[];
     auditLog: Array<{
       id: string;
       action: string;

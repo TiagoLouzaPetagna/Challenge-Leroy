@@ -3,17 +3,36 @@
 import Image from "next/image";
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
-export type MascotPose =
-  | "welcome"
-  | "approved"
-  | "thinking"
-  | "alert"
-  | "hero"
-  | "sad"
-  | "encourage"
-  | "explaining"
-  | "celebration"
-  | "gratitude";
+const mascotPoseFiles = {
+  alert: "alert.png",
+  approved: "approved.png",
+  arcade: "arcade.png",
+  calm: "calm.png",
+  celebration: "celebration.png",
+  checklist: "checklist.png",
+  cool: "cool.png",
+  encourage: "encourage.png",
+  explaining: "explaining.png",
+  gratitude: "gratitude.png",
+  hero: "hero.png",
+  idea: "Idea.png",
+  investigating: "investigating.png",
+  labs: "labs.png",
+  profile: "profile.png",
+  protection: "protection.png",
+  radar: "radar.png",
+  running: "running.png",
+  sad: "sad.png",
+  "security-phone": "securityphone.png",
+  sleeping: "sleeping.png",
+  studying: "studying.png",
+  support: "support.png",
+  thinking: "thinking.png",
+  trophy: "trophy.png",
+  welcome: "welcome.png",
+} as const;
+
+export type MascotPose = keyof typeof mascotPoseFiles;
 
 export function Mascot({
   pose,
@@ -33,7 +52,7 @@ export function Mascot({
     >
       {/* PNG oficial: não transformar, redesenhar ou substituir por SVG. */}
       <Image
-        src={`/mascot/leroyzin/${pose}.png`}
+        src={`/mascot/leroyzin/${mascotPoseFiles[pose]}`}
         alt={alt}
         draggable={false}
         fill

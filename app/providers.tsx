@@ -102,14 +102,19 @@ import type {
   TrueSenderV2Answer,
   TrueSenderV2Result,
   TrueSenderV2Submission,
+  LearnerRegistration,
   LearnerPreferences,
+  ManagementTestUserInput,
 } from "@/lib/domain/types";
+import type {
+  AuthenticatedAccount,
+  AuthSessionResponse,
+} from "@/lib/auth/types";
 import { findLearningPathStepByActivityId } from "@/lib/content/curriculum-catalog";
+import { bindStateToAccount } from "@/lib/state/account-state";
 import {
   clearPersistedState,
   loadPersistedState,
-  LOCAL_SECURITY_NOTICE,
-  savePersistedState,
 } from "@/lib/state/persistence";
 
 type HydrationAction = {
@@ -120,10 +125,14 @@ type HydrationAction = {
 type AppContextValue = {
   state: AppState;
   isHydrated: boolean;
-  securityMode: "local-demo" | "server-authoritative";
+  account: AuthenticatedAccount | null;
+  isAuthLoading: boolean;
+  authenticationError: string | null;
+  securityMode: "local-demo" | "account-backed" | "server-authoritative";
   isAuthoritative: boolean;
   localSecurityNotice: string;
   persistenceError: string | null;
+  logout: () => Promise<void>;
   submitMission: (answer: MissionAnswer) => Promise<MissionResult>;
   submitPhishingFoundationV2: (
     answer: PhishingFoundationV2Answer,
@@ -164,6 +173,12 @@ type AppContextValue = {
     answer: BankProcessV2Answer,
   ) => Promise<BankProcessV2Result>;
   savePreferences: (preferences: LearnerPreferences) => void;
+  registerLearnerProfile: (registration: LearnerRegistration) => void;
+  saveManagementTestUser: (user: ManagementTestUserInput) => void;
+  setManagementTestUserStatus: (
+    userId: string,
+    status: "active" | "inactive",
+  ) => void;
   startTutorial: () => void;
   setTutorialStep: (step: number) => void;
   completeTutorial: () => void;
@@ -196,33 +211,78 @@ function createAttemptMetadata() {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, internalDispatch] = useReducer(providerReducer, initialAppState);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [account, setAccount] = useState<AuthenticatedAccount | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [authenticationError, setAuthenticationError] = useState<string | null>(null);
   const [persistenceError, setPersistenceError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    queueMicrotask(() => {
-      if (cancelled) return;
-
+    async function hydrateAuthenticatedState() {
       try {
-        const persistedState = loadPersistedState();
+        const sessionResponse = await fetch("/api/auth/session", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const sessionPayload = (await sessionResponse.json()) as AuthSessionResponse;
 
+        if (!sessionResponse.ok || !sessionPayload.account) {
+          if (cancelled) return;
+          setAccount(null);
+          setAuthenticationError(
+            sessionResponse.status === 503
+              ? "O serviço de acesso não está disponível neste momento."
+              : null,
+          );
+          setIsHydrated(true);
+          return;
+        }
+
+        const authenticatedAccount = sessionPayload.account;
+        const stateResponse = await fetch("/api/state", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const statePayload = stateResponse.ok
+          ? ((await stateResponse.json()) as { state?: AppState | null })
+          : { state: null };
+        let initialState = statePayload.state ?? null;
+
+        if (!initialState && authenticatedAccount.employeeId === "FUNC-0001") {
+          try {
+            initialState = loadPersistedState();
+          } catch {
+            setPersistenceError(
+              "O progresso demonstrativo anterior não pôde ser importado para a conta.",
+            );
+          }
+        }
+
+        if (cancelled) return;
+        setAccount(authenticatedAccount);
+        setAuthenticationError(null);
         internalDispatch({
           type: "__LOCAL_STATE_HYDRATED__",
-          payload: persistedState ?? createDemoState(),
+          payload: bindStateToAccount(
+            initialState ?? createDemoState(),
+            authenticatedAccount,
+          ),
         });
-      } catch {
-        internalDispatch({
-          type: "__LOCAL_STATE_HYDRATED__",
-          payload: createDemoState(),
-        });
-        setPersistenceError(
-          "Não foi possível recuperar o progresso salvo neste navegador.",
-        );
-      } finally {
         setIsHydrated(true);
+      } catch {
+        if (cancelled) return;
+        setAccount(null);
+        setAuthenticationError(
+          "Não foi possível verificar a conta. Tente entrar novamente.",
+        );
+        setIsHydrated(true);
+      } finally {
+        if (!cancelled) setIsAuthLoading(false);
       }
-    });
+    }
+
+    void hydrateAuthenticatedState();
 
     return () => {
       cancelled = true;
@@ -230,29 +290,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isHydrated) {
+    if (!isHydrated || !account) {
       return;
     }
 
-    let cancelled = false;
-
-    queueMicrotask(() => {
-      if (cancelled) return;
-
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
       try {
-        savePersistedState(state);
+        const response = await fetch("/api/state", {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ state }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("state-save-failed");
         setPersistenceError(null);
-      } catch {
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         setPersistenceError(
-          "O progresso desta sessão não pôde ser salvo neste navegador.",
+          "O progresso desta conta não pôde ser sincronizado com o servidor.",
         );
       }
-    });
+    }, 450);
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(timer);
+      controller.abort();
     };
-  }, [isHydrated, state]);
+  }, [account, isHydrated, state]);
 
   const submitMission = useCallback(
     async (answer: MissionAnswer): Promise<MissionResult> => {
@@ -829,7 +895,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
     }
 
-    internalDispatch({ type: "DEMO_RESET" });
+    internalDispatch({
+      type: "__LOCAL_STATE_HYDRATED__",
+      payload: account
+        ? bindStateToAccount(createDemoState(), account)
+        : createDemoState(),
+    });
+  }, [account]);
+
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+    } finally {
+      setAccount(null);
+      setIsHydrated(false);
+      window.location.assign("/login");
+    }
   }, []);
 
   const savePreferences = useCallback(
@@ -844,6 +928,89 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     },
     [isHydrated],
+  );
+
+  const registerLearnerProfile = useCallback(
+    (registration: LearnerRegistration) => {
+      if (account) {
+        throw new Error(
+          "Os dados de identidade agora pertencem à conta autenticada.",
+        );
+      }
+      if (!isHydrated) {
+        throw new Error("Os dados locais ainda estão sendo carregados.");
+      }
+
+      internalDispatch({
+        type: "LEARNER_PROFILE_REGISTERED",
+        payload: { registration, changedAt: new Date().toISOString() },
+      });
+    },
+    [account, isHydrated],
+  );
+
+  const saveManagementTestUser = useCallback(
+    (user: ManagementTestUserInput) => {
+      if (!isHydrated || account?.role !== "administrator") {
+        throw new Error("Entre com uma conta administradora para alterar pessoas.");
+      }
+
+      const employeeId = user.employeeId.trim();
+      const duplicate = state.admin.testUsers.some(
+        (existing) =>
+          existing.id !== user.id &&
+          existing.employeeId.toLocaleLowerCase("pt-BR") ===
+            employeeId.toLocaleLowerCase("pt-BR"),
+      );
+      if (duplicate) {
+        throw new Error("Já existe uma pessoa de teste com essa matrícula.");
+      }
+
+      const changedAt = new Date().toISOString();
+      const generatedId =
+        typeof globalThis.crypto?.randomUUID === "function"
+          ? `test-user:${globalThis.crypto.randomUUID()}`
+          : `test-user:${changedAt}:${Math.random().toString(36).slice(2)}`;
+      const existing = user.id
+        ? state.admin.testUsers.find((candidate) => candidate.id === user.id)
+        : null;
+
+      internalDispatch({
+        type: "MANAGEMENT_TEST_USER_SAVED",
+        payload: {
+          changedAt,
+          user: {
+            id: user.id ?? generatedId,
+            employeeId,
+            name: user.name,
+            sectorId: user.sectorId,
+            sectorName: user.sectorName,
+            status: existing?.status ?? "active",
+            createdAt: existing?.createdAt ?? changedAt,
+            updatedAt: changedAt,
+          },
+        },
+      });
+    },
+    [account?.role, isHydrated, state.admin.testUsers],
+  );
+
+  const setManagementTestUserStatus = useCallback(
+    (userId: string, status: "active" | "inactive") => {
+      if (!isHydrated || account?.role !== "administrator") {
+        throw new Error("Entre com uma conta administradora para alterar pessoas.");
+      }
+
+      internalDispatch({
+        type: "MANAGEMENT_TEST_USER_STATUS_CHANGED",
+        payload: {
+          userId,
+          status,
+          changedAt: new Date().toISOString(),
+        },
+      });
+    },
+    [account?.role, isHydrated],
   );
 
   const startTutorial = useCallback(() => {
@@ -871,10 +1038,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       state,
       isHydrated,
-      securityMode: "local-demo",
+      account,
+      isAuthLoading,
+      authenticationError,
+      securityMode: "account-backed",
       isAuthoritative: false,
-      localSecurityNotice: LOCAL_SECURITY_NOTICE,
+      localSecurityNotice:
+        "A sessão e o progresso estão associados à conta autenticada e persistidos no servidor.",
       persistenceError,
+      logout,
       submitMission,
       submitPhishingFoundationV2,
       submitConversationReconstructionV2,
@@ -891,6 +1063,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       submitBankChange,
       submitBankProcessV2,
       savePreferences,
+      registerLearnerProfile,
+      saveManagementTestUser,
+      setManagementTestUserStatus,
       startTutorial,
       setTutorialStep,
       completeTutorial,
@@ -898,7 +1073,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       isHydrated,
+      account,
+      isAuthLoading,
+      authenticationError,
       persistenceError,
+      logout,
       resetDemo,
       state,
       submitMission,
@@ -917,6 +1096,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       submitBankChange,
       submitBankProcessV2,
       savePreferences,
+      registerLearnerProfile,
+      saveManagementTestUser,
+      setManagementTestUserStatus,
       startTutorial,
       setTutorialStep,
       completeTutorial,

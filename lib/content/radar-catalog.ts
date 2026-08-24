@@ -129,25 +129,105 @@ export const RADAR_ARTICLES: RadarArticleDefinition[] = [
 export const RADAR_QUESTION_OPTIONS = [
   {
     id: "scan-and-trust",
-    label: "Escanear e confiar se a página usar HTTPS",
+    label: "Abrir o endereço porque a prévia mostra HTTPS",
     explanation:
-      "HTTPS protege a conexão, mas não comprova que o site pertence à organização esperada.",
+      "HTTPS protege a conexão, mas não comprova que o endereço pertence ao serviço esperado.",
   },
   {
     id: "inspect-and-confirm",
-    label: "Ver o destino, avaliar o contexto e confirmar por um canal conhecido",
+    label:
+      "Fechar a prévia e abrir beneficios.intra.example pela rota que você já utilizava",
     explanation:
-      "Correto. O destino e o contexto precisam ser verificados antes de qualquer dado ou ação sensível.",
+      "Correto. A rota já conhecida permite conferir o aviso sem depender do endereço entregue pelo próprio QR Code.",
   },
   {
     id: "avoid-all-qr",
-    label: "Evitar todos os QR Codes, mesmo os esperados",
+    label: "Decidir que qualquer QR Code encontrado no local é fraudulento",
     explanation:
-      "Bloquear todos os QR Codes gera falsos positivos. O objetivo é investigar e confirmar, não rejeitar automaticamente.",
+      "Os sinais justificam interromper e verificar, mas não provam que todo QR Code — nem mesmo este — seja fraudulento.",
   },
 ] as const;
 
 export const RADAR_CORRECT_OPTION_ID = "inspect-and-confirm";
+
+export const RADAR_QUISHING_CONTENT = {
+  understand: {
+    title: "O que o QR Code esconde — e o que ele não prova",
+    paragraphs: [
+      "Um QR Code transforma informações, como um endereço, em uma imagem. Isso facilita o acesso pelo celular, mas impede que você leia o destino antes de apontar a câmera.",
+      "A imagem não autentica quem criou o código. Aparência profissional, logotipo e HTTPS também não confirmam que o destino pertence ao serviço esperado.",
+    ],
+    principle:
+      "O código revela um destino; quem confirma a legitimidade é a comparação com uma referência independente.",
+  },
+  observe: {
+    title: "Leia o cartaz como um conjunto de evidências",
+    intro:
+      "Você encontra este aviso fictício no refeitório. O leitor mostra a prévia do endereço, mas nenhuma página foi aberta.",
+    poster: {
+      location: "Cartaz fictício · Refeitório",
+      headline: "Atualize seus benefícios até as 16h",
+      body: "Escaneie o código para evitar a suspensão do acesso.",
+      previewLabel: "Prévia mostrada pelo leitor",
+      previewAddress: "https://beneficios-colaborador.example/confirmar",
+      knownRouteLabel: "Rota já conhecida no trabalho",
+      knownRouteAddress: "https://beneficios.intra.example",
+    },
+    clues: [
+      "O prazo curto tenta transformar urgência em ação imediata.",
+      "O adesivo parece estar sobreposto ao material original.",
+      "O domínio da prévia é diferente da rota interna já conhecida.",
+    ],
+  },
+  evidence: {
+    title: "Separe os sinais do que ainda precisa ser confirmado",
+    intro:
+      "Você já tem motivos para interromper a ação. Ainda não tem elementos para atribuir autoria ou declarar sozinho que houve um golpe.",
+    confirmed: [
+      "O cartaz cria urgência com um prazo até as 16h.",
+      "O QR Code impede a leitura direta do endereço.",
+      "A prévia mostra um domínio diferente da rota interna conhecida.",
+    ],
+    unconfirmed: [
+      "Quem colocou o adesivo sobre o cartaz.",
+      "Se o endereço da prévia é malicioso.",
+      "Se a atualização foi realmente solicitada pela organização.",
+    ],
+  },
+  act: {
+    title: "Confirme sem depender do próprio aviso",
+    intro:
+      "A resposta segura reduz o risco sem transformar suspeita em certeza inventada.",
+    steps: [
+      {
+        label: "Interrompa",
+        detail: "Não abra a prévia e não informe dados por causa do prazo apresentado.",
+      },
+      {
+        label: "Compare",
+        detail: "Confira o domínio exibido e lembre qual rota você já usa para esse serviço.",
+      },
+      {
+        label: "Acesse por fora",
+        detail: "Feche a prévia e entre pela referência que já fazia parte da sua rotina.",
+      },
+      {
+        label: "Preserve o contexto",
+        detail: "Se a divergência continuar, registre onde e quando viu o material e busque orientação interna.",
+      },
+    ],
+    prototypeNote:
+      "Nesta demonstração, o QR Code é apenas uma representação visual: ele não pode ser escaneado, nenhum link é aberto e nenhum canal de reporte é presumido.",
+  },
+  check: {
+    title: "Aplique a verificação ao caso do refeitório",
+    context:
+      "Você costuma acessar os benefícios por beneficios.intra.example. O cartaz pede atualização até as 16h, mas a prévia do QR Code mostra beneficios-colaborador.example/confirmar.",
+    question: "O que você deve fazer antes de digitar qualquer dado?",
+  },
+  keyMessage:
+    "Um QR Code pode esconder o destino. Ele não confirma quem controla esse destino.",
+} as const;
 
 export function findRadarArticleBySlug(slug: string) {
   return RADAR_ARTICLES.find((article) => article.slug === slug) ?? null;

@@ -2,17 +2,18 @@
 
 import { useMemo, useState } from "react";
 
+import { Mascot } from "@/features/ui/LearningUI";
 import {
   ARCADE_GAMES,
-  ARCADE_REWARD_TIERS,
-  DETECTOR_CASE_BALANCE,
-  DETECTOR_LEADERBOARD_PREVIEW,
-  DETECTOR_SCORING,
-  DETECTOR_SECONDARY_MISSIONS,
-  DETECTOR_TIE_BREAKS,
+  OVERLOOKED_CASE_BALANCE,
+  OVERLOOKED_RANKS,
+  OVERLOOKED_SCORING,
+  OVERLOOKED_SECONDARY_MISSIONS,
   type ArcadeGame,
   type ArcadeGameStatus,
 } from "@/lib/content/arcade-catalog";
+import { OverlookedIntegration } from "./OverlookedIntegration";
+import styles from "./ArcadeHub.module.css";
 
 type ArcadeFilter = "all" | ArcadeGameStatus;
 
@@ -34,6 +35,36 @@ type ArcadeHubProps = {
   onBackToOverview: () => void;
 };
 
+function ArcadeHeroArtwork() {
+  return (
+    <div className={styles.heroArtwork} aria-hidden="true">
+      <svg className={styles.heroTrack} viewBox="0 0 590 380" focusable="false">
+        <path className={styles.heroTrackLine} d="M62 286c72-21 93-93 157-111 78-21 104 61 176 27 49-23 54-78 119-97" />
+        <circle cx="62" cy="286" r="12" />
+        <circle cx="219" cy="175" r="12" />
+        <circle cx="395" cy="202" r="12" />
+        <circle cx="514" cy="105" r="12" />
+      </svg>
+
+      <div className={styles.heroScore}>
+        <span>Leitura de risco</span>
+        <strong>08<small>/12</small></strong>
+      </div>
+
+      <div className={styles.heroTimer}>
+        <span>próximo caso</span>
+        <strong>00:07</strong>
+      </div>
+
+      <span className={`${styles.heroSignal} ${styles.heroSignalRisk}`}>phishing</span>
+      <span className={`${styles.heroSignal} ${styles.heroSignalCheck}`}>verificar</span>
+      <span className={styles.heroTarget}><i /><i /><i /></span>
+      <span className={styles.heroBolt}>ϟ</span>
+      <Mascot pose="arcade" size="large" className={styles.heroMascot} />
+    </div>
+  );
+}
+
 export function ArcadeHub({ onOpenGame, onBackToOverview }: ArcadeHubProps) {
   const [filter, setFilter] = useState<ArcadeFilter>("all");
   const filteredGames = useMemo(
@@ -50,136 +81,201 @@ export function ArcadeHub({ onOpenGame, onBackToOverview }: ArcadeHubProps) {
   const developmentCount = ARCADE_GAMES.filter(
     (game) => game.status === "development",
   ).length;
+  const featuredGame = ARCADE_GAMES[0];
 
   return (
     <div className="page-stack arcade-page">
-      <section className="arcade-hero arcade-hero--catalog">
-        <div className="arcade-hero-copy">
-          <span className="section-kicker">Arcade · catálogo independente</span>
-          <h1>Cada jogo tem suas regras.</h1>
-          <p>
-            Consulte o que está em produção, pronto para integrar ou realmente
-            disponível. Nenhuma partida é ativada antes de uma conexão validada.
-          </p>
-          <div className="arcade-hero-actions">
-            <button type="button" className="text-button" onClick={onBackToOverview}>
-              Voltar à visão geral
+      <div className={styles.hub}>
+        <section className={styles.introRegion} aria-labelledby="arcade-hero-title">
+          <div className={styles.heroTopline}>
+            <button type="button" className={styles.backButton} onClick={onBackToOverview}>
+              <span aria-hidden="true">←</span> Visão geral
             </button>
+            <span className={styles.heroMode}>Prática rápida · regras claras</span>
           </div>
-        </div>
-        <div className="arcade-hero-stats" aria-label="Estados do catálogo">
-          <article>
-            <strong>{availableCount}</strong>
-            <span>partidas ativas</span>
-          </article>
-          <article>
-            <strong>{readyCount}</strong>
-            <span>pronto para integrar</span>
-          </article>
-          <article>
-            <strong>{developmentCount}</strong>
-            <span>em desenvolvimento</span>
-          </article>
-        </div>
-      </section>
 
-      <section className="arcade-catalog-section" aria-labelledby="arcade-catalog-title">
-        <div className="arcade-section-heading">
-          <div>
-            <span className="section-kicker">{ARCADE_GAMES.length} jogo no catálogo</span>
-            <h2 id="arcade-catalog-title">Escolha o que explorar</h2>
+          <header className={styles.editorialHeader}>
+            <div className={styles.heroCopy}>
+              <span className={styles.kicker}>Arcade · prática em jogo</span>
+              <h1 id="arcade-hero-title">Escolha um desafio.</h1>
+              <p>Teste sua leitura de risco em rodadas curtas. Cada jogo tem suas regras — e só fica disponível depois de uma integração validada.</p>
+
+              {featuredGame ? (
+                <div className={styles.heroActions}>
+                  <button type="button" onClick={() => onOpenGame(featuredGame.slug)}>
+                    {featuredGame.status === "available" ? "Jogar agora" : "Ver especificação"} <span aria-hidden="true">→</span>
+                  </button>
+                  <span><i />{featuredGame.statusLabel}</span>
+                </div>
+              ) : null}
+
+              <p className={styles.catalogStatus} aria-label="Estados do catálogo">
+                <span><strong>{availableCount}</strong> partidas ativas</span>
+                <span><strong>{readyCount}</strong> pronto para integrar</span>
+                <span><strong>{developmentCount}</strong> em desenvolvimento</span>
+              </p>
+            </div>
+
+            <ArcadeHeroArtwork />
+          </header>
+        </section>
+
+        <section className={styles.catalogSection} aria-labelledby="arcade-catalog-title">
+          <div className={styles.sectionHeading}>
+            <div>
+              <span className={styles.kicker}>Em destaque</span>
+              <h2 id="arcade-catalog-title">Um jogo. Uma habilidade sob pressão.</h2>
+            </div>
+
+            <div
+              className={styles.filterList}
+              role="group"
+              aria-label="Filtrar jogos por estado"
+            >
+              {(Object.keys(FILTER_LABELS) as ArcadeFilter[]).map((item) => {
+                const count =
+                  item === "all"
+                    ? ARCADE_GAMES.length
+                    : ARCADE_GAMES.filter((game) => game.status === item).length;
+                return (
+                  <button
+                    type="button"
+                    key={item}
+                    className={filter === item ? styles.activeFilter : ""}
+                    onClick={() => setFilter(item)}
+                    aria-pressed={filter === item}
+                  >
+                    {FILTER_LABELS[item]} <span>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div
-            className="arcade-filter-list"
-            role="group"
-            aria-label="Filtrar jogos por estado"
-          >
-            {(Object.keys(FILTER_LABELS) as ArcadeFilter[]).map((item) => {
-              const count =
-                item === "all"
-                  ? ARCADE_GAMES.length
-                  : ARCADE_GAMES.filter((game) => game.status === item).length;
-              return (
-                <button
-                  type="button"
-                  key={item}
-                  className={filter === item ? "active" : ""}
-                  onClick={() => setFilter(item)}
-                  aria-pressed={filter === item}
-                >
-                  {FILTER_LABELS[item]} <span>{count}</span>
-                </button>
-              );
-            })}
+
+          {filteredGames.length ? (
+            <div className={styles.gameCollection}>
+              {filteredGames.map((game) => (
+                <ArcadeGamePoster
+                  key={game.id}
+                  game={game}
+                  onOpen={() => onOpenGame(game.slug)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              <span className={styles.emptyTarget} aria-hidden="true">◎</span>
+              <div>
+                <strong>Nenhum jogo neste estado</strong>
+                <p>Hoje, o único desafio mapeado está pronto para integração.</p>
+              </div>
+              <button type="button" onClick={() => setFilter("all")}>
+                Ver jogo em destaque
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className={styles.scoreContract} aria-labelledby="arcade-score-title">
+          <div className={styles.scoreFlow} aria-label="Fluxo de uma partida válida">
+            <span><small>01</small>Pontuação do jogo</span>
+            <b aria-hidden="true">→</b>
+            <span><small>02</small>Posição no jogo</span>
+            <b aria-hidden="true">→</b>
+            <span><small>03</small>Recompensa</span>
           </div>
-        </div>
-
-        {filteredGames.length ? (
-          <div className="arcade-game-grid">
-            {filteredGames.map((game) => (
-              <ArcadeGameCard key={game.id} game={game} onOpen={() => onOpenGame(game.slug)} />
-            ))}
+          <div className={styles.scoreCopy}>
+            <span className={styles.kicker}>Contrato de pontuação</span>
+            <h2 id="arcade-score-title">Score e pontos cumprem papéis diferentes.</h2>
+            <p>
+              Subir de posição concede somente a diferença. A recompensa da
+              plataforma depende de uma partida válida; não existe ranking global
+              entre jogos.
+            </p>
           </div>
-        ) : (
-          <div className="arcade-empty-state">
-            <strong>Nenhum jogo neste estado</strong>
-            <p>O catálogo não cria jogos fictícios apenas para preencher espaço.</p>
-            <button type="button" className="text-button" onClick={() => setFilter("all")}>Ver catálogo completo</button>
-          </div>
-        )}
-      </section>
-
-      <section className="arcade-principle-panel">
-        <div className="arcade-principle-mark" aria-hidden="true">01</div>
-        <div>
-          <span className="section-kicker">Contrato claro</span>
-          <h2>Pontuação do jogo não é o mesmo que pontos da plataforma</h2>
-          <p>
-            Cada jogo mantém regras e resultados próprios. Só uma integração real
-            pode validar a partida e liberar uma recompensa na plataforma.
-          </p>
-        </div>
-        <div className="arcade-score-equation" aria-label="Fluxo de uma partida válida">
-          <span>Jogo</span><b>→</b><span>Validação</span><b>→</b><span>Recompensa</span>
-        </div>
-      </section>
-
-      <section className="arcade-reward-panel">
-        <div>
-          <span className="section-kicker">Faixas permanentes</span>
-          <h2>Subir de posição concede somente a diferença</h2>
-          <p>
-            Não há temporadas ou fechamento de rodada. Uma faixa já alcançada
-            nunca concede novamente pontos e perder posição não remove recompensas.
-          </p>
-        </div>
-        <ol>
-          {ARCADE_REWARD_TIERS.map((tier) => (
-            <li key={tier.id}>
-              <span>{tier.positionLabel}</span>
-              <strong>{tier.points}</strong>
-              <small>pontos totais</small>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="arcade-integration-panel">
-        <div>
-          <span className="section-kicker">Organização dos projetos</span>
-          <h2>O catálogo e a partida continuam separados</h2>
-        </div>
-        <div className="arcade-integration-flow">
-          <article><span>Plataforma</span><strong>Catálogo, posição e recompensa</strong><p>Controla progresso, histórico e rankings próprios de cada jogo.</p></article>
-          <b aria-hidden="true">↔</b>
-          <article><span>Jogo externo</span><strong>Mecânica e eventos brutos</strong><p>Controla a experiência da partida, sem declarar pontos gerais.</p></article>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
 
-function ArcadeGameCard({ game, onOpen }: { game: ArcadeGame; onOpen: () => void }) {
+function DetectorPosterArtwork() {
+  return (
+    <svg
+      className={styles.detectorArtwork}
+      viewBox="0 0 720 610"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        className={styles.posterBolt}
+        d="M470 15 346 218h97l-70 122 210-226H477l83-99Z"
+        fill="#FFD363"
+      />
+
+      <g className={styles.caseCounter}>
+        <rect x="39" y="35" width="178" height="55" rx="22" fill="#173F35" />
+        <circle cx="69" cy="62" r="10" fill="#B8EF3A" />
+        <text x="91" y="68">CASO 04 / 12</text>
+      </g>
+
+      <g className={styles.incomingMessage}>
+        <rect x="34" y="126" width="346" height="238" rx="34" fill="#FFFDF7" stroke="#173F35" strokeWidth="9" />
+        <rect x="34" y="126" width="346" height="55" rx="30" fill="#DDF2F1" />
+        <circle cx="71" cy="153" r="8" fill="#FF8066" />
+        <circle cx="96" cy="153" r="8" fill="#FFD363" />
+        <circle cx="121" cy="153" r="8" fill="#41B7AA" />
+        <circle cx="89" cy="225" r="30" fill="#CBBCE8" />
+        <path d="M74 225h30M89 210v30" stroke="#173F35" strokeWidth="7" strokeLinecap="round" />
+        <path d="M139 211h186M139 235h121" stroke="#173F35" strokeWidth="13" strokeLinecap="round" opacity=".75" />
+        <path d="M67 290h252M67 318h198" stroke="#65776F" strokeWidth="11" strokeLinecap="round" opacity=".52" />
+        <path d="m312 346 42 39-5-51" fill="#FFFDF7" stroke="#173F35" strokeWidth="8" strokeLinejoin="round" />
+      </g>
+
+      <g className={styles.targetGroup}>
+        <circle cx="530" cy="263" r="119" fill="#FF8066" stroke="#173F35" strokeWidth="9" />
+        <circle cx="530" cy="263" r="81" fill="#FFFDF7" stroke="#173F35" strokeWidth="8" />
+        <circle cx="530" cy="263" r="43" fill="#173F35" />
+        <path d="M530 239v30" stroke="#B8EF3A" strokeWidth="12" strokeLinecap="round" />
+        <circle cx="530" cy="289" r="7" fill="#B8EF3A" />
+      </g>
+
+      <path
+        className={styles.decisionTrace}
+        d="M319 388c61 28 108 38 156 15 33-16 49-45 55-88"
+        fill="none"
+        stroke="#173F35"
+        strokeWidth="11"
+        strokeLinecap="round"
+      />
+      <path d="m503 329 28-18 10 31" fill="#173F35" />
+
+      <g className={`${styles.choiceCard} ${styles.choiceCardPhishing}`}>
+        <rect x="30" y="431" width="210" height="91" rx="25" fill="#173F35" />
+        <circle cx="67" cy="476" r="18" fill="#B8EF3A" />
+        <path d="m59 476 6 7 12-15" fill="none" stroke="#173F35" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="96" y="483" fill="#FFFDF7">PHISHING</text>
+      </g>
+
+      <g className={`${styles.choiceCard} ${styles.choiceCardLegitimate}`}>
+        <rect x="255" y="457" width="205" height="78" rx="23" fill="#9DDCE6" stroke="#173F35" strokeWidth="7" />
+        <text x="288" y="505" fill="#173F35">LEGÍTIMA</text>
+      </g>
+
+      <g className={`${styles.choiceCard} ${styles.choiceCardVerify}`}>
+        <rect x="475" y="421" width="211" height="98" rx="25" fill="#CBBCE8" stroke="#173F35" strokeWidth="7" />
+        <text x="504" y="478" fill="#173F35">VERIFICAR</text>
+      </g>
+
+      <g className={styles.signalPrompt}>
+        <rect x="180" y="552" width="359" height="42" rx="18" fill="#FFD363" stroke="#173F35" strokeWidth="6" />
+        <text x="223" y="579" fill="#173F35">QUAL SINAL DECIDIU?</text>
+      </g>
+    </svg>
+  );
+}
+
+function ArcadeGamePoster({ game, onOpen }: { game: ArcadeGame; onOpen: () => void }) {
   const integrationLabel =
     game.status === "available"
       ? "Conectada"
@@ -190,32 +286,53 @@ function ArcadeGameCard({ game, onOpen }: { game: ArcadeGame; onOpen: () => void
     game.status === "ready" ? "Ver especificação" : "Ver detalhes";
 
   return (
-    <article className={`arcade-game-card status-${game.status}`}>
-      <div className="arcade-game-cover" aria-hidden="true">
-        <span>{game.shortTitle}</span>
-        <b>{game.caseCount}</b>
-      </div>
-      <div className="arcade-game-content">
-        <span className="arcade-game-status">{game.statusLabel}</span>
-        <h3>{game.title}</h3>
-        <p>{game.summary}</p>
-        <div className="arcade-game-tags">
-          {game.competencies.map((competency) => <span key={competency}>{competency}</span>)}
+    <article
+      className={styles.gamePoster}
+      data-status={game.status}
+      aria-labelledby={`${game.id}-title`}
+    >
+      <div className={styles.posterCopy}>
+        <div className={styles.posterTopline}>
+          <span className={styles.gameStatus} data-status={game.status}>
+            <i aria-hidden="true" /> {game.statusLabel}
+          </span>
+          <span>{game.caseCount} casos</span>
         </div>
-        <dl>
+
+        <span className={styles.gameFormat}>Reconhecimento rápido</span>
+        <h3 id={`${game.id}-title`}>{game.title}</h3>
+        <p>{game.summary}</p>
+
+        <p className={styles.gameHook}>Classifique a mensagem. Identifique o sinal.</p>
+
+        <dl className={styles.gameMeta}>
           <div><dt>Dificuldade</dt><dd>{game.difficulty}</dd></div>
           <div><dt>Duração</dt><dd>{game.duration}</dd></div>
-          <div><dt>Integração</dt><dd>{integrationLabel}</dd></div>
+          <div><dt>Pontuação</dt><dd>{game.scoreScale}</dd></div>
         </dl>
-        <small>{STATUS_HELP[game.status]}</small>
-        <button
-          type="button"
-          className="primary-button dark"
-          onClick={onOpen}
-          aria-label={`${detailLabel} de ${game.title}`}
-        >
-          {detailLabel}
-        </button>
+
+        <div className={styles.posterFooter}>
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`${detailLabel} de ${game.title}`}
+          >
+            {detailLabel} <span aria-hidden="true">→</span>
+          </button>
+          <p>
+            <strong>{integrationLabel}</strong>
+            <span>{STATUS_HELP[game.status]}</span>
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.posterVisual}>
+        <DetectorPosterArtwork />
+        <div className={styles.competencyStrip} aria-label="Competências praticadas">
+          {game.competencies.map((competency) => (
+            <span key={competency}>{competency}</span>
+          ))}
+        </div>
       </div>
     </article>
   );
@@ -227,11 +344,7 @@ type ArcadeGameDetailProps = {
   onOpenMissions: () => void;
 };
 
-export function ArcadeGameDetail({
-  game,
-  onBackToArcade,
-  onOpenMissions,
-}: ArcadeGameDetailProps) {
+export function ArcadeGameDetail({ game, onBackToArcade, onOpenMissions }: ArcadeGameDetailProps) {
   return (
     <div className="page-stack arcade-detail-page">
       <button type="button" className="text-button arcade-back-button" onClick={onBackToArcade}>← Voltar para o Arcade</button>
@@ -245,17 +358,17 @@ export function ArcadeGameDetail({
             <span>{game.difficulty}</span><span>{game.duration}</span><span>{game.scoreScale}</span>
           </div>
           <div className="arcade-detail-actions">
-            <button type="button" className="primary-button" disabled>Aguardando integração</button>
+            <a className="primary-button" href="#overlooked-player">Jogar Overlooked</a>
             <button type="button" className="text-button light" onClick={onOpenMissions}>Ver Missões secundárias</button>
           </div>
         </div>
-        <div className="arcade-detail-emblem" aria-hidden="true"><span>{game.shortTitle}</span><strong>{game.caseCount}</strong><small>casos</small></div>
+        <div className="arcade-detail-emblem" aria-hidden="true"><span>{game.shortTitle}</span><strong>{game.caseCount}</strong><small>mensagens</small></div>
       </section>
 
       <section className="arcade-detail-intro">
-        <div><span className="section-kicker">Objetivo</span><h2>Reconhecimento rápido com motivo</h2><p>{game.purpose}</p></div>
+        <div><span className="section-kicker">Objetivo</span><h2>Segurança é trabalho em equipe</h2><p>{game.purpose}</p></div>
         <div className="arcade-case-balance">
-          {DETECTOR_CASE_BALANCE.map((item) => (
+          {OVERLOOKED_CASE_BALANCE.map((item) => (
             <article key={item.label}><span>{item.marker}</span><strong>{item.count}</strong><p>{item.label}</p></article>
           ))}
         </div>
@@ -264,72 +377,52 @@ export function ArcadeGameDetail({
       <section className="arcade-detail-grid">
         <article className="arcade-rules-panel">
           <span className="section-kicker">Como funciona</span>
-          <h2>Duas escolhas por caso</h2>
+          <h2>Decidam e processem juntos</h2>
           <ol>
-            <li><span>01</span><div><strong>Classifique</strong><p>Legítima no contexto, phishing ou verificar por outro canal.</p></div></li>
-            <li><span>02</span><div><strong>Identifique o sinal</strong><p>Escolha o indício mais importante para justificar a classificação.</p></div></li>
-            <li><span>03</span><div><strong>Construa a sequência</strong><p>Um acerto completo exige classificação e sinal corretos.</p></div></li>
+            <li><span>01</span><div><strong>Leiam a caixa de entrada</strong><p>Observem remetente, domínio, contexto e urgência antes de decidir.</p></div></li>
+            <li><span>02</span><div><strong>Aceitem ou reportem</strong><p>Use A para aceitar uma solicitação e R para reportar phishing.</p></div></li>
+            <li><span>03</span><div><strong>Concluam o fluxo</strong><p>Os dois jogadores movimentam documentos entre as estações do escritório.</p></div></li>
           </ol>
         </article>
 
         <article className="arcade-scoring-panel">
           <span className="section-kicker">Pontuação própria</span>
-          <h2>Até 1.200 pontos</h2>
+          <h2>De −165 a 155 pontos</h2>
           <ul>
-            {DETECTOR_SCORING.map((item) => <li key={item.label}><span>{item.label}</span><strong>+{item.points}</strong></li>)}
-            <li className="total"><span>Máximo por caso</span><strong>100</strong></li>
+            {OVERLOOKED_SCORING.map((item) => (
+              <li key={item.label}><span>{item.label}</span><strong>{item.points > 0 ? "+" : ""}{item.points}</strong></li>
+            ))}
           </ul>
-          <p>A sequência não soma pontos. Ela é o primeiro desempate.</p>
+          <p>A pontuação é recalculada no servidor a partir das decisões, nunca aceita pronta do navegador.</p>
         </article>
       </section>
 
-      <section className="arcade-ranking-section">
-        <div className="arcade-section-heading">
-          <div><span className="section-kicker">Leaderboard específico</span><h2>Prévia demonstrativa</h2></div>
-          <span className="arcade-preview-label">Não está ativo</span>
-        </div>
-        <div className="arcade-ranking-layout">
-          <ol className="arcade-ranking-list">
-            {DETECTOR_LEADERBOARD_PREVIEW.map((entry) => (
-              <li key={entry.position}>
-                <span>{entry.position}</span>
-                <div><strong>{entry.name}</strong><small>{entry.area}</small></div>
-                <div><b>{entry.score}</b><small>sequência {entry.streak}</small></div>
-              </li>
-            ))}
-          </ol>
-          <article className="arcade-tiebreak-panel">
-            <span className="section-kicker">Ordem de desempate</span>
-            <ol>{DETECTOR_TIE_BREAKS.map((item, index) => <li key={item}><span>{index + 1}</span>{item}</li>)}</ol>
-          </article>
-        </div>
-        <p className="arcade-preview-note">Os nomes e resultados acima servem apenas para demonstrar a futura organização. Nenhuma pessoa possui uma partida real registrada.</p>
-      </section>
-
-      <section className="arcade-detail-rewards">
-        <div><span className="section-kicker">Recompensas do jogo</span><h2>Uma faixa por vez, sem temporadas</h2><p>Ao melhorar a posição, somente a diferença até o novo total é concedida.</p></div>
-        <ol>{ARCADE_REWARD_TIERS.map((tier) => <li key={tier.id}><span>{tier.label}</span><strong>{tier.points}</strong><small>pontos totais</small></li>)}</ol>
-      </section>
+      <OverlookedIntegration />
 
       <section className="arcade-detail-bottom-grid">
         <article className="arcade-secondary-panel">
-          <span className="section-kicker">Missões secundárias possíveis</span>
+          <span className="section-kicker">Missões secundárias futuras</span>
           <h2>Objetivos separados do leaderboard</h2>
-          <ul>{DETECTOR_SECONDARY_MISSIONS.map((mission) => <li key={mission}>{mission}</li>)}</ul>
+          <ul>{OVERLOOKED_SECONDARY_MISSIONS.map((mission) => <li key={mission}>{mission}</li>)}</ul>
           <button type="button" className="text-button" onClick={onOpenMissions}>Abrir Missões</button>
         </article>
         <article className="arcade-readiness-panel">
           <span className="section-kicker">Situação da integração</span>
-          <h2>O que já está definido</h2>
+          <h2>O que já funciona</h2>
           <ul>
-            <li className="done"><span>✓</span>Regras e pontuação</li>
-            <li className="done"><span>✓</span>Leaderboard e desempates</li>
-            <li className="done"><span>✓</span>Faixas de recompensa</li>
-            <li><span>—</span>Conexão com o projeto do jogo</li>
-            <li><span>—</span>Registro de partidas válidas</li>
+            <li className="done"><span>✓</span>Jogo incorporado ao site</li>
+            <li className="done"><span>✓</span>Sessão vinculada à conta</li>
+            <li className="done"><span>✓</span>Pontuação recalculada no servidor</li>
+            <li className="done"><span>✓</span>Leaderboard por melhor resultado</li>
+            <li><span>—</span>Recompensas gerais do Arcade</li>
           </ul>
-          <p>O botão Jogar continuará indisponível até que essas duas últimas etapas sejam implementadas.</p>
+          <p>As recompensas gerais continuam desacopladas para não alterar o progresso de aprendizagem nesta etapa.</p>
         </article>
+      </section>
+
+      <section className="arcade-rank-bands">
+        <div><span className="section-kicker">Faixas alcançáveis</span><h2>Títulos ajustados à pontuação real</h2></div>
+        <ol>{OVERLOOKED_RANKS.map((rank) => <li key={rank.label}><strong>{rank.minimum}+</strong><span>{rank.label}</span></li>)}</ol>
       </section>
     </div>
   );

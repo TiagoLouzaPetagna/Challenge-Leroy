@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 
 import {
   TEAM_ACTION_LABELS,
   TEAM_CHALLENGE_CASES,
 } from "@/lib/content/team-challenge-catalog";
 import { POINT_RULES } from "@/lib/domain/rules";
+import { Mascot } from "@/features/ui/LearningUI";
 import type {
   EvidenceKey,
   SectorAggregate,
@@ -18,6 +19,9 @@ import type {
   TeamChallengeResult,
   TeamCollectiveHistoryEvent,
 } from "@/lib/domain/types";
+
+import { LiveLeaderboard } from "./LiveLeaderboard";
+import styles from "./TeamsHub.module.css";
 
 type RankingItem = {
   id: string;
@@ -48,6 +52,7 @@ type TeamsHubProps = {
   rewardPoints: number;
   onOpenChallenge: () => void;
   onOpenLegacyChallenge: () => void;
+  onOpenProfile: () => void;
   onBackToOverview: () => void;
 };
 
@@ -75,7 +80,7 @@ function SectorShieldBlueprint({
 
   return (
     <svg
-      className="teams-shield-blueprint"
+      className={styles.shieldBlueprint}
       viewBox="0 0 360 300"
       role="img"
       aria-labelledby="sector-shield-title sector-shield-description"
@@ -95,7 +100,7 @@ function SectorShieldBlueprint({
       </defs>
 
       <rect width="360" height="300" rx="28" fill="url(#sector-blueprint-grid)" />
-      <g className="teams-blueprint-house" fill="none" stroke="currentColor">
+      <g className={styles.blueprintHouse} fill="none" stroke="currentColor">
         <path d="M48 146 180 38l132 108" strokeWidth="2" strokeOpacity=".48" />
         <path d="M74 129v126h212V129" strokeWidth="2" strokeOpacity=".28" />
         <path d="M99 255v-66h49v66M223 166h38v38h-38z" strokeWidth="1.5" strokeOpacity=".22" />
@@ -103,7 +108,7 @@ function SectorShieldBlueprint({
         <path d="M48 137v-20M312 137v-20M48 122h264" strokeWidth="1" strokeDasharray="5 6" strokeOpacity=".2" />
       </g>
 
-      <g className="teams-blueprint-shield">
+      <g className={styles.blueprintShield}>
         <path
           d="M180 80c25 18 47 22 69 27v52c0 46-27 78-69 98-42-20-69-52-69-98v-52c22-5 44-9 69-27Z"
           fill="url(#sector-shield-fill)"
@@ -166,6 +171,7 @@ export function TeamsHub({
   rewardPoints,
   onOpenChallenge,
   onOpenLegacyChallenge,
+  onOpenProfile,
   onBackToOverview,
 }: TeamsHubProps) {
   const currentRanking = ranking.find((item) => item.isCurrent);
@@ -173,25 +179,22 @@ export function TeamsHub({
 
   return (
     <div className="page-stack teams-page">
-      <section className="teams-hero teams-hero--shield-first">
-        <div className="teams-hero-copy">
-          <span className="section-kicker">Proteção coletiva</span>
-          <h1>Escudo do setor</h1>
-          <p>
-            O escudo mostra quanto o setor já transformou prática em proteção.
-            Participação, precisão e cobertura fortalecem a mesma casa digital.
+      <div className={styles.page}>
+      <header className={styles.hero} aria-labelledby="teams-title">
+        <div className={styles.heroCopy}>
+          <span className={styles.eyebrow}>Proteção coletiva · {teamName}</span>
+          <h1 id="teams-title">Escudo do setor</h1>
+          <p className={styles.heroLead}>
+            Veja o que já protege a loja — e qual é a próxima decisão que fortalece o conjunto.
           </p>
-          <div className="teams-aggregate-privacy" role="note">
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <div className={styles.privacyNote} role="note">
+            <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
-            <span>
-              O setor recebe somente dados agregados. Respostas, erros e notas
-              individuais continuam privados.
-            </span>
+            <span>Somente dados agregados. Respostas e erros individuais permanecem privados.</span>
           </div>
-          <div className="teams-hero-actions">
+          <div className={styles.heroActions}>
             <button type="button" className="primary-button" onClick={onOpenChallenge}>
               {latestResult ? "Ver ou refazer desafio" : "Fortalecer o escudo"}
             </button>
@@ -200,112 +203,134 @@ export function TeamsHub({
             </button>
           </div>
         </div>
-        <div className="teams-shield-card teams-shield-card--blueprint">
-          <SectorShieldBlueprint score={metrics.score} level={metrics.shieldLevel} />
-          <div className="teams-shield-caption">
-            <strong>{metrics.score}/100</strong>
-            <span>Escudo {metrics.shieldLevel}</span>
-            <small>{teamName}</small>
-          </div>
-        </div>
-      </section>
 
-      <section className="teams-goal-panel teams-goal-panel--active" aria-labelledby="teams-goal-title">
-        <div>
-          <span className="section-kicker">Meta ativa</span>
+        <div className={styles.heroArtwork}>
+          <span className={`${styles.unitNode} ${styles.unitNodeOne}`} aria-hidden="true">047</span>
+          <span className={`${styles.unitNode} ${styles.unitNodeTwo}`} aria-hidden="true">CD</span>
+          <span className={`${styles.unitNode} ${styles.unitNodeThree}`} aria-hidden="true">+</span>
+          <span className={styles.connectionLine} aria-hidden="true" />
+          <div className={styles.shieldFrame}>
+            <SectorShieldBlueprint score={metrics.score} level={metrics.shieldLevel} />
+            <div className={styles.shieldCaption} aria-hidden="true">
+              <strong>{metrics.score}<small>/100</small></strong>
+              <span>Escudo {metrics.shieldLevel}</span>
+            </div>
+          </div>
+          <Mascot pose="protection" size="large" className={styles.mascot} />
+        </div>
+      </header>
+
+      <section className={styles.goalBand} aria-labelledby="teams-goal-title">
+        <div className={styles.goalHeading}>
+          <span>Meta ativa</span>
           <h2 id="teams-goal-title">{goal.title}</h2>
           <p>{goal.description}</p>
         </div>
-        <div className="teams-goal-progress">
+        <div className={styles.goalJourney}>
+          <div className={styles.goalNumbers} id="teams-goal-progress-text">
+            <span><strong>{metrics.score}</strong> agora</span>
+            <span><strong>{goal.targetScore}</strong> meta</span>
+          </div>
           <progress
             value={metrics.score}
             max={goal.targetScore}
             aria-label={`Progresso da meta: ${metrics.score} de ${goal.targetScore}`}
-            aria-describedby="teams-goal-progress-text"
+            aria-describedby="teams-goal-progress-text teams-goal-remaining"
           >
             {metrics.score} de {goal.targetScore}
           </progress>
-          <p id="teams-goal-progress-text">
-            <strong>{metrics.score}/{goal.targetScore}</strong>
-            <span>
-              {pointsToGoal === 0
-                ? "Meta alcançada"
-                : `${pointsToGoal === 1 ? "Falta" : "Faltam"} ${pointsToGoal} ${pointsToGoal === 1 ? "ponto" : "pontos"}`}
-            </span>
-          </p>
+          <strong id="teams-goal-remaining" className={styles.goalRemaining}>
+            {pointsToGoal === 0
+              ? "Meta alcançada"
+              : `${pointsToGoal === 1 ? "Falta" : "Faltam"} ${pointsToGoal} ${pointsToGoal === 1 ? "ponto" : "pontos"}`}
+          </strong>
         </div>
       </section>
 
-      <section className="teams-challenge-card teams-challenge-card--featured" aria-labelledby="current-team-challenge-title">
-        <div className="teams-challenge-marker" aria-hidden="true">01</div>
-        <div>
-          <span className="section-kicker">Desafio atual · fortalece o escudo</span>
+      <section className={styles.featuredChallenge} aria-labelledby="current-team-challenge-title">
+        <div className={styles.challengeArtwork} aria-hidden="true">
+          <svg viewBox="0 0 330 240" focusable="false">
+            <path className={styles.challengePath} d="M30 194C88 190 79 98 141 103s73 75 159 31" />
+            <g className={styles.challengeEnvelope}>
+              <rect x="58" y="50" width="142" height="102" rx="18" />
+              <path d="m70 68 59 47 59-47" />
+              <path d="m70 138 43-38M188 138l-43-38" />
+            </g>
+            <g className={styles.challengeBank}>
+              <path d="M215 78h82M224 78v61m20-61v61m20-61v61m24-61v61M214 139h84" />
+              <path d="m211 77 44-30 47 30" />
+            </g>
+            <circle cx="301" cy="134" r="18" />
+            <path d="m293 134 6 6 11-13" />
+          </svg>
+          <span>Verificar antes de alterar</span>
+        </div>
+        <div className={styles.challengeCopy}>
+          <span className={styles.eyebrowDark}>Próximo desafio coletivo</span>
           <h2 id="current-team-challenge-title">Mudança bancária sem atalho</h2>
           <p>
-            Resolva um caso completo de troca de conta perto do pagamento. Só a
-            primeira conclusão atualiza o agregado; seu relatório permanece privado.
+            Investigue uma troca de conta perto do pagamento. A primeira conclusão válida fortalece apenas o agregado do setor.
           </p>
-          <div className="teams-challenge-meta">
+          <div className={styles.challengeMeta}>
             <span>1 caso · 5 decisões</span>
             <span>11 min</span>
             <span>{POINT_RULES.teamOperation} pontos-base</span>
             <span>{contribution ? "Contribuição registrada" : "Pronto para começar"}</span>
           </div>
+          <button type="button" className="primary-button dark" onClick={onOpenChallenge}>
+            {latestResult ? "Abrir resultado" : "Começar desafio"}
+          </button>
         </div>
-        <button type="button" className="primary-button dark" onClick={onOpenChallenge}>
-          {latestResult ? "Abrir resultado" : "Começar desafio"}
-        </button>
       </section>
 
-      <section className="teams-metrics-section" aria-labelledby="teams-score-title">
-        <div className="teams-section-heading">
-          <div>
-            <span className="section-kicker">Como o placar é calculado</span>
-            <h2 id="teams-score-title">Três indicadores, nenhum ranking individual</h2>
-          </div>
-          <span className="teams-score-formula">40% + 40% + 20%</span>
+      <section className={styles.metricsStory} aria-labelledby="teams-score-title">
+        <div className={styles.metricsIntro}>
+          <span className={styles.eyebrowDark}>Como o escudo ganha força</span>
+          <h2 id="teams-score-title">Três indicadores, nenhum ranking individual</h2>
+          <p>O cálculo combina participação, precisão e cobertura sem publicar o desempenho de ninguém.</p>
+          <span className={styles.scoreFormula}>40% + 40% + 20%</span>
         </div>
-        <div className="teams-metric-grid">
-          <article className="teams-metric-card teams-metric-card--participation">
-            <header>
-              <h3>Participação</h3>
-              <span className="teams-metric-weight">40% da nota</span>
-            </header>
+        <div className={styles.metricRows}>
+          <article
+            className={styles.metricRow}
+            style={{ "--metric-value": `${metrics.participation}%` } as CSSProperties}
+          >
+            <div><h3>Participação</h3><span>40% da nota</span></div>
             <strong>{formatPercentage(metrics.participation)}%</strong>
+            <div className={styles.metricTrack} aria-hidden="true"><span /></div>
             <p>{aggregate.validParticipants} de {aggregate.eligibleParticipants} participantes elegíveis.</p>
           </article>
-          <article className="teams-metric-card teams-metric-card--precision">
-            <header>
-              <h3>Precisão</h3>
-              <span className="teams-metric-weight">40% da nota</span>
-            </header>
+          <article
+            className={styles.metricRow}
+            style={{ "--metric-value": `${metrics.precision}%` } as CSSProperties}
+          >
+            <div><h3>Precisão</h3><span>40% da nota</span></div>
             <strong>{formatPercentage(metrics.precision)}%</strong>
+            <div className={styles.metricTrack} aria-hidden="true"><span /></div>
             <p>{aggregate.correctDecisions} de {aggregate.validDecisions} decisões agregadas.</p>
           </article>
-          <article className="teams-metric-card teams-metric-card--coverage">
-            <header>
-              <h3>Cobertura</h3>
-              <span className="teams-metric-weight">20% da nota</span>
-            </header>
+          <article
+            className={styles.metricRow}
+            style={{ "--metric-value": `${metrics.coverage}%` } as CSSProperties}
+          >
+            <div><h3>Cobertura</h3><span>20% da nota</span></div>
             <strong>{formatPercentage(metrics.coverage)}%</strong>
+            <div className={styles.metricTrack} aria-hidden="true"><span /></div>
             <p>{aggregate.coveredCompetencyIds.length} de {aggregate.requiredCompetencyIds.length} competências cobertas.</p>
           </article>
         </div>
-        <p className="teams-metric-note">
+        <p className={styles.metricFootnote}>
           Pontos gerais, tamanho bruto do setor e posições individuais no Arcade não entram nesta fórmula.
         </p>
       </section>
 
-      <section className="teams-challenge-card teams-challenge-card--legacy">
-        <div className="teams-challenge-marker" aria-hidden="true">05</div>
+      <section className={styles.previousChallenge} aria-labelledby="previous-team-challenge-title">
+        <div className={styles.previousMarker} aria-hidden="true">05</div>
         <div>
-          <span className="section-kicker">Desafio anterior disponível</span>
-          <h2>Caixa de Entrada Segura</h2>
-          <p>
-            O desafio de cinco mensagens continua acessível, com tentativas,
-            recompensa e contribuição preservadas separadamente.
-          </p>
-          <div className="teams-challenge-meta">
+          <span className={styles.eyebrowDark}>Prática anterior disponível</span>
+          <h2 id="previous-team-challenge-title">Caixa de Entrada Segura</h2>
+          <p>Cinco mensagens, tentativas e recompensa preservadas separadamente.</p>
+          <div className={styles.challengeMeta}>
             <span>5 mensagens</span>
             <span>8–10 min</span>
             <span>{legacyCompleted ? "Concluído" : "Ainda não realizado"}</span>
@@ -316,65 +341,54 @@ export function TeamsHub({
         </button>
       </section>
 
-      <section className="teams-detail-grid">
-        <article className="teams-ranking-panel">
-          <div className="teams-section-heading compact">
+      <section className={styles.contextGrid} aria-label="Contexto e privacidade do setor">
+        <article className={styles.rankingPanel}>
+          <header>
             <div>
-              <span className="section-kicker">Contexto coletivo</span>
-              <h2>Seu setor no ranking normalizado</h2>
+              <span className={styles.eyebrowDark}>Comparação entre setores</span>
+              <h2>Posição agregada da loja</h2>
             </div>
-            <span>{currentRanking ? `${currentRanking.position}º lugar` : "—"}</span>
-          </div>
-          <div className="teams-current-ranking">
-            <span>Seu setor</span>
             <strong>{currentRanking ? `${currentRanking.position}º` : "—"}</strong>
-            <small>{currentRanking ? `${currentRanking.score} pontos agregados` : "Posição indisponível"}</small>
-          </div>
-          <ol
-            className="teams-ranking-list"
-            aria-label="Classificação agregada dos setores"
-          >
+          </header>
+          <ol aria-label="Classificação agregada dos setores">
             {ranking.map((item) => (
-              <li key={item.id} className={item.isCurrent ? "current" : ""}>
+              <li key={item.id} className={item.isCurrent ? styles.currentTeam : undefined}>
                 <span>{item.position}</span>
                 <strong>{item.name}</strong>
                 <small>{item.score} pontos agregados</small>
               </li>
             ))}
           </ol>
-          <p>
-            A comparação usa somente indicadores normalizados por setor. Nenhuma
-            resposta, nota ou identidade individual aparece na classificação.
-          </p>
+          <p>Somente indicadores normalizados por setor aparecem aqui — nunca respostas, notas ou identidades individuais.</p>
         </article>
 
-        <article className="teams-private-panel">
-          <span className="section-kicker">Visível somente para você</span>
-          <h2>Sua contribuição privada</h2>
+        <article className={styles.privatePanel}>
+          <span className={styles.privateLock} aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+          </span>
+          <span className={styles.eyebrowDark}>Visível somente para você</span>
+          <h2>Sua contribuição permanece privada</h2>
           {contribution && latestResult ? (
-            <div className="teams-private-result">
+            <div className={styles.privateResult}>
               <strong>Registrada no agregado</strong>
               <span>{latestResult.correctDecisions} de {latestResult.totalDecisions} decisões corretas</span>
               <span>{rewardPoints} pontos confirmados</span>
               <small>Repetir o desafio não altera novamente o placar.</small>
             </div>
           ) : (
-            <div className="teams-private-empty">
+            <div className={styles.privateEmpty}>
               <strong>Ainda sem contribuição neste desafio</strong>
-              <p>Seu resultado aparecerá aqui, nunca no ranking coletivo.</p>
+              <p>Seu resultado aparecerá aqui, nunca na comparação coletiva.</p>
             </div>
           )}
-          <div className="teams-privacy-rule">
-            <span aria-hidden="true">Privado</span>
-            <p>Outras pessoas não veem suas respostas, sua nota ou quais casos você errou.</p>
-          </div>
+          <p className={styles.privateRule}>Outras pessoas não veem suas respostas, sua nota ou quais casos você errou.</p>
         </article>
       </section>
 
-      <section className="teams-history-panel">
+      <section className={styles.historyPanel} aria-labelledby="teams-history-title">
         <div>
-          <span className="section-kicker">Histórico coletivo</span>
-          <h2>Marcos do setor</h2>
+          <span className={styles.eyebrowDark}>Histórico coletivo</span>
+          <h2 id="teams-history-title">Marcos que fortaleceram o setor</h2>
         </div>
         <ol>
           {[...history].reverse().map((event) => (
@@ -386,6 +400,9 @@ export function TeamsHub({
           ))}
         </ol>
       </section>
+
+      <LiveLeaderboard onOpenProfile={onOpenProfile} />
+      </div>
     </div>
   );
 }

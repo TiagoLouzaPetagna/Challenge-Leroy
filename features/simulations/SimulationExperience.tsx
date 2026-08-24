@@ -3,6 +3,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import styles from "./SimulationsHub.module.css";
 
 import {
   WORKDAY_MESSAGES,
@@ -26,44 +27,138 @@ type SimulationsHubProps = {
   onBackToOverview: () => void;
 };
 
-const packages = [
-  {
-    id: "workday",
-    eyebrow: "Pacote 01",
-    statusLabel: "Disponível",
-    title: "Uma manhã comum",
-    summary:
-      "Organize mensagens legítimas, suspeitas e inconclusivas. O diagnóstico aparece somente ao final.",
-    format: "Lote misto",
-    duration: "12 min",
-    difficulty: "Intermediária",
-    playable: true,
-  },
+const futureScenarios = [
   {
     id: "message-center",
-    eyebrow: "Pacote 02",
-    statusLabel: "Em produção",
     title: "Central de mensagens",
     summary:
       "Conversas de gestores, colegas e suporte para praticar personificação e confirmação por outro canal.",
-    format: "5 conversas",
-    duration: "A confirmar",
-    difficulty: "Intermediária",
-    playable: false,
+    format: "5 conversas conectadas",
+    focus: "Identidade e confirmação",
+    artwork: "messages",
   },
   {
     id: "multichannel",
-    eyebrow: "Pacote 03",
-    statusLabel: "Em produção",
     title: "Ataque multicanal",
     summary:
       "Um mesmo incidente se desenvolve por e-mail, mensagem, QR Code e página de confirmação.",
     format: "Caso conectado",
-    duration: "A confirmar",
-    difficulty: "Avançada",
-    playable: false,
+    focus: "E-mail, chat, QR e página",
+    artwork: "channels",
   },
 ] as const;
+
+function WorkdaySceneArtwork() {
+  return (
+    <svg
+      className={styles.workdayArtwork}
+      viewBox="0 0 640 440"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M86 63c93-71 272-67 390-7 116 59 154 181 85 272-66 88-227 104-354 67C73 356 5 271 24 180 34 132 54 88 86 63Z" fill="#F4CC61" />
+      <circle cx="518" cy="86" r="45" fill="#FF8A70" />
+      <circle cx="65" cy="340" r="30" fill="#9EDCE5" />
+
+      <g className={styles.floatingMessage}>
+        <rect x="36" y="68" width="155" height="67" rx="20" fill="#FFFDF7" />
+        <circle cx="70" cy="101" r="15" fill="#CBBCE8" />
+        <path d="M98 91h61M98 106h43" stroke="#173F35" strokeWidth="8" strokeLinecap="round" opacity=".72" />
+        <path d="m154 128 21 19-3-27" fill="#FFFDF7" />
+      </g>
+
+      <g className={styles.floatingAlert}>
+        <rect x="476" y="116" width="127" height="56" rx="18" fill="#173F35" />
+        <circle cx="505" cy="144" r="12" fill="#B8EF3A" />
+        <path d="M531 136h48M531 150h32" stroke="#FFFDF7" strokeWidth="7" strokeLinecap="round" opacity=".85" />
+      </g>
+
+      <path d="M22 384h590" stroke="#173F35" strokeWidth="15" strokeLinecap="round" />
+      <path d="M89 383 71 427M536 383l20 44" stroke="#173F35" strokeWidth="13" strokeLinecap="round" />
+
+      <g className={styles.screenGroup}>
+        <rect x="105" y="145" width="365" height="225" rx="24" fill="#173F35" />
+        <rect x="122" y="162" width="331" height="184" rx="13" fill="#FFFDF7" />
+        <circle cx="143" cy="180" r="5" fill="#FF8066" />
+        <circle cx="159" cy="180" r="5" fill="#FFD363" />
+        <circle cx="175" cy="180" r="5" fill="#41B7AA" />
+        <path d="M122 195h331" stroke="#D9DFD2" strokeWidth="4" />
+
+        <g transform="translate(138 213)">
+          <rect width="67" height="111" rx="10" fill="#EEEAE0" />
+          <rect x="9" y="10" width="49" height="9" rx="4.5" fill="#5D7068" opacity=".55" />
+          <rect x="9" y="31" width="49" height="28" rx="7" fill="#FFFDF7" />
+          <rect x="9" y="68" width="49" height="32" rx="7" fill="#FFFDF7" />
+        </g>
+        <g transform="translate(215 213)">
+          <rect width="67" height="111" rx="10" fill="#DDF2F1" />
+          <rect x="9" y="10" width="44" height="9" rx="4.5" fill="#24796F" opacity=".65" />
+          <rect x="9" y="31" width="49" height="43" rx="7" fill="#FFFDF7" />
+          <path d="M18 45h29M18 56h20" stroke="#24796F" strokeWidth="5" strokeLinecap="round" opacity=".65" />
+        </g>
+        <g transform="translate(292 213)">
+          <rect width="67" height="111" rx="10" fill="#F2EAF5" />
+          <rect x="9" y="10" width="38" height="9" rx="4.5" fill="#6D5D83" opacity=".62" />
+          <rect x="9" y="31" width="49" height="51" rx="7" fill="#FFFDF7" />
+          <circle cx="21" cy="46" r="6" fill="#CBBCE8" />
+          <path d="M32 43h17M32 51h12" stroke="#6D5D83" strokeWidth="4" strokeLinecap="round" opacity=".62" />
+        </g>
+        <g transform="translate(369 213)">
+          <rect width="67" height="111" rx="10" fill="#E5F3C6" />
+          <rect x="9" y="10" width="36" height="9" rx="4.5" fill="#4C7614" opacity=".7" />
+          <rect x="9" y="31" width="49" height="35" rx="7" fill="#FFFDF7" />
+          <path d="m22 47 7 7 15-17" fill="none" stroke="#4C7614" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+        <path d="M84 369h405l-29 19H113Z" fill="#245447" />
+      </g>
+
+      <g className={styles.phoneGroup}>
+        <rect x="488" y="214" width="86" height="158" rx="20" fill="#FFFDF7" stroke="#173F35" strokeWidth="9" />
+        <path d="M518 229h26" stroke="#173F35" strokeWidth="6" strokeLinecap="round" />
+        <rect x="501" y="254" width="59" height="42" rx="11" fill="#CBBCE8" />
+        <rect x="501" y="305" width="45" height="32" rx="11" fill="#9EDCE5" />
+        <circle cx="531" cy="354" r="5" fill="#173F35" />
+      </g>
+
+      <g>
+        <path d="M35 319h60l-8 64H44Z" fill="#FF8066" stroke="#173F35" strokeWidth="7" strokeLinejoin="round" />
+        <path d="M95 333h10c18 0 18 31 0 31H91" fill="none" stroke="#173F35" strokeWidth="7" />
+        <path d="M53 303c-8-11 9-14 1-26M72 303c-8-11 9-14 1-26" fill="none" stroke="#173F35" strokeWidth="5" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+function FutureScenarioArtwork({ kind }: { kind: "messages" | "channels" }) {
+  if (kind === "messages") {
+    return (
+      <svg viewBox="0 0 180 120" aria-hidden="true" focusable="false">
+        <rect x="19" y="20" width="102" height="60" rx="17" fill="#FFFDF7" stroke="currentColor" strokeWidth="4" />
+        <circle cx="43" cy="49" r="11" fill="#CBBCE8" />
+        <path d="M62 42h39M62 55h28" stroke="currentColor" strokeWidth="6" strokeLinecap="round" opacity=".7" />
+        <path d="m94 78 23 18-3-25" fill="#FFFDF7" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+        <rect x="84" y="57" width="77" height="44" rx="15" fill="#F4CC61" stroke="currentColor" strokeWidth="4" />
+        <path d="M103 76h39M103 87h25" stroke="currentColor" strokeWidth="5" strokeLinecap="round" opacity=".68" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 180 120" aria-hidden="true" focusable="false">
+      <path d="M45 58h37M101 58h34M90 28v18M90 70v20" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeDasharray="5 8" />
+      <rect x="17" y="39" width="42" height="38" rx="12" fill="#9EDCE5" stroke="currentColor" strokeWidth="4" />
+      <path d="m25 49 13 10 13-10M25 68h26" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+      <rect x="70" y="12" width="40" height="38" rx="12" fill="#CBBCE8" stroke="currentColor" strokeWidth="4" />
+      <path d="M80 25h20M80 36h13" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+      <rect x="121" y="39" width="42" height="38" rx="12" fill="#FF8A70" stroke="currentColor" strokeWidth="4" />
+      <path d="M133 51h18v14h-18zM137 55h10v6h-10z" fill="#FFFDF7" />
+      <rect x="70" y="72" width="40" height="38" rx="12" fill="#B8EF3A" stroke="currentColor" strokeWidth="4" />
+      <path d="m82 90 6 6 12-14" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="90" cy="58" r="13" fill="#173F35" />
+      <path d="M85 58h10M90 53v10" stroke="#FFFDF7" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export function SimulationsHub({
   isRecommended,
@@ -74,80 +169,115 @@ export function SimulationsHub({
 }: SimulationsHubProps) {
   return (
     <div className="page-stack simulation-page">
-      <section className="simulation-hero simulation-hero--compact">
-        <div>
-          <span className="section-badge">Prática em contexto</span>
-          <h1>Simulações</h1>
-          <p>
-            Pratique decisões em ambientes controlados, sem links ou ações reais.
-          </p>
-          <div className="simulation-hero-actions">
-            <button type="button" className="text-button light" onClick={onBackToOverview}>
-              Voltar à visão geral <span aria-hidden="true">→</span>
-            </button>
-          </div>
+      <div className={styles.hub}>
+        <div className={styles.introRegion}>
+          <button type="button" className={styles.backButton} onClick={onBackToOverview}>
+            <span aria-hidden="true">←</span> Visão geral
+          </button>
+          <header className={styles.editorialHeader}>
+            <span className={styles.kicker}>Simulações · prática</span>
+            <h1>Escolha seu cenário.</h1>
+            <p>Treine decisões seguras em situações próximas da rotina.</p>
+          </header>
         </div>
-        <aside className={isRecommended ? "simulation-recommendation active" : "simulation-recommendation"}>
-          <span>{isRecommended ? "Prática recomendada" : "Prática opcional"}</span>
-          <strong>Uma manhã comum</strong>
-          <p>
-            {isRecommended
-              ? "Aplique em um lote misto a técnica que você acabou de praticar. A recomendação não bloqueia sua jornada."
-              : "Uma prática curta para revisar decisões no seu ritmo."}
-          </p>
-        </aside>
-      </section>
 
-      {latestResult ? (
-        <section className="simulation-last-result">
+        <section className={styles.availableSection} aria-labelledby="available-simulation-title">
+        <div className={styles.sectionIntro}>
           <div>
-            <span className="section-kicker">Último pacote</span>
-            <h2>{latestResult.score}/100 em Uma manhã comum</h2>
-            <p>{rewardPoints} pontos confirmados e {latestResult.falsePositives} falsos positivos.</p>
+            <span className={styles.kicker}>Disponível agora</span>
+            <h2 id="available-simulation-title">Seu próximo cenário</h2>
           </div>
-          <span className="simulation-result-status">Resultado salvo no Meu perfil</span>
-        </section>
-      ) : null}
-
-      <section className="content-section compact">
-        <div className="section-heading-row">
-          <div>
-            <span className="section-kicker">Pacotes</span>
-            <h2>Escolha uma simulação</h2>
-          </div>
-          <p>Uma experiência está disponível; as próximas seguem visíveis no roadmap.</p>
+          <p>Uma experiência completa, com resultado somente depois das suas decisões.</p>
         </div>
-        <div className="simulation-package-grid">
-          {packages.map((item) => (
-            <article key={item.id} className={item.playable ? "is-playable" : "is-future"}>
-              <div className="simulation-package-topline">
-                <span>{item.eyebrow}</span>
-                <strong>{item.statusLabel}</strong>
-              </div>
-              <h3>{item.title}</h3>
-              <p>{item.summary}</p>
-              <dl className="simulation-package-meta">
-                <div><dt>Formato</dt><dd>{item.format}</dd></div>
-                <div><dt>Duração</dt><dd>{item.duration}</dd></div>
-                <div><dt>Dificuldade</dt><dd>{item.difficulty}</dd></div>
+
+        <article className={styles.featuredScenario} aria-labelledby="workday-title">
+          <div className={styles.featuredCopy}>
+            <div className={styles.featuredStatusRow}>
+              <span className={styles.availableBadge}>
+                <span aria-hidden="true">✓</span> Disponível
+              </span>
+              <span className={styles.recommendationLabel}>
+                {isRecommended ? "Recomendado para você" : "Pratique no seu ritmo"}
+              </span>
+            </div>
+
+            <h2 id="workday-title">Uma manhã comum</h2>
+            <p className={styles.featuredSummary}>
+              Organize uma entrada de trabalho com mensagens legítimas, suspeitas e
+              inconclusivas. Nenhuma pista isolada decide o caso — e o diagnóstico
+              aparece somente ao final.
+            </p>
+
+            <p className={styles.scenarioMeta}>12 min · Intermediário</p>
+
+            {latestResult ? (
+              <aside className={styles.latestResult} aria-label="Último resultado em Uma manhã comum">
                 <div>
-                  <dt>Recompensa</dt>
-                  <dd>{item.playable ? `${POINT_RULES.simulation} pontos-base` : "A definir"}</dd>
+                  <span>Última tentativa</span>
+                  <strong>{latestResult.score}/100</strong>
                 </div>
-              </dl>
-              {item.playable ? (
-                <button type="button" onClick={onOpenWorkday}>
-                  {latestResult ? "Ver resultado ou refazer" : "Iniciar simulação"}
-                </button>
-              ) : (
-                <span className="simulation-package-planned">
-                  Em produção · disponibilidade futura
+                <p>
+                  {rewardPoints} pontos confirmados · {latestResult.falsePositives}{" "}
+                  {latestResult.falsePositives === 1 ? "falso positivo" : "falsos positivos"}
+                </p>
+                <small>Resultado salvo no Meu perfil</small>
+              </aside>
+            ) : null}
+
+            <div className={styles.actionRow}>
+              <button type="button" className={styles.primaryAction} onClick={onOpenWorkday}>
+                {latestResult ? "Ver resultado ou refazer" : "Iniciar simulação"}
+                <span aria-hidden="true">→</span>
+              </button>
+              <span>Resultado privado · feedback no fim</span>
+            </div>
+          </div>
+
+          <div className={styles.featuredArtwork}>
+            <WorkdaySceneArtwork />
+            <span className={styles.artworkCaption}>6 etapas · rotina mista</span>
+          </div>
+        </article>
+        </section>
+
+        <section className={styles.productionSection} aria-labelledby="production-title">
+        <div className={styles.sectionIntro}>
+          <div>
+            <span className={styles.kicker}>Bastidores</span>
+            <h2 id="production-title">Em produção</h2>
+          </div>
+          <p>Estes cenários ainda estão sendo construídos e não podem ser iniciados.</p>
+        </div>
+
+        <div className={styles.futureGrid}>
+          {futureScenarios.map((scenario) => (
+            <article
+              key={scenario.id}
+              className={`${styles.futureScenario} ${
+                scenario.artwork === "messages" ? styles.messageScenario : styles.channelScenario
+              }`}
+              aria-labelledby={`${scenario.id}-title`}
+            >
+              <div className={styles.futureArtwork}>
+                <FutureScenarioArtwork kind={scenario.artwork} />
+              </div>
+              <div className={styles.futureCopy}>
+                <span className={styles.productionBadge}>
+                  <span aria-hidden="true">◌</span> Em produção
                 </span>
-              )}
+                <h3 id={`${scenario.id}-title`}>{scenario.title}</h3>
+                <p>{scenario.summary}</p>
+                <dl className={styles.futureMeta}>
+                  <div><dt>Formato</dt><dd>{scenario.format}</dd></div>
+                  <div><dt>Foco</dt><dd>{scenario.focus}</dd></div>
+                </dl>
+                <p className={styles.productionNote}>Disponibilidade futura · sem acesso antecipado</p>
+              </div>
             </article>
           ))}
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

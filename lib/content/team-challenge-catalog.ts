@@ -116,8 +116,8 @@ export const TEAM_ACTION_LABELS: Record<SimulationActionKey, string> = {
 };
 
 export const DEMO_SECTOR_RANKING = [
-  { id: "ferramentas", name: "Loja 047 · Ferramentas", score: 84 },
-  { id: "tintas", name: "Loja 047 · Tintas", score: 78 },
-  { id: "loja-047-casa-decoracao", name: "Loja 047 · Casa & Decoração", score: 71 },
-  { id: "jardim", name: "Loja 047 · Jardim", score: 68 },
+  { id: "ferramentas", name: "Ferramentas", score: 84 },
+  { id: "tintas", name: "Tintas", score: 78 },
+  { id: "loja-047-casa-decoracao", name: "Casa & Decoração", score: 71 },
+  { id: "jardim", name: "Jardim", score: 68 },
 ] as const;

@@ -16,66 +16,67 @@ export type ArcadeGame = {
   caseCount: number;
 };
 
-export const ARCADE_REWARD_TIERS = [
-  { id: "participation", label: "Partida válida", positionLabel: "Participação", points: 10 },
-  { id: "top-25", label: "Top 25", positionLabel: "Até 25º", points: 25 },
-  { id: "top-10", label: "Top 10", positionLabel: "Até 10º", points: 50 },
-  { id: "top-3", label: "Top 3", positionLabel: "Até 3º", points: 75 },
-  { id: "first", label: "1º lugar", positionLabel: "1º", points: 100 },
-] as const;
-
 export const ARCADE_GAMES: ArcadeGame[] = [
   {
-    id: "arcade:detector",
-    slug: "detector-relampago",
-    title: "Detector Relâmpago",
-    shortTitle: "DR",
-    status: "ready",
-    statusLabel: "Pronto para integração",
+    id: "arcade:overlooked",
+    slug: "overlooked",
+    title: "Overlooked",
+    shortTitle: "OV",
+    status: "available",
+    statusLabel: "Disponível",
     summary:
-      "Reconheça o tipo da mensagem e identifique o sinal mais importante em 12 casos variados.",
+      "Protejam juntos a rotina do escritório: reportem phishing e concluam solicitações legítimas antes que o expediente termine.",
     purpose:
-      "Praticar reconhecimento rápido sem substituir a investigação aprofundada de Simulações e PhishLab.",
-    difficulty: "Intermediário",
-    duration: "4–6 min",
-    competencies: ["Observar", "Decidir"],
-    scoreScale: "Até 1.200 pontos",
+      "Treinar reconhecimento de mensagens suspeitas e execução cuidadosa de solicitações legítimas em uma dinâmica cooperativa para duas pessoas.",
+    difficulty: "Cooperativo",
+    duration: "5 min",
+    competencies: ["Observar", "Cooperar", "Decidir"],
+    scoreScale: "De −165 a 155 pontos",
     caseCount: 12,
   },
 ];
 
-export const DETECTOR_SCORING = [
-  { label: "Classificação correta", points: 70 },
-  { label: "Sinal principal correto", points: 30 },
+export const OVERLOOKED_SCORING = [
+  { label: "Phishing reportado", points: 15 },
+  { label: "Solicitação legítima concluída", points: 10 },
+  { label: "Solicitação legítima descartada", points: -5 },
+  { label: "Phishing processado", points: -20 },
 ] as const;
 
-export const DETECTOR_TIE_BREAKS = [
+export const OVERLOOKED_TIE_BREAKS = [
   "Maior pontuação",
-  "Maior sequência de acertos completos",
-  "Menor quantidade de falsos positivos",
+  "Mais phishings reportados",
+  "Mais solicitações legítimas concluídas",
+  "Menos erros",
   "Resultado alcançado primeiro",
 ] as const;
 
-export const DETECTOR_CASE_BALANCE = [
-  { label: "Phishing", count: 4, marker: "PH" },
-  { label: "Legítimas no contexto", count: 4, marker: "LG" },
-  { label: "Exigem verificação", count: 4, marker: "VE" },
+export const OVERLOOKED_CASE_BALANCE = [
+  { label: "Mensagens legítimas", count: 5, marker: "LG" },
+  { label: "Tentativas de phishing", count: 7, marker: "PH" },
+  { label: "Jogadores no mesmo teclado", count: 2, marker: "2P" },
 ] as const;
 
-export const DETECTOR_SECONDARY_MISSIONS = [
-  "Concluir uma partida válida",
-  "Acertar pelo menos 8 das 12 classificações",
-  "Alcançar uma sequência de cinco acertos completos",
-  "Terminar sem falsos positivos",
+export const OVERLOOKED_SECONDARY_MISSIONS = [
+  "Concluir uma partida válida classificando pelo menos oito mensagens",
+  "Alcançar 100 pontos ou mais",
+  "Reportar todos os phishings que aparecerem",
+  "Terminar sem descartar uma solicitação legítima",
 ] as const;
 
-export const DETECTOR_LEADERBOARD_PREVIEW = [
-  { position: 1, name: "Ana P.", area: "Ferramentas", score: 1140, streak: 11 },
-  { position: 2, name: "Rafael M.", area: "Tintas", score: 1110, streak: 10 },
-  { position: 3, name: "Camila S.", area: "Jardim", score: 1080, streak: 9 },
-  { position: 4, name: "Diego R.", area: "Logística", score: 1040, streak: 8 },
+export const OVERLOOKED_RANKS = [
+  { minimum: 140, label: "Elite Anti-Phishing" },
+  { minimum: 110, label: "Caçador de Phishing" },
+  { minimum: 80, label: "Guardião Digital" },
+  { minimum: 50, label: "Analista de Governança" },
+  { minimum: 20, label: "Analista em Formação" },
+  { minimum: 0, label: "Em treinamento" },
+  { minimum: -165, label: "Revisão necessária" },
 ] as const;
 
 export function findArcadeGameBySlug(slug: string | null | undefined) {
+  if (slug === "detector-relampago") {
+    return ARCADE_GAMES.find((game) => game.slug === "overlooked") ?? null;
+  }
   return ARCADE_GAMES.find((game) => game.slug === slug) ?? null;
 }

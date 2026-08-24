@@ -130,5 +130,5 @@ export const ACTIVITY_LABELS: Readonly<Record<string, string>> = {
   "radar:quishing": "Radar: Quishing",
   "team:secure-inbox": "Equipes: Caixa de Entrada Segura",
   "team:bank-change": "Equipes: Mudança bancária sem atalho",
-  "arcade:detector": "Detector Relâmpago",
+  "arcade:overlooked": "Overlooked",
 };

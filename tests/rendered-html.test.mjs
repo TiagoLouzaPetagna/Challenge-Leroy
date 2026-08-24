@@ -117,12 +117,20 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       expected: [
         /class="page-stack profile-page"/,
         /<h1[^>]*>Lucas<\/h1>/,
-        /data-avatar-master="true"/,
-        /viewBox="0 0 320 520"/,
         /Áreas de Meu perfil/,
         /Atividade recente/,
         /Conquistas/,
         /Preferências/,
+      ],
+    },
+    {
+      pathname: "/avatar-lab",
+      expected: [
+        /Laboratório visual local/,
+        /Master Avatar aprovado/,
+        /Olhos arredondados/,
+        /Olhos amendoados/,
+        /Teste de contorno/,
       ],
     },
     {
@@ -178,7 +186,8 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/simulacoes",
       expected: [
         /class="page-stack simulation-page"/,
-        /<h1>Simula/,
+        /Simula..es . pr.tica/,
+        /<h1>Escolha seu cen.rio.<\/h1>/,
         /Uma manh. comum/,
         /Ataque multicanal/,
       ],
@@ -196,20 +205,21 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/arcade",
       expected: [
         /class="page-stack arcade-page"/,
-        /Cada jogo tem suas regras/,
-        /Detector Rel.mpago/,
-        /Pronto para integra..o/,
-        /Subir de posi..o concede somente a diferen.a/,
+        /Escolha um desafio/,
+        /Overlooked/,
+        /Dispon.vel/,
+        /Um jogo\. Uma habilidade sob press.o/,
+        /Score e pontos cumprem pap.is diferentes/,
       ],
     },
     {
-      pathname: "/arcade/detector-relampago",
+      pathname: "/arcade/overlooked",
       expected: [
         /class="page-stack arcade-detail-page"/,
-        /Duas escolhas por caso/,
-        /At. 1\.200 pontos/,
-        /Aguardando integra..o/,
-        /N.o est. ativo/,
+        /Decidam e processem juntos/,
+        /De .165 a 155 pontos/,
+        /Partida integrada/,
+        /Leaderboard espec.fico/,
       ],
     },
     {
@@ -224,10 +234,11 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/radar/quishing",
       expected: [
-        /class="page-stack radar-article-page"/,
-        /Como o golpe funciona/,
-        /Resposta segura em quatro passos/,
-        /Verifica.{0,8}o final/,
+        /class="page-stack radar-article-page [^"]+"/,
+        /Leitura em etapas/,
+        /Etapa.{0,20}1.{0,20}de.{0,20}6/,
+        /O que o QR Code esconde/,
+        /Observar um caso fict.cio/,
         /5.{0,30}pontos na primeira conclus/,
       ],
     },
@@ -275,15 +286,33 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
   }
 });
 
-test("define um Master Avatar SVG com geometria e camadas estáveis", async () => {
+test("define um Master Avatar pixel art com grade e camadas estáveis", async () => {
   const [master, geometry] = await Promise.all([
     readFile(new URL("features/avatar/MasterAvatar.tsx", projectRoot), "utf8"),
     readFile(new URL("features/avatar/avatar-master.ts", projectRoot), "utf8"),
   ]);
 
-  assert.match(geometry, /MASTER_AVATAR_VIEWBOX = "0 0 320 520"/);
+  assert.match(geometry, /width: 64/);
+  assert.match(geometry, /height: 96/);
   assert.match(geometry, /MASTER_AVATAR_ANCHORS/);
+  assert.match(geometry, /\/avatar\/base\/body-base\.png/);
+  assert.match(geometry, /\/avatar\/bottoms\/base-underwear\.png/);
+  assert.match(geometry, /\/avatar\/face\/face-01\.png/);
   assert.match(master, /data-avatar-master="true"/);
+  assert.match(master, /data-pixel-grid/);
+
+  const pngAssets = [
+    "public/avatar/base/body-base.png",
+    "public/avatar/bottoms/base-underwear.png",
+    "public/avatar/face/face-01.png",
+    "public/avatar/master/master.png",
+  ];
+  for (const asset of pngAssets) {
+    const png = await readFile(new URL(asset, projectRoot));
+    assert.equal(png.readUInt32BE(16), 64, `${asset} deve ter 64 px de largura`);
+    assert.equal(png.readUInt32BE(20), 96, `${asset} deve ter 96 px de altura`);
+    assert.equal(png[25], 6, `${asset} deve usar PNG RGBA com transparência`);
+  }
 
   const layers = [
     "hair-back",
@@ -291,10 +320,7 @@ test("define um Master Avatar SVG com geometria e camadas estáveis", async () =
     "lower-clothing",
     "shoes",
     "upper-clothing",
-    "head",
-    "eyes",
-    "eyebrows",
-    "mouth",
+    "face",
     "hair-front",
     "glasses",
     "head-accessory",
@@ -302,10 +328,23 @@ test("define um Master Avatar SVG com geometria e camadas estáveis", async () =
   ];
   let previousIndex = -1;
   for (const layer of layers) {
-    const currentIndex = master.indexOf(`data-avatar-layer="${layer}"`);
+    const currentIndex = geometry.indexOf(`"${layer}"`);
     assert.ok(currentIndex > previousIndex, `${layer} deve manter a ordem do master`);
     previousIndex = currentIndex;
   }
+
+  const profileResponse = await render("/perfil");
+  const profileHtml = await profileResponse.text();
+  assert.doesNotMatch(profileHtml, /data-avatar-master="true"/);
+
+  const labResponse = await render("/avatar-lab");
+  const labHtml = await labResponse.text();
+  assert.match(labHtml, /Master Avatar aprovado/);
+  assert.match(labHtml, /master-approved-v1\/body-base\.png/);
+  assert.match(labHtml, /underwear-default\.png/);
+  assert.match(labHtml, /face-eyes-rounded\.png/);
+  assert.match(labHtml, /face-eyes-almond-upturned\.png/);
+  assert.match(labHtml, /Teste de contorno/);
 });
 
 test("refina a fatia vertical da Fase 1.5 sem alterar o contrato da missão", async () => {
@@ -408,7 +447,7 @@ test("todas as atividades disponíveis encerram com revisão explícita das resp
   }
 });
 
-test("mantém o estado local atrás de uma fronteira central e versionada", async () => {
+test("mantém o estado account-backed atrás de uma fronteira central e versionada", async () => {
   const [provider, reducer, persistence, selectors, layout, page] = await Promise.all([
     readFile(new URL("app/providers.tsx", projectRoot), "utf8"),
     readFile(new URL("lib/state/app-reducer.ts", projectRoot), "utf8"),
@@ -420,7 +459,8 @@ test("mantém o estado local atrás de uma fronteira central e versionada", asyn
 
   assert.match(provider, /useReducer\s*\(/);
   assert.match(provider, /loadPersistedState/);
-  assert.match(provider, /savePersistedState/);
+  assert.match(provider, /fetch\("\/api\/state"/);
+  assert.match(provider, /securityMode: "account-backed"/);
   assert.match(provider, /isHydrated/);
   assert.match(provider, /submitMission/);
   assert.match(provider, /submitPhishLab/);
@@ -462,7 +502,7 @@ test("mantém o estado local atrás de uma fronteira central e versionada", asyn
   assert.match(layout, /<AppProvider>/);
   assert.match(page, /useAppState\s*\(/);
   assert.doesNotMatch(page, /evaluatePilotMission/);
-  assert.match(page, /Reiniciar demonstração/);
+  assert.match(page, /Reiniciar meu progresso/);
 });
 
 test("concede a recompensa da missão uma única vez", async () => {
@@ -618,6 +658,7 @@ test("concede a recompensa da missão uma única vez", async () => {
   } finally {
     await vite.close();
   }
+
 });
 
 test("valida conquistas de 100 pontos e a migração de preferências do Lote 7A", async () => {
@@ -644,7 +685,7 @@ test("valida conquistas de 100 pontos e a migração de preferências do Lote 7A
     ]);
 
     const initial = createDemoState();
-    assert.equal(initial.meta.schemaVersion, 14);
+    assert.equal(initial.meta.schemaVersion, 15);
     assert.equal(initial.onboarding.tutorial.status, "required");
     assert.equal(selectAchievements(initial).length, 4);
     assert.ok(
@@ -741,7 +782,7 @@ test("valida conquistas de 100 pontos e a migração de preferências do Lote 7A
       );
 
       const migrated = loadPersistedState();
-      assert.equal(migrated.meta.schemaVersion, 14);
+      assert.equal(migrated.meta.schemaVersion, 15);
       assert.equal(migrated.onboarding.tutorial.status, "available");
       assert.equal(migrated.preferences.reducedMotion, true);
       assert.equal(migrated.preferences.soundEnabled, false);
@@ -769,7 +810,7 @@ test("valida conquistas de 100 pontos e a migração de preferências do Lote 7A
       );
 
       const migratedV3 = loadPersistedState();
-      assert.equal(migratedV3.meta.schemaVersion, 14);
+      assert.equal(migratedV3.meta.schemaVersion, 15);
       assert.equal(migratedV3.onboarding.tutorial.status, "available");
       assert.equal(migratedV3.onboarding.tutorial.currentStep, 0);
       assert.equal(selectTotalPoints(migratedV3), 220);
@@ -1424,7 +1465,7 @@ test("agrega o desafio de Equipes com privacidade e contribuição única", asyn
         }),
       );
       const migrated = loadPersistedState();
-      assert.equal(migrated.meta.schemaVersion, 14);
+      assert.equal(migrated.meta.schemaVersion, 15);
       assert.equal(migrated.onboarding.tutorial.status, "available");
       assert.equal(migrated.meta.revision, 7);
       assert.equal(migrated.demo.learner.name, "Pessoa migrada");
@@ -1713,7 +1754,7 @@ test("valida Mudanca bancaria sem atalho, privacidade e coexistencia do agregado
         }),
       );
       const migratedV5 = loadPersistedState();
-      assert.equal(migratedV5.meta.schemaVersion, 14);
+      assert.equal(migratedV5.meta.schemaVersion, 15);
       assert.deepEqual(migratedV5.learning, afterLegacy.learning);
       assert.deepEqual(migratedV5.teams, afterLegacy.teams);
       assert.deepEqual(migratedV5.preferences, afterLegacy.preferences);
@@ -1752,7 +1793,7 @@ test("agrupa a atividade recente, preserva recompensas e integra a contribuiçã
     ]);
 
     const initial = createDemoState();
-    assert.equal(initial.meta.schemaVersion, 14);
+    assert.equal(initial.meta.schemaVersion, 15);
     assert.deepEqual(selectActivityTimeline(initial), []);
 
     const afterTutorial = appReducer(initial, {
@@ -2065,7 +2106,7 @@ test("conclui o primeiro recorte de Confiança sob pressão com contratos versio
     try {
       savePersistedState(afterReplay);
       const restored = loadPersistedState();
-      assert.equal(restored.meta.schemaVersion, 14);
+      assert.equal(restored.meta.schemaVersion, 15);
       assert.deepEqual(restored, afterReplay);
     } finally {
       if (previousWindow) {
@@ -2351,7 +2392,7 @@ test("migra o envelope local v10 para v11 sem fabricar atividade", async () => {
 
     const migrated = loadPersistedState();
     const expected = structuredClone(legacyV10);
-    expected.meta.schemaVersion = 14;
+    expected.meta.schemaVersion = 15;
     assert.deepEqual(migrated, expected);
     assert.equal(Object.keys(migrated.learning.attempts).length, 0);
     assert.equal(Object.keys(migrated.learning.rewardClaims).length, 0);
@@ -2546,8 +2587,8 @@ test("adapta a recuperação aos quatro incidentes e preserva as migrações ant
     try {
       savePersistedState(afterReplay);
       const savedEnvelope = JSON.parse(values.get(STORAGE_KEY));
-      assert.equal(savedEnvelope.schemaVersion, 14);
-      assert.equal(savedEnvelope.appVersion, "mvp-local-v14");
+      assert.equal(savedEnvelope.schemaVersion, 15);
+      assert.equal(savedEnvelope.appVersion, "mvp-local-v15");
       assert.deepEqual(loadPersistedState(), afterReplay);
 
       const priorVersionState = appReducer(createDemoState(), {
@@ -2574,7 +2615,7 @@ test("adapta a recuperação aos quatro incidentes e preserva as migrações ant
         }),
       );
       const migratedV4 = loadPersistedState();
-      assert.equal(migratedV4.meta.schemaVersion, 14);
+      assert.equal(migratedV4.meta.schemaVersion, 15);
       assert.deepEqual(migratedV4.learning, priorVersionState.learning);
       assert.deepEqual(migratedV4.preferences, priorVersionState.preferences);
       assert.deepEqual(migratedV4.onboarding, priorVersionState.onboarding);
@@ -2820,8 +2861,8 @@ test("monta a resposta pós-clique v2 sem reinterpretar a tentativa legada", asy
         }),
       );
       const migrated = loadPersistedState();
-      assert.equal(APP_SCHEMA_VERSION, 14);
-      assert.equal(migrated.meta.schemaVersion, 14);
+      assert.equal(APP_SCHEMA_VERSION, 15);
+      assert.equal(migrated.meta.schemaVersion, 15);
       assert.deepEqual(migrated.learning, afterFirst.learning);
       assert.deepEqual(migrated.preferences, afterFirst.preferences);
       assert.deepEqual(migrated.onboarding, afterFirst.onboarding);
@@ -3034,8 +3075,8 @@ test("publica Mudança bancária v2 como estação de processo sem duplicar v1",
         state: legacyV13,
       }));
       const migrated = loadPersistedState();
-      assert.equal(APP_SCHEMA_VERSION, 14);
-      assert.equal(migrated.meta.schemaVersion, 14);
+      assert.equal(APP_SCHEMA_VERSION, 15);
+      assert.equal(migrated.meta.schemaVersion, 15);
       assert.deepEqual(migrated.learning, afterFirst.learning);
       assert.deepEqual(migrated.teams, afterFirst.teams);
     } finally {
@@ -3047,7 +3088,7 @@ test("publica Mudança bancária v2 como estação de processo sem duplicar v1",
   }
 });
 
-test("mantém o Arcade desacoplado com leaderboards e recompensas por jogo", async () => {
+test("integra o Overlooked com pontuação recalculável e ranking próprio", async () => {
   const { createServer } = await import("vite");
   const vite = await createServer({
     root: fileURLToPath(projectRoot),
@@ -3060,33 +3101,98 @@ test("mantém o Arcade desacoplado com leaderboards e recompensas por jogo", asy
   try {
     const {
       ARCADE_GAMES,
-      ARCADE_REWARD_TIERS,
-      DETECTOR_SCORING,
-      DETECTOR_TIE_BREAKS,
+      OVERLOOKED_SCORING,
+      OVERLOOKED_TIE_BREAKS,
       findArcadeGameBySlug,
     } = await vite.ssrLoadModule("/lib/content/arcade-catalog.ts");
+    const { validateOverlookedCompletion } = await vite.ssrLoadModule(
+      "/lib/arcade/overlooked.ts",
+    );
+    const { DEMO_OVERLOOKED_LEADERBOARD } = await vite.ssrLoadModule(
+      "/lib/content/overlooked-demo-leaderboard.ts",
+    );
 
     assert.equal(ARCADE_GAMES.length, 1);
-    assert.equal(ARCADE_GAMES[0].status, "ready");
-    assert.equal(ARCADE_GAMES.some((game) => game.status === "available"), false);
-    assert.equal(findArcadeGameBySlug("detector-relampago").scoreScale, "Até 1.200 pontos");
+    assert.equal(ARCADE_GAMES[0].status, "available");
+    assert.equal(findArcadeGameBySlug("overlooked").scoreScale, "De −165 a 155 pontos");
+    assert.deepEqual(OVERLOOKED_SCORING.map((item) => item.points), [15, 10, -5, -20]);
+    assert.equal(OVERLOOKED_TIE_BREAKS[1], "Mais phishings reportados");
     assert.deepEqual(
-      ARCADE_REWARD_TIERS.map((tier) => tier.points),
-      [10, 25, 50, 75, 100],
+      DEMO_OVERLOOKED_LEADERBOARD.map((entry) => [entry.accountId, entry.score]),
+      [
+        ["account:lucas-learner", 130],
+        ["account:marina-admin", 85],
+      ],
     );
-    assert.equal(
-      DETECTOR_SCORING.reduce((total, item) => total + item.points, 0),
-      100,
+    for (const entry of DEMO_OVERLOOKED_LEADERBOARD) {
+      assert.equal(
+        validateOverlookedCompletion(
+          { durationSeconds: 300, outcomes: entry.outcomes },
+          300,
+        ).rawScore,
+        entry.score,
+      );
+    }
+
+    const validated = validateOverlookedCompletion(
+      {
+        durationSeconds: 300,
+        outcomes: [
+          { id: "sap-tigre", outcome: "processado" },
+          { id: "gerente-campinas", outcome: "processado" },
+          { id: "reset-marcos", outcome: "legitimo descartado" },
+          { id: "autocad", outcome: "aceito" },
+          { id: "rdp-typo", outcome: "phishing reportado" },
+          { id: "admin-gmail", outcome: "phishing reportado" },
+          { id: "microsoft-falso", outcome: "phishing processado" },
+          { id: "rh-falso", outcome: "aceito" },
+        ],
+      },
+      300,
     );
-    assert.equal(DETECTOR_TIE_BREAKS[1], "Maior sequência de acertos completos");
+    assert.equal(validated.rawScore, 25);
+    assert.equal(validated.classifiedMessages, 8);
+    assert.throws(
+      () => validateOverlookedCompletion({ durationSeconds: 300, outcomes: [
+        { id: "sap-tigre", outcome: "phishing reportado" },
+      ] }, 300),
+      /combina..o imposs.vel/,
+    );
 
     const component = await readFile(
       new URL("features/arcade/ArcadeExperience.tsx", projectRoot),
       "utf8",
     );
-    assert.match(component, /Aguardando integração/);
-    assert.match(component, /Não está ativo/);
-    assert.doesNotMatch(component, /onComplete|submitArcade|Iniciar partida/);
+    const integration = await readFile(
+      new URL("features/arcade/OverlookedIntegration.tsx", projectRoot),
+      "utf8",
+    );
+    const gameHtml = await readFile(
+      new URL("public/arcade-games/overlooked/index.html", projectRoot),
+      "utf8",
+    );
+    const gameScript = await readFile(
+      new URL("public/arcade-games/overlooked/src/game.js", projectRoot),
+      "utf8",
+    );
+    const gameStyles = await readFile(
+      new URL("public/arcade-games/overlooked/styles.css", projectRoot),
+      "utf8",
+    );
+    assert.match(component, /Jogar Overlooked/);
+    assert.match(integration, /\/arcade-games\/overlooked\/index\.html/);
+    assert.match(integration, /overlooked:completed/);
+    assert.match(gameHtml, /<title>Overlooked<\/title>/);
+    assert.match(gameHtml, /class="email-app-bar"/);
+    assert.match(gameHtml, /Casa Digital/);
+    assert.match(gameScript, /FIRST_EMAIL_ID = "gerente-campinas"/);
+    assert.match(gameScript, /flow: \["printer", "deposit"\]/);
+    assert.match(gameScript, /remainingEmails\.push\(firstEmail\)/);
+    assert.match(gameScript, /EMAIL_ARRIVAL_MIN_SECONDS = 4/);
+    assert.match(gameScript, /EMAIL_ARRIVAL_MAX_SECONDS = 7/);
+    assert.match(gameStyles, /\.modal__panel \{[\s\S]*?font-family: Arial/);
+    assert.match(gameStyles, /\.email-app-bar \{[\s\S]*?#173f35/);
+    assert.doesNotMatch(component + integration + gameHtml, /cover\.(png|jpg|webp)/i);
   } finally {
     await vite.close();
   }
@@ -3210,12 +3316,13 @@ test("publica a fundação PARE v2 com contrato, avaliação e recompensa idempo
   });
 
   try {
-    const [rules, content, reducerModule, selectors, persistence] = await Promise.all([
+    const [rules, content, reducerModule, selectors, persistence, achievements] = await Promise.all([
       vite.ssrLoadModule("/lib/domain/rules.ts"),
       vite.ssrLoadModule("/lib/content/activities/account-lock/v2.ts"),
       vite.ssrLoadModule("/lib/state/app-reducer.ts"),
       vite.ssrLoadModule("/lib/state/selectors.ts"),
       vite.ssrLoadModule("/lib/state/persistence.ts"),
+      vite.ssrLoadModule("/lib/domain/achievements.ts"),
     ]);
     const perfect = {
       attemptId: "attempt:foundation:v2:perfect",
@@ -3269,7 +3376,13 @@ test("publica a fundação PARE v2 com contrato, avaliação e recompensa idempo
       type: "PHISHING_FOUNDATION_V2_COMPLETED",
       payload: perfect,
     });
-    assert.equal(selectors.selectTotalPoints(afterFoundation), 130);
+    assert.equal(selectors.selectTotalPoints(afterFoundation), 230);
+    assert.equal(
+      achievements.selectAchievements(afterFoundation).find(
+        (achievement) => achievement.id === "olhar-atento",
+      ).unlocked,
+      true,
+    );
     assert.equal(
       selectors.selectLatestPhishingFoundationResult(afterFoundation).score,
       100,
@@ -3289,8 +3402,8 @@ test("publica a fundação PARE v2 com contrato, avaliação e recompensa idempo
       type: "PHISHING_FOUNDATION_V2_COMPLETED",
       payload: { ...perfect, attemptId: "attempt:foundation:v2:replay" },
     });
-    assert.equal(selectors.selectTotalPoints(replay), 130);
-    assert.equal(replay.learning.pointLedger.length, 1);
+    assert.equal(selectors.selectTotalPoints(replay), 230);
+    assert.equal(replay.learning.pointLedger.length, 2);
     assert.equal(
       Object.keys(replay.teams.contributionClaims).filter((key) =>
         key.includes("mission:account-lock"),
@@ -3384,7 +3497,7 @@ test("publica a fundação PARE v2 com contrato, avaliação e recompensa idempo
         }),
       );
       const migrated = persistence.loadPersistedState();
-      assert.equal(migrated.meta.schemaVersion, 14);
+      assert.equal(migrated.meta.schemaVersion, 15);
       assert.deepEqual(
         migrated.learning.attempts,
         legacyV8.learning.attempts,
@@ -3923,7 +4036,7 @@ test("publica Domínio sob a lupa v2 sem reinterpretar tentativas ou recompensas
       );
       const migrated = loadPersistedState();
       const expected = structuredClone(legacyV6);
-      expected.meta.schemaVersion = 14;
+      expected.meta.schemaVersion = 15;
       assert.deepEqual(migrated, expected);
       assert.equal(
         migrated.learning.activityProgress[DOMAIN_ANALYZER_V2_ACTIVITY_ID]
@@ -3944,6 +4057,22 @@ test("publica Domínio sob a lupa v2 sem reinterpretar tentativas ou recompensas
   } finally {
     await vite.close();
   }
+
+  const [domainLabSource, designSystem] = await Promise.all([
+    readFile(
+      new URL("features/phishlab/DomainUnderMagnifierLab.tsx", projectRoot),
+      "utf8",
+    ),
+    readFile(new URL("app/design-system.css", projectRoot), "utf8"),
+  ]);
+  assert.match(domainLabSource, /function SegmentDragBoard/);
+  assert.match(domainLabSource, /draggable/);
+  assert.match(domainLabSource, /data-url-drop-segment/);
+  assert.match(domainLabSource, /onPointerMove/);
+  assert.match(domainLabSource, /className="url-foundation-progress"/);
+  assert.doesNotMatch(domainLabSource, /<select/);
+  assert.match(designSystem, /\.url-drag-board/);
+  assert.match(designSystem, /\.domain-foundation-opening/);
 });
 
 test("publica A conversa já estava acontecendo v2 com três reconstruções e compatibilidade v1", async () => {
@@ -4201,7 +4330,7 @@ test("publica A conversa já estava acontecendo v2 com três reconstruções e c
       );
       const migrated = loadPersistedState();
       const expected = structuredClone(legacyV7);
-      expected.meta.schemaVersion = 14;
+      expected.meta.schemaVersion = 15;
       assert.deepEqual(migrated, expected);
       assert.equal(
         migrated.learning.attempts[v1Submission.attemptId].activityVersion,
@@ -4475,7 +4604,7 @@ test("publica Quem enviou de verdade? v2 com mapa de identidade e compatibilidad
       );
       const migrated = loadPersistedState();
       const expected = structuredClone(legacyV9);
-      expected.meta.schemaVersion = 14;
+      expected.meta.schemaVersion = 15;
       assert.deepEqual(migrated, expected);
       assert.equal(
         migrated.learning.attempts[v1Submission.attemptId].activityVersion,
@@ -4512,7 +4641,7 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
   });
 
   try {
-    const [contentModule, rulesModule, reducerModule, persistenceModule, registryModule, curriculumModule] =
+    const [contentModule, rulesModule, reducerModule, persistenceModule, registryModule, curriculumModule, achievementsModule] =
       await Promise.all([
         vite.ssrLoadModule("/lib/content/activities/workday-triage/v2.ts"),
         vite.ssrLoadModule("/lib/domain/rules.ts"),
@@ -4520,6 +4649,7 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
         vite.ssrLoadModule("/lib/state/persistence.ts"),
         vite.ssrLoadModule("/lib/activities/registry.ts"),
         vite.ssrLoadModule("/lib/content/curriculum-catalog.ts"),
+        vite.ssrLoadModule("/lib/domain/achievements.ts"),
       ]);
     const {
       WORKDAY_TRIAGE_ACTIVITY_ID,
@@ -4537,6 +4667,7 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
     const { loadPersistedState, STORAGE_KEY } = persistenceModule;
     const { findActivityById } = registryModule;
     const { FIRST_LEARNING_PATH } = curriculumModule;
+    const { selectAchievements } = achievementsModule;
 
     assert.equal(WORKDAY_TRIAGE_V2_PACKAGES.length, 3);
     assert.deepEqual(
@@ -4626,6 +4757,12 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
     assert.equal(
       afterV2.teams.contributionClaims[SIMULATION_TEAM_CLAIM].points,
       perfectResult.teamPoints,
+    );
+    assert.equal(
+      selectAchievements(afterV2).find(
+        (achievement) => achievement.id === "verificacao-segura",
+      ).unlocked,
+      true,
     );
     assert.strictEqual(
       appReducer(afterV2, {
@@ -4721,7 +4858,7 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
       );
       const migrated = loadPersistedState();
       const expected = structuredClone(legacyV12);
-      expected.meta.schemaVersion = 14;
+      expected.meta.schemaVersion = 15;
       assert.deepEqual(migrated, expected);
     } finally {
       if (previousWindow) {
@@ -4737,6 +4874,9 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
     assert.match(html, /data-activity-id="simulation:workday"/);
     assert.match(html, /Simula..o . vers.o 2/);
     assert.match(html, /Come.ar a triagem/);
+    assert.match(html, /class="activity-stage-progress workday-foundation-progress"/);
+    assert.match(html, /class="workday-v2-opening workday-foundation-opening"/);
+    assert.match(html, /workday-opening-inbox/);
     assert.doesNotMatch(html, />P1<|>P2<|>P3</);
   } finally {
     await vite.close();
@@ -4777,5 +4917,450 @@ test("mostra estados explícitos para atividades planejadas e rotas desconhecida
     assert.equal(response.status, 200);
     const html = await response.text();
     for (const pattern of item.expected) assert.match(html, pattern);
+  }
+});
+
+test("mantém a gestão protegida por login e apresenta a organização somente por setor", async () => {
+  const homeResponse = await render("/");
+  assert.equal(homeResponse.status, 200);
+  const homeHtml = await homeResponse.text();
+  assert.doesNotMatch(homeHtml, /Painel de gest.o/);
+  assert.doesNotMatch(homeHtml, /Loja 047/);
+
+  const profileResponse = await render("/perfil");
+  assert.equal(profileResponse.status, 200);
+  const profileHtml = await profileResponse.text();
+  assert.match(profileHtml, /Casa &amp; Decora..o/);
+  assert.doesNotMatch(profileHtml, /Loja 047/);
+
+  const managementResponse = await render("/gestao");
+  assert.equal(managementResponse.status, 307);
+  assert.match(
+    managementResponse.headers.get("location") ?? "",
+    /\/login\?returnTo=%2Fgestao$/,
+  );
+
+  const loginResponse = await render("/login");
+  assert.equal(loginResponse.status, 200);
+  const loginHtml = await loginResponse.text();
+  assert.match(loginHtml, /Acesso . plataforma/);
+  assert.match(loginHtml, /name="employeeId"/);
+  assert.match(loginHtml, /type="password"/);
+  assert.match(loginHtml, /N.o h. cadastro p.blico/);
+});
+
+test("preserva a migração do cadastro legado e mantém o Arcade fora do fluxo de cadastro", async () => {
+  const { createServer } = await import("vite");
+  const vite = await createServer({
+    root: fileURLToPath(projectRoot),
+    configFile: false,
+    server: { middlewareMode: true },
+    appType: "custom",
+    logLevel: "silent",
+  });
+
+  try {
+    const [
+      { appReducer, createDemoState },
+      { selectLearnerSector, selectSectorRanking },
+      { loadPersistedState, savePersistedState },
+    ] =
+      await Promise.all([
+        vite.ssrLoadModule("/lib/state/app-reducer.ts"),
+        vite.ssrLoadModule("/lib/state/selectors.ts"),
+        vite.ssrLoadModule("/lib/state/persistence.ts"),
+      ]);
+    const initial = createDemoState();
+    const registered = appReducer(initial, {
+      type: "LEARNER_PROFILE_REGISTERED",
+      payload: {
+        changedAt: "2026-08-23T19:00:00.000Z",
+        registration: {
+          employeeId: "LM-2048",
+          name: "Ana Souza",
+          sectorId: "logistica",
+          sectorName: "Logística",
+          leaderboardParticipation: true,
+          leaderboardIdentity: "initials",
+        },
+      },
+    });
+
+    assert.equal(registered.demo.learner.id, "LM-2048");
+    assert.equal(registered.demo.learner.name, "Ana Souza");
+    assert.equal(registered.demo.activeRole, "learner");
+    assert.equal(selectLearnerSector(registered).name, "Logística");
+    assert.equal(registered.preferences.leaderboardParticipation, true);
+    assert.equal(registered.preferences.leaderboardIdentity, "initials");
+    assert.strictEqual(registered.learning, initial.learning);
+    assert.equal(
+      selectSectorRanking(registered).find((entry) => entry.isCurrent).name,
+      "Logística",
+    );
+    assert.equal(
+      registered.admin.auditLog.at(-1).action,
+      "learnerProfileRegisteredInLocalDemo",
+    );
+
+    const sameNamedSector = appReducer(initial, {
+      type: "LEARNER_PROFILE_REGISTERED",
+      payload: {
+        changedAt: "2026-08-23T19:00:30.000Z",
+        registration: {
+          employeeId: "LM-1024",
+          name: "Bruno Lima",
+          sectorId: "casa-decoracao",
+          sectorName: "Casa & Decoração",
+          leaderboardParticipation: false,
+          leaderboardIdentity: "anonymous",
+        },
+      },
+    });
+    assert.equal(sameNamedSector.teams.ranking.length, initial.teams.ranking.length);
+    assert.equal(
+      sameNamedSector.teams.ranking.filter(
+        (entry) => entry.name === "Casa & Decoração",
+      ).length,
+      1,
+    );
+
+    const invalid = appReducer(initial, {
+      type: "LEARNER_PROFILE_REGISTERED",
+      payload: {
+        changedAt: "2026-08-23T19:01:00.000Z",
+        registration: {
+          employeeId: "x",
+          name: "A",
+          sectorId: "x",
+          sectorName: "X",
+          leaderboardParticipation: false,
+          leaderboardIdentity: "anonymous",
+        },
+      },
+    });
+    assert.strictEqual(invalid, initial);
+
+    const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const values = new Map();
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: {
+        localStorage: {
+          getItem(key) {
+            return values.get(key) ?? null;
+          },
+          setItem(key, value) {
+            values.set(key, String(value));
+          },
+          removeItem(key) {
+            values.delete(key);
+          },
+        },
+      },
+    });
+
+    try {
+      savePersistedState(registered);
+      const restored = loadPersistedState();
+      assert.equal(restored.demo.learner.id, "LM-2048");
+      assert.equal(restored.teams.name, "Logística");
+      assert.deepEqual(restored.learning, registered.learning);
+    } finally {
+      if (previousWindow) {
+        Object.defineProperty(globalThis, "window", previousWindow);
+      } else {
+        delete globalThis.window;
+      }
+    }
+  } finally {
+    await vite.close();
+  }
+
+  const response = await render("/cadastro");
+  assert.equal(response.status, 307);
+  assert.match(response.headers.get("location") ?? "", /\/perfil$/);
+});
+
+test("vincula identidade e progresso à conta autenticada sem troca por rota", async () => {
+  const { createServer } = await import("vite");
+  const vite = await createServer({
+    root: fileURLToPath(projectRoot),
+    configFile: false,
+    server: { middlewareMode: true },
+    appType: "custom",
+    logLevel: "silent",
+  });
+
+  try {
+    const [
+      { createDemoState },
+      { bindStateToAccount },
+      { derivePasswordHash },
+      { safeReturnPath },
+    ] = await Promise.all([
+      vite.ssrLoadModule("/lib/state/app-reducer.ts"),
+      vite.ssrLoadModule("/lib/state/account-state.ts"),
+      vite.ssrLoadModule("/lib/auth/password.ts"),
+      vite.ssrLoadModule("/lib/auth/http.ts"),
+    ]);
+
+    const initial = createDemoState();
+    initial.learning.history.push({
+      id: "history:account-test",
+      kind: "activityCompleted",
+      sourceId: "mission:test",
+      title: "Atividade preservada",
+      createdAt: "2026-08-23T21:00:00.000Z",
+    });
+    const marina = {
+      id: "account:marina-admin",
+      employeeId: "ADMIN-0001",
+      name: "Marina Alves",
+      role: "administrator",
+      sectorId: "administracao",
+      sectorName: "Administração",
+    };
+    const lucas = {
+      id: "account:lucas-learner",
+      employeeId: "FUNC-0001",
+      name: "Lucas",
+      role: "learner",
+      sectorId: "casa-decoracao",
+      sectorName: "Casa & Decoração",
+    };
+
+    const administratorState = bindStateToAccount(initial, marina);
+    assert.equal(administratorState.demo.learner.name, "Marina Alves");
+    assert.equal(administratorState.demo.administrator.name, "Marina Alves");
+    assert.equal(administratorState.demo.activeRole, "administrator");
+    assert.equal(administratorState.learning.history.length, 1);
+
+    const learnerState = bindStateToAccount(createDemoState(), lucas);
+    assert.equal(learnerState.demo.learner.name, "Lucas");
+    assert.equal(learnerState.demo.activeRole, "learner");
+    assert.equal(learnerState.teams.name, "Casa & Decoração");
+
+    assert.equal(
+      await derivePasswordHash(
+        "AdminCasa#2026",
+        "f4adb627c2d31eedf35bb44e6f78fdf3",
+        210_000,
+      ),
+      "42298bbfe23c0f41aa4e38072a10ca644e698825f470f075e0dc09135441f838",
+    );
+    assert.equal(safeReturnPath("//example.com"), "/");
+    assert.equal(safeReturnPath("/gestao?tab=pessoas"), "/gestao?tab=pessoas");
+  } finally {
+    await vite.close();
+  }
+
+  const [hosting, schema, repository, page, management] = await Promise.all([
+    readFile(new URL(".openai/hosting.json", projectRoot), "utf8"),
+    readFile(new URL("db/schema.ts", projectRoot), "utf8"),
+    readFile(new URL("lib/auth/repository.ts", projectRoot), "utf8"),
+    readFile(new URL("app/page.tsx", projectRoot), "utf8"),
+    readFile(new URL("features/management/ManagementExperience.tsx", projectRoot), "utf8"),
+  ]);
+  assert.match(hosting, /"d1": "DB"/);
+  assert.match(schema, /authSessions/);
+  assert.match(schema, /accountStates/);
+  assert.match(repository, /PBKDF|passwordHash|tokenHash|crypto\.getRandomValues/);
+  assert.match(page, /account\?\.role === "administrator"/);
+  assert.doesNotMatch(management, /Abrir gest.o demonstrativa/);
+});
+
+test("recalcula o leaderboard no servidor sem aceitar pontos injetados pelo navegador", async () => {
+  const { createServer } = await import("vite");
+  const vite = await createServer({
+    root: fileURLToPath(projectRoot),
+    configFile: false,
+    server: { middlewareMode: true },
+    appType: "custom",
+    logLevel: "silent",
+  });
+
+  try {
+    const [
+      { appReducer, createDemoState },
+      { calculateAuthoritativeProgressSummary },
+      {
+        BANK_CHANGE_ACTIVITY_ID,
+        BANK_CHANGE_ACTIVITY_VERSION,
+        BANK_CHANGE_CORRECT_CHOICES,
+        BANK_CHANGE_EVIDENCE,
+      },
+    ] = await Promise.all([
+      vite.ssrLoadModule("/lib/state/app-reducer.ts"),
+      vite.ssrLoadModule("/lib/leaderboard/projection.ts"),
+      vite.ssrLoadModule("/lib/content/bank-change-catalog.ts"),
+    ]);
+
+    const completed = appReducer(createDemoState(), {
+      type: "BANK_CHANGE_COMPLETED",
+      payload: {
+        attemptId: "attempt:leaderboard:bank-change",
+        activityId: BANK_CHANGE_ACTIVITY_ID,
+        activityVersion: BANK_CHANGE_ACTIVITY_VERSION,
+        completedAt: "2026-08-23T18:00:00.000Z",
+        ...BANK_CHANGE_CORRECT_CHOICES,
+        inspectedEvidenceIds: BANK_CHANGE_EVIDENCE.map((item) => item.id),
+      },
+    });
+    completed.preferences.leaderboardParticipation = true;
+
+    const honest = calculateAuthoritativeProgressSummary(completed);
+    completed.learning.pointLedger.push({
+      id: "points:injected",
+      claimKey: "injected",
+      sourceId: "browser:injected",
+      category: "learning",
+      points: 50_000,
+      status: "confirmed",
+      createdAt: "2026-08-23T18:01:00.000Z",
+    });
+    const recalculated = calculateAuthoritativeProgressSummary(completed);
+
+    assert.equal(honest.completedCurriculumActivities, 1);
+    assert.equal(honest.averageScore, 100);
+    assert.equal(honest.leaderboardParticipation, true);
+    assert.equal(recalculated.totalPoints, honest.totalPoints);
+    assert.ok(recalculated.totalPoints < 50_000);
+  } finally {
+    await vite.close();
+  }
+
+  const [schema, route, liveLeaderboard] = await Promise.all([
+    readFile(new URL("db/schema.ts", projectRoot), "utf8"),
+    readFile(new URL("app/api/leaderboard/route.ts", projectRoot), "utf8"),
+    readFile(new URL("features/teams/LiveLeaderboard.tsx", projectRoot), "utf8"),
+  ]);
+  assert.match(schema, /accountProgressSummaries/);
+  assert.match(route, /findAccountBySessionToken/);
+  assert.match(liveLeaderboard, /50% desempenho m.dio, 30% conclus.o e 20%/);
+  assert.match(liveLeaderboard, /Arcade n.o inclu.do/);
+});
+
+test("gerencia pessoas de teste por setor no modo administrativo local e migra v14", async () => {
+  const { createServer } = await import("vite");
+  const vite = await createServer({
+    root: fileURLToPath(projectRoot),
+    configFile: false,
+    server: { middlewareMode: true },
+    appType: "custom",
+    logLevel: "silent",
+  });
+
+  try {
+    const [
+      { appReducer, createDemoState },
+      { loadPersistedState, STORAGE_KEY },
+    ] = await Promise.all([
+      vite.ssrLoadModule("/lib/state/app-reducer.ts"),
+      vite.ssrLoadModule("/lib/state/persistence.ts"),
+    ]);
+    const initial = createDemoState();
+    const testUser = {
+      id: "test-user:paula-jardim",
+      employeeId: "TESTE-2001",
+      name: "Paula Ribeiro",
+      sectorId: "jardim",
+      sectorName: "Jardim",
+      status: "active",
+      createdAt: "2026-08-23T20:00:00.000Z",
+      updatedAt: "2026-08-23T20:00:00.000Z",
+    };
+    const denied = appReducer(initial, {
+      type: "MANAGEMENT_TEST_USER_SAVED",
+      payload: { user: testUser, changedAt: testUser.updatedAt },
+    });
+    assert.strictEqual(denied, initial);
+
+    const administrator = appReducer(initial, {
+      type: "DEMO_ROLE_CHANGED",
+      payload: {
+        role: "administrator",
+        changedAt: "2026-08-23T19:59:00.000Z",
+      },
+    });
+    assert.equal(administrator.demo.activeRole, "administrator");
+
+    const created = appReducer(administrator, {
+      type: "MANAGEMENT_TEST_USER_SAVED",
+      payload: { user: testUser, changedAt: testUser.updatedAt },
+    });
+    assert.equal(created.admin.testUsers.length, initial.admin.testUsers.length + 1);
+    assert.equal(created.admin.testUsers.at(-1).sectorName, "Jardim");
+    assert.equal(created.admin.auditLog.at(-1).action, "managementTestUserCreated");
+
+    const duplicate = appReducer(created, {
+      type: "MANAGEMENT_TEST_USER_SAVED",
+      payload: {
+        user: {
+          ...testUser,
+          id: "test-user:duplicated",
+          name: "Outra Pessoa",
+        },
+        changedAt: "2026-08-23T20:01:00.000Z",
+      },
+    });
+    assert.strictEqual(duplicate, created);
+
+    const inactive = appReducer(created, {
+      type: "MANAGEMENT_TEST_USER_STATUS_CHANGED",
+      payload: {
+        userId: testUser.id,
+        status: "inactive",
+        changedAt: "2026-08-23T20:02:00.000Z",
+      },
+    });
+    assert.equal(
+      inactive.admin.testUsers.find((user) => user.id === testUser.id).status,
+      "inactive",
+    );
+    assert.equal(
+      inactive.admin.auditLog.at(-1).action,
+      "managementTestUserDeactivated",
+    );
+
+    const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const values = new Map();
+    const legacyV14 = structuredClone(initial);
+    legacyV14.meta.schemaVersion = 14;
+    delete legacyV14.admin.testUsers;
+    values.set(
+      STORAGE_KEY,
+      JSON.stringify({
+        schemaVersion: 14,
+        appVersion: "mvp-local-v14",
+        savedAt: legacyV14.meta.savedAt,
+        state: legacyV14,
+      }),
+    );
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: {
+        localStorage: {
+          getItem(key) { return values.get(key) ?? null; },
+          setItem(key, value) { values.set(key, String(value)); },
+          removeItem(key) { values.delete(key); },
+        },
+      },
+    });
+
+    try {
+      const migrated = loadPersistedState();
+      assert.equal(migrated.meta.schemaVersion, 15);
+      assert.equal(migrated.admin.testUsers.length, 3);
+      assert.deepEqual(migrated.learning, initial.learning);
+      assert.deepEqual(migrated.teams, initial.teams);
+    } finally {
+      if (previousWindow) {
+        Object.defineProperty(globalThis, "window", previousWindow);
+      } else {
+        delete globalThis.window;
+      }
+    }
+  } finally {
+    await vite.close();
   }
 });

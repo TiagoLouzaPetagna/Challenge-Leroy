@@ -89,15 +89,23 @@ export function BrandMark() {
 export function PortalSidebar({
   activeView,
   onNavigate,
+  canAccessManagement = false,
   "data-learning-tour": learningTourTarget = "learning-navigation",
   "data-profile-tour": profileTourTarget = "profile-navigation",
 }: {
   activeView: PortalViewKey;
   onNavigate: (view: PortalViewKey) => void;
+  canAccessManagement?: boolean;
   "data-learning-tour"?: string;
   "data-profile-tour"?: string;
 }) {
   const selectedView = activeView === "missao" ? "missoes" : activeView;
+  const visibleItems = PORTAL_NAV_ITEMS.filter(
+    (item) => item.key !== "gestao" || canAccessManagement,
+  );
+  const visibleGroups = PORTAL_NAV_GROUPS.filter((group) =>
+    visibleItems.some((item) => item.group === group.id),
+  );
   const navigationRef = useRef<HTMLElement>(null);
   const activeItemRef = useRef<HTMLButtonElement>(null);
 
@@ -132,14 +140,14 @@ export function PortalSidebar({
       <div className="prototype-tag">Protótipo funcional</div>
 
       <nav ref={navigationRef} aria-label="Navegação principal">
-        {PORTAL_NAV_GROUPS.map((group) => (
+        {visibleGroups.map((group) => (
           <div
             className="nav-group portal-nav-group"
             key={group.id}
             data-tour={group.id === "aprender" ? learningTourTarget : undefined}
           >
             <p>{group.label}</p>
-            {PORTAL_NAV_ITEMS.filter((item) => item.group === group.id).map(
+            {visibleItems.filter((item) => item.group === group.id).map(
               (item) => (
                 <button
                   type="button"
@@ -178,20 +186,27 @@ export function PortalTopbar({
   points,
   levelLabel,
   isHydrated,
+  mode = "learning",
+  onLogout,
   "data-tour": progressTourTarget = "progress-summary",
 }: {
   learnerName: string;
   points: number;
   levelLabel: string;
   isHydrated: boolean;
+  mode?: "learning" | "management";
+  onLogout?: () => void | Promise<void>;
   "data-tour"?: string;
 }) {
   const initials = learnerName.slice(0, 2).toUpperCase();
+  const managementMode = mode === "management";
 
   return (
     <header className="topbar portal-topbar">
       <div className="portal-topbar-welcome">
-        <span className="topbar-kicker">Seu espaço de aprendizagem</span>
+        <span className="topbar-kicker">
+          {managementMode ? "Gestão administrativa" : "Seu espaço de aprendizagem"}
+        </span>
         <strong>Olá, {learnerName}</strong>
       </div>
       <div className="topbar-actions">
@@ -200,12 +215,30 @@ export function PortalTopbar({
           aria-live="polite"
           data-tour={progressTourTarget}
         >
-          <strong>{isHydrated ? `${points} pontos` : "Carregando progresso"}</strong>
-          <span>{levelLabel}</span>
+          <strong>
+            {managementMode
+              ? "Acesso autorizado"
+              : isHydrated
+                ? `${points} pontos`
+                : "Carregando progresso"}
+          </strong>
+          <span>{managementMode ? "Conta administradora" : levelLabel}</span>
         </div>
-        <div className="avatar" aria-label="Perfil demonstrativo do funcionário">
+        <div
+          className="avatar"
+          aria-label={
+            managementMode
+              ? "Conta administradora autenticada"
+              : "Conta de funcionário autenticada"
+          }
+        >
           {initials}
         </div>
+        {onLogout ? (
+          <button type="button" className="topbar-logout" onClick={onLogout}>
+            Sair
+          </button>
+        ) : null}
       </div>
     </header>
   );

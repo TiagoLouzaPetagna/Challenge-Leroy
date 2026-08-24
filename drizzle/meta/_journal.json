@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787513343963,
+      "tag": "0000_chunky_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787514981711,
+      "tag": "0001_outgoing_stature",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787518459874,
+      "tag": "0002_flat_lilandra",
+      "breakpoints": true
+    }
+  ]
 }

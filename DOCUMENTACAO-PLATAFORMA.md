@@ -1,8 +1,8 @@
-# Casa Digital Segura
+# Fortifica
 
 ## 1. Objetivo da plataforma
 
-A **Casa Digital Segura** é uma proposta de plataforma interna gamificada para conscientizar e capacitar os funcionários da Leroy Merlin sobre phishing.
+A **Fortifica** é uma proposta de plataforma interna gamificada para conscientizar e capacitar os funcionários da Leroy Merlin sobre phishing.
 
 O objetivo é desenvolver habilidades práticas para:
 
@@ -1575,7 +1575,7 @@ O cabeçalho permanece visível nas áreas internas e mostra:
 - progresso da jornada principal;
 - acesso às preferências.
 
-Os níveis gerais utilizarão a ideia de construção da Casa Digital Segura.
+Os níveis gerais utilizarão a metáfora de construção da Fortifica.
 
 | Nível | Faixa inicial de pontos |
 |---|---:|
@@ -1921,10 +1921,7 @@ O Painel de gestão terá uma navegação própria com seis áreas:
 No topo, haverá filtros por:
 
 - período;
-- loja;
 - setor;
-- equipe;
-- público;
 - atividade.
 
 Os filtros atualizam todos os indicadores da página.
@@ -2145,15 +2142,10 @@ Essas regras serão configurações protegidas. Mudanças ficam registradas e n�
 
 ### 14.8 Públicos e equipes
 
-Os públicos poderão ser organizados por:
+Neste recorte, os públicos são organizados somente por **setor**. Unidade, loja,
+função e hierarquias adicionais não fazem parte do contrato atual.
 
-- loja;
-- setor;
-- função;
-- equipe;
-- grupo específico.
-
-Para o protótipo, serão utilizados funcionários, lojas e equipes fictícias.
+Para o protótipo, serão utilizados funcionários e setores fictícios.
 
 Na gestão das equipes será possível:
 
@@ -2305,18 +2297,15 @@ O histórico não exige aprovação. Sua função é permitir consulta e correç
 Para o projeto, o Painel de gestão pode demonstrar:
 
 - um administrador fictício;
-- resumo com indicadores simulados;
-- filtros por loja, equipe e período;
-- biblioteca com conteúdos de todas as abas;
-- estados Rascunho, Publicado e Arquivado;
-- editor completo de uma Missão;
-- editor simples de uma matéria do Radar;
-- mapa visual da jornada;
-- configuração de uma meta coletiva;
-- relatórios agregados de competências;
+- resumo do recorte administrativo local;
+- pessoas de teste com nome, matrícula, setor e estado;
+- filtros por nome, matrícula, setor e estado;
+- visão dos setores utilizados no diretório demonstrativo;
+- catálogo de conteúdos em modo somente leitura;
 - histórico automático de alterações.
 
-Os demais editores podem apresentar os campos previstos sem implementar todo o sistema administrativo.
+Autenticação corporativa, progresso separado por pessoa, editores, publicação,
+relatórios avançados e configurações protegidas permanecem posteriores.
 
 ### 14.14 Diferença para as outras abas
 
@@ -2614,7 +2603,7 @@ Este primeiro lote representa o ciclo central:
 
 As seis telas utilizam a mesma estrutura geral:
 
-- identificação Leroy Merlin e Casa Digital Segura;
+- identificação Leroy Merlin e Fortifica;
 - menu com Visão geral, Missões, Simulações, PhishLab, Arcade, Radar, Equipes e Meu perfil;
 - cabeçalho com funcionário, loja, pontos e nível;
 - área central que muda conforme a etapa;
@@ -3437,10 +3426,7 @@ O exemplo utiliza Marina como administradora fictícia. A interface deixa explí
 A primeira tela responde ao que precisa de atenção e apresenta filtros por:
 
 - período;
-- loja;
 - setor;
-- equipe;
-- público;
 - atividade.
 
 Os filtros atualizam todos os indicadores da tela.
@@ -3623,13 +3609,8 @@ As regras de pontos, bônus, níveis, competências, faixas do Arcade e escudo s
 
 #### Públicos e equipes
 
-Os públicos podem ser organizados por:
-
-- loja;
-- setor;
-- função;
-- equipe;
-- grupo específico.
+Neste recorte, os públicos podem ser organizados somente por setor. Loja,
+unidade, função, equipe paralela e grupo específico ficam fora do contrato atual.
 
 A tela utiliza grupos fictícios e permite:
 
@@ -3641,7 +3622,7 @@ A tela utiliza grupos fictícios e permite:
 - publicar ou vincular desafio individual à meta coletiva;
 - consultar histórico coletivo.
 
-No exemplo, a Loja 047 · Casa & Decoração recebe a meta de praticar análise de domínios.
+No exemplo, o setor Casa & Decoração recebe a meta de praticar análise de domínios.
 
 Os resultados são normalizados pelo número de participantes ativos. A área não mostra erros, notas ou contribuições individuais de outros funcionários.
 
@@ -3749,7 +3730,7 @@ Esse lote será a referência para implementar o Painel de gestão como bastidor
 
 ### 21.1 Objetivo da primeira versão
 
-O MVP será uma demonstração funcional de ponta a ponta da Casa Digital Segura.
+O MVP será uma demonstração funcional de ponta a ponta da Fortifica.
 
 Ele não será apenas um conjunto de telas. As atividades principais deverão atualizar o estado compartilhado da plataforma, permitindo demonstrar:
 
@@ -5248,7 +5229,7 @@ O passeio possui sete etapas:
 
 | Etapa | Título | Elemento destacado | Conteúdo principal |
 |---:|---|---|---|
-| 1 | Boas-vindas | nenhum; cartão central | propósito da Casa Digital Segura, duração aproximada e segurança dos exemplos fictícios |
+| 1 | Boas-vindas | nenhum; cartão central | propósito da Fortifica, duração aproximada e segurança dos exemplos fictícios |
 | 2 | Seu próximo passo | recomendação principal da Visão geral | a plataforma indica uma ação principal e explica o motivo da recomendação |
 | 3 | Áreas de aprendizagem | grupo Minha jornada da navegação | Missões, Simulações, PhishLab, Arcade e Radar possuem funções diferentes |
 | 4 | Sua evolução | resumo de pontos e nível no topo | pontos representam progressão; competências e jornada possuem significados próprios |
@@ -7215,4 +7196,298 @@ A validação integrada foi concluída com `npm run lint`, build de produção, 
 
 ## Resumo da integração entre as abas
 
-**Visão geral** recomenda o próximo passo; **Missões** criam a narrativa; **Simulações** reproduzem a rotina; **PhishLab** aprofunda a investigação; **Radar** oferece consulta opcional e pontuada; **Equipes** desenvolve a defesa coletiva; e **Meu perfil** registra a evolução. O **Painel de gestão**, ainda não implementado como ferramenta operacional, deverá manter o programa quando sua etapa for iniciada. O **Arcade** permanece apenas como catálogo desacoplado até uma definição posterior.
+**Visão geral** recomenda o próximo passo; **Missões** criam a narrativa; **Simulações** reproduzem a rotina; **PhishLab** aprofunda a investigação; **Radar** oferece consulta opcional e pontuada; **Equipes** desenvolve a defesa coletiva; e **Meu perfil** registra a evolução. O **Painel de gestão** possui agora um primeiro recorte operacional local para pessoas de teste, setores e consulta de conteúdos, sem autenticação corporativa ou progresso por pessoa. O **Arcade** mantém um catálogo desacoplado e passou a oferecer sua primeira integração jogável com Overlooked, detalhada na seção 50.
+
+## 45. P0 demonstrativo sem cadastro e com organização por setor
+
+Em 2026-08-23, o P0 foi deliberadamente mantido como uma demonstração local sem cadastro, login, recuperação de acesso, provisionamento corporativo ou backend autoritativo. A identidade fictícia atual permite validar a jornada de aprendizagem sem antecipar decisões que ainda dependem de maior alinhamento com a Leroy Merlin.
+
+A referência organizacional visível passa a ser somente o **setor**. Perfil, Equipes, ranking demonstrativo e conteúdos deixam de exibir unidade ou loja. IDs históricos e o campo local `store` permaneciam no esquema v14 apenas para compatibilidade com estados já salvos; eles não representam uma hierarquia ativa nem devem orientar novas interfaces. Por isso, naquele recorte não houve migração de esquema, fabricação de vínculo organizacional ou perda do progresso local.
+
+O **Painel de gestão** deixa de aparecer na navegação do funcionário. A rota `/gestao` continua existente para preservar o desenho futuro, mas, no papel demonstrativo de funcionário, apresenta um estado de acesso reservado e não renderiza indicadores ou capacidades administrativas. Essa barreira é coerente para o protótipo, mas não substitui autorização real: antes de uso corporativo, identidade, papéis e permissões deverão ser validados no servidor.
+
+As conquistas **Olhar atento** e **Verificação segura** também passam a reconhecer os contratos v2 publicados. A primeira considera a identificação correta de pedido, ativo e consequência na Missão de fundamento; a segunda reconhece uma verificação correta na triagem em lote ou o contato cadastrado no desafio bancário. As regras v1 continuam aceitas para preservar tentativas antigas, e as chaves de recompensa permanecem idempotentes.
+
+O cadastro fica para uma etapa posterior. Quando for retomado, deverá vincular cada funcionário a um setor controlado, sem exigir unidade como dimensão obrigatória, e substituir a identidade fictícia sem alterar pontos, histórico, conquistas ou contribuições já modeladas.
+
+## 46. P1 — cadastro demonstrativo por setor
+
+Em 2026-08-23, o P1 passou a oferecer a rota `/cadastro` para substituir a identidade fictícia do navegador por um perfil demonstrativo do funcionário. O fluxo solicita somente nome de exibição, matrícula ou identificador interno e setor. Loja e unidade não são campos do formulário, não são inferidas e não integram o novo contrato.
+
+A lista inicial de setores é explicitamente demonstrativa e inclui a opção **Outro setor**, pois ainda não existe um diretório organizacional validado pela Leroy Merlin. A pessoa pode atualizar nome e setor a partir das Preferências do perfil. A atualização preserva tentativas, pontos, conquistas, histórico e contribuições locais já existentes, atualiza a referência do setor e registra um evento de auditoria local.
+
+O formulário não solicita senha, e-mail corporativo ou credencial real. A matrícula não é verificada externamente. Naquele recorte, os dados continuavam no envelope local v14 e o estado mantinha `securityMode: "local-demo"` e `isAuthoritative: false`. Portanto, este P1 valida conteúdo, vínculo setorial e transição da identidade fictícia, mas não representa autenticação ou provisionamento corporativo. Antes de uso real, o vínculo deverá vir de um provedor de identidade ou diretório autorizado e todas as decisões de acesso deverão ocorrer no servidor.
+
+O funcionário continua sempre com o papel `learner`; o cadastro público não permite escolher ou elevar permissões administrativas. Até o recorte seguinte, o Painel de gestão permanecia bloqueado sem uma identidade administrativa validada.
+
+Nenhum leaderboard individual foi ativado. O cadastro apenas preserva a preferência opt-in e a forma de identificação — iniciais, nome de exibição ou anônimo — para uma fase futura. O ranking de Equipes permanece exclusivamente agregado por setor. Conforme a decisão de escopo, o Arcade e seus leaderboards por jogo não foram alterados neste P1 e serão retomados posteriormente.
+
+## 47. P1.1 — gestão demonstrativa de pessoas e setores
+
+Em 2026-08-23, `/gestao` passou a oferecer um modo administrativo explicitamente
+demonstrativo. O funcionário comum continua sem enxergar o item na navegação e a
+rota abre primeiro a barreira de área reservada. A partir dela é possível iniciar
+uma apresentação local como Marina; essa transição não representa autenticação,
+autorização corporativa ou elevação real de privilégios.
+
+O painel contém quatro recortes: **Resumo**, **Pessoas**, **Setores** e
+**Conteúdos**. Pessoas permite criar, editar, ativar, desativar, pesquisar e
+filtrar registros fictícios por nome, matrícula, setor e estado. Setores apresenta
+a distribuição desses registros usando somente setor. Conteúdos consulta o
+registro de atividades em modo somente leitura. O Arcade permanece fora deste
+recorte e não foi alterado.
+
+Os registros de pessoas não são contas capazes de entrar na plataforma e não
+possuem progresso separado. Eles existem apenas para validar a futura operação do
+diretório. O estado continua `securityMode: "local-demo"` e
+`isAuthoritative: false`; dados ficam no navegador e mudanças relevantes geram
+auditoria local atribuída à administradora fictícia.
+
+`APP_SCHEMA_VERSION` passa de 14 para 15 e o envelope passa a
+`mvp-local-v15`. A migração v14→v15 preserva todo o estado anterior e acrescenta
+somente a coleção inicial de pessoas de teste. Ela não fabrica tentativas,
+pontos, recompensas, competências, rankings individuais ou progresso por pessoa.
+Autenticação, provisionamento, integração com diretório corporativo e autorização
+no servidor continuam obrigatórios antes de qualquer uso real.
+
+## 48. P1.2 — autenticação por conta e progresso persistente
+
+Em 2026-08-23, o próximo recorte deixou de usar a troca de papel por rota como
+substituto de login. A identidade passa a pertencer à sessão: navegar entre
+Visão geral, Missões, Perfil e Gestão não transforma Lucas em Marina nem Marina
+em Lucas. O funcionário entra com uma conta de papel `learner`; a
+administradora entra separadamente com uma conta de papel `administrator`.
+
+A rota `/login` solicita matrícula e senha de uma conta previamente cadastrada.
+Não existe cadastro público, escolha de papel no cliente ou botão para elevar a
+sessão. A rota histórica `/cadastro` fica adiada e redireciona para o perfil.
+As duas contas iniciais servem exclusivamente à validação do fluxo; novos
+registros da aba Pessoas no Painel de gestão ainda não se transformam
+automaticamente em credenciais de acesso.
+
+As credenciais são verificadas no servidor. O banco D1 guarda somente salt e
+hash PBKDF2-SHA-256, com 210 mil iterações; senha em texto puro não é persistida.
+Uma autenticação válida cria um token aleatório de 256 bits. O navegador recebe
+o token em cookie `HttpOnly`, `SameSite=Lax`, com `Secure` em HTTPS e validade de
+12 horas; o banco guarda somente o SHA-256 do token. Logout remove a sessão do
+banco e expira o cookie. Respostas de autenticação e estado usam
+`Cache-Control: no-store`, e erros de credencial não revelam se a matrícula
+existe.
+
+O banco recebeu três tabelas:
+
+- `accounts`, para identidade, matrícula, papel, setor, estado e material de
+  verificação da senha;
+- `auth_sessions`, para sessões revogáveis e com expiração;
+- `account_states`, para o envelope de aprendizagem vinculado à conta.
+
+A migração D1 inicial fica em `drizzle/0000_chunky_morlun.sql`, e o binding
+lógico `DB` passa a ser declarado em `.openai/hosting.json`. A inicialização de
+execução usa as mesmas restrições e índices para manter o preview local
+testável. Matrícula é única; sessões possuem índices por conta e expiração; o
+estado possui uma linha por conta.
+
+Depois de validar a sessão, o Provider carrega `/api/state`, associa nome, papel
+e setor à conta e sincroniza alterações no servidor. O estado local v15 anterior
+pode ser importado uma vez para a conta inicial do funcionário, preservando o
+progresso já produzido durante o protótipo. Reiniciar o progresso afeta somente
+a conta autenticada. Perfil, topo, avatar, setor e permissão administrativa
+passam a usar a mesma identidade.
+
+`/gestao` possui verificação de papel no servidor. Uma conta sem sessão é
+direcionada ao login; uma conta de funcionário é afastada da área; somente uma
+conta administradora recebe a página. A navegação também oculta o item Gestão
+para funcionários, mas essa ocultação é apenas uma conveniência: a decisão de
+acesso relevante acontece no servidor.
+
+O estado agora declara `securityMode: "account-backed"`. Isso significa que
+identidade, sessão e envelope de progresso possuem persistência de servidor,
+mas a avaliação pedagógica das atividades ainda é executada no cliente. Por
+isso, `isAuthoritative` permanece `false`: antes de uso corporativo, tentativas,
+pontuação, recompensas e agregados deverão ser revalidados transacionalmente no
+backend. Provisionamento real, recuperação ou troca de senha, integração com um
+diretório da Leroy Merlin, política de bloqueio por tentativas e operação de
+novas contas no Painel de gestão permanecem etapas posteriores.
+
+O Arcade não foi modificado. Leaderboards individuais por jogo continuam
+adiados, e o ranking de Equipes permanece agregado por setor.
+
+## 49. P1.4 — progresso confirmado e leaderboard por conta
+
+Em 2026-08-23, o P1.3 de provisionamento administrativo foi adiado. A criação,
+ativação e entrega de credenciais pelo Painel de gestão não faz parte deste
+recorte; contas adicionais de teste continuam sendo preparadas diretamente no
+ambiente até que o cadastro corporativo seja definido.
+
+O P1.4 substitui a fonte demonstrativa da classificação exibida em Equipes por
+uma consulta compartilhada no servidor. Cada vez que o estado de uma conta é
+salvo, suas tentativas são ordenadas e reaplicadas às regras publicadas. O resumo
+usado pelo ranking nasce desse replay, e não dos totais enviados no
+`pointLedger` pelo navegador. Pontos injetados diretamente no envelope, resultados
+adulterados e recompensas duplicadas não alteram a projeção.
+
+A tabela `account_progress_summaries`, criada pela migração
+`drizzle/0001_outgoing_stature.sql`, mantém somente a projeção necessária:
+pontos confirmados, atividades e Missões concluídas, cobertura do percurso,
+média de desempenho, adesão ao ranking individual, forma de identificação e
+data da última atividade. Tentativas e respostas continuam privadas no estado da
+conta e não são publicadas pela API `/api/leaderboard`.
+
+O ranking individual é voluntário. A preferência continua desligada por padrão
+e permite nome de exibição, iniciais ou identificador anônimo estável. Quem não
+adere ainda vê seus próprios números privados e contribui para os agregados do
+setor, mas não aparece na lista pública de pessoas.
+
+O ranking de setores inclui todas as contas ativas de papel `learner` e evita
+vantagem automática para setores maiores. Sua nota usa 50% da média de
+desempenho, 30% da conclusão do percurso publicado e 20% da participação. A
+interface apresenta posição, nota normalizada, participação, conclusão e média
+de pontos por pessoa sem revelar matrícula, resposta ou erro individual.
+
+O escudo dos desafios coletivos e seus indicadores existentes permanecem
+separados dessa classificação de aprendizagem. O Painel de gestão não foi
+alterado neste P1.4 e receberá indicadores somente depois que contas, progresso
+e regras de operação estiverem consolidados. O Arcade também não foi alterado e
+suas pontuações não entram neste leaderboard.
+
+O modo geral continua `account-backed`, com `isAuthoritative: false`, porque o
+cliente ainda pode fabricar uma submissão pedagogicamente válida fora da
+interface. A nova projeção impede confiar em totais arbitrários e reavalia cada
+tentativa, mas uma operação corporativa ainda exigirá endpoints transacionais
+por atividade, proteção contra repetição e auditoria completa no servidor.
+
+## 50. Arcade — primeira integração jogável com Overlooked
+
+Em 2026-08-23, o espaço antes reservado ao **Detector Relâmpago** foi
+substituído pelo primeiro jogo efetivamente incorporado ao Arcade:
+**Overlooked**. A rota canônica passa a ser `/arcade/overlooked`; a referência
+antiga continua reconhecida apenas como compatibilidade de navegação. A página
+do jogo usa uma identificação tipográfica provisória e não incorpora imagem de
+capa, pois a arte definitiva ainda não está pronta.
+
+Somente os arquivos necessários à execução foram copiados do projeto separado:
+HTML, CSS, JavaScript e 152 sprites. Materiais de conceito, previews, arquivos
+compactados e a capa provisória não integram o build da plataforma. O jogo é
+executado em um `iframe` de mesma origem, com permissão para tela cheia, mantendo
+seu canvas, controles e estilos isolados da interface React.
+
+Overlooked é cooperativo para duas pessoas no mesmo teclado e dura cinco
+minutos. O jogador 1 usa WASD e E; o jogador 2 usa as setas e Enter; durante a
+leitura do e-mail, A aceita e R reporta. O banco contém cinco solicitações
+legítimas e sete tentativas de phishing. A pontuação bruta possível vai de
+**−165 a 155 pontos**:
+
+- phishing reportado: +15;
+- solicitação legítima concluída: +10;
+- solicitação legítima descartada: −5;
+- phishing processado: −20.
+
+As faixas internas do jogo foram ajustadas a esse intervalo real. Os limites
+anteriores chegavam a 1.200 pontos e, portanto, eram matematicamente
+inalcançáveis. Os títulos agora começam em Revisão necessária para resultados
+negativos e avançam por Em treinamento, Analista em Formação, Analista de
+Governança, Guardião Digital, Caçador de Phishing e Elite Anti-Phishing.
+
+Ao iniciar pelo Arcade, o jogo solicita à plataforma uma sessão vinculada à
+conta autenticada. Ao final, ele não envia uma pontuação pronta: envia o ID da
+sessão, a duração e a decisão final de cada mensagem que apareceu. O endpoint
+`/api/arcade/overlooked` verifica propriedade e expiração da sessão, exige a
+chegada ao fim do cronômetro, exige pelo menos oito mensagens classificadas,
+rejeita IDs duplicados ou combinações impossíveis e recalcula todos os pontos no
+servidor.
+
+A migração `drizzle/0002_flat_lilandra.sql` cria `arcade_runs`. Cada linha guarda
+início, expiração, conclusão, pontuação recalculada, contadores necessários ao
+desempate e o conjunto normalizado de decisões. O leaderboard seleciona apenas a
+melhor partida concluída de cada conta e ordena por pontuação, phishings
+reportados, solicitações legítimas concluídas, menos erros e resultado alcançado
+primeiro. A forma de identificação configurada no perfil — nome, iniciais ou
+anônimo — também é aplicada nesse ranking. Contas com participação individual
+desativada continuam guardando sua própria melhor marca, mas não são publicadas
+na lista compartilhada.
+
+A pontuação do Overlooked permanece isolada do leaderboard geral de aprendizagem
+e não concede recompensa de plataforma neste recorte. O Painel de gestão não foi
+alterado. Missões secundárias e conversão em pontos gerais permanecem etapas
+posteriores, evitando criar uma taxa de conversão arbitrária antes da integração
+dos demais jogos.
+
+Esta validação é apropriada para o protótipo conectado: ela impede submissão
+direta de uma pontuação arbitrária e partidas instantâneas. Como os eventos ainda
+nascem em JavaScript no navegador, uma pessoa com controle técnico do cliente
+pode fabricar um histórico internamente coerente. Uso corporativo competitivo
+exigirá telemetria incremental assinada, limites de frequência e auditoria mais
+completa no servidor.
+
+O ritmo de demonstração reduz o intervalo entre novas mensagens de 20–30
+segundos para 4–7 segundos. A fila continua limitada a três itens, preservando
+uma barreira contra acúmulo excessivo enquanto faz os 12 casos entrarem mais cedo
+na partida. O primeiro e-mail passa a ser sempre a solicitação legítima de
+onboarding da gerente de Campinas, com fluxo Impressora → Depósito. Aceitá-lo
+produz o papel na impressora e exige transportá-lo até a estação inferior,
+tornando essa mecânica visível logo no início. O leitor de e-mail também abandonou o visual de terminal
+monoespaçado: cabeçalho verde-floresta, destaque lima, cartões brancos, cantos
+arredondados, sombra suave, orientação de análise e botões com atalhos visíveis
+passam a usar a mesma linguagem da Fortifica.
+
+## 51. Radar — leitura editorial em páginas e revisão de Quishing
+
+Em 2026-08-23, o conteúdo disponível **Quishing: phishing escondido em QR
+Codes** deixou de concentrar explicação, sinais, resposta segura e pergunta em
+uma única página longa. A rota `/radar/quishing` permanece a mesma, mas a
+experiência interna passa a apresentar somente uma etapa por vez, com barra de
+progresso, navegação anterior/próxima e foco programático no título recém-aberto.
+
+O percurso possui seis páginas: **Entenda**, **Observe**, **Não conclua cedo**,
+**Aja**, **Confira** e **Resultado**. A primeira explica a diferença entre um
+destino codificado e uma identidade confirmada. A segunda usa um cartaz fictício
+no refeitório, uma prévia não interativa e a comparação entre
+`beneficios-colaborador.example` e a rota conhecida
+`beneficios.intra.example`. A terceira separa explicitamente fatos comprovados
+no caso de conclusões ainda não confirmadas. A quarta organiza uma resposta
+proporcional. A quinta apresenta a pergunta avaliativa com todo o contexto
+necessário. A última confirma pontos e mostra a revisão da resposta.
+
+A interface do artigo foi migrada para a linha editorial mais recente: creme e
+papel como base, verde-floresta, lima, amarelo e azul-petróleo como acentos,
+títulos em Fraunces, controles em Manrope, cartões amplos e botões com
+profundidade curta. O QR Code mostrado é uma composição visual deliberadamente
+não escaneável; endereços usam o domínio reservado `.example`; não há link,
+navegação externa, incidente ativo, botão **Como reportar** ou canal de reporte
+presumido.
+
+O Radar continua opcional e nunca é requisito para Missões, PhishLab ou
+Simulações. A reformulação preserva `activityId = radar:quishing`,
+`activityVersion = 1`, os IDs `scan-and-trust`, `inspect-and-confirm` e
+`avoid-all-qr`, a interpretação de `inspect-and-confirm` como resposta correta,
+a nota 100 e os 5 pontos concedidos somente na primeira conclusão correta. As
+alternativas receberam textos mais concretos, sem mudar o comportamento
+avaliado. Não houve migração, mudança no esquema 15 nem alteração no cálculo de
+competências, histórico ou recompensa.
+
+Uma resposta incorreta continua apenas na interface, apresenta a razão e mantém
+o funcionário na página **Confira** para nova tentativa. A resposta correta
+persiste a conclusão e abre **Resultado**. Em releitura, as seis páginas voltam a
+ficar disponíveis desde **Entenda**, mas a verificação leva ao resultado já
+registrado sem duplicar pontos, evidências ou eventos.
+
+O estado continua `account-backed` com `isAuthoritative: false`. A conta e o
+envelope de progresso podem ser persistidos pelo servidor, porém a avaliação
+pedagógica ainda nasce no cliente. Antes do uso real, o backend autoritativo
+continua obrigatório para validar submissões e conceder recompensas de forma
+idempotente e transacional. O Arcade e o Painel de gestão não foram alterados
+neste lote.
+
+A validação automatizada do lote foi concluída com lint, build de produção e os
+36 testes do portal aprovados. A inspeção visual interativa das seis páginas
+permanece uma validação separada para o usuário, sem antecipar o recorte de
+celular que continua adiado.
+
+Em 2026-08-24, a reformulação visual do hub do Radar preservou catálogo,
+conteúdo e estilos, mas restaurou acidentalmente o artigo empilhado no componente
+de experiência. O player em seis páginas foi recomposto sobre o hub novo, sem
+alterar rota, IDs, versão, avaliação, pontos ou persistência. A restauração foi
+validada novamente com build de produção, os 36 testes do portal e lint dos
+arquivos alterados. O lint global permaneceu impedido somente porque o diretório
+gerado `playwright-report/`, já presente no workspace, passou a ser varrido como
+código-fonte; esse relatório não foi removido nem modificado neste ajuste.

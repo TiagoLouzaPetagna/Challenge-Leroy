@@ -2,6 +2,8 @@
 
 import { useState, type CSSProperties } from "react";
 
+import styles from "./PhishLabHub.module.css";
+
 import {
   PHISHLAB_ACTIVITY_ID,
   PHISHLAB_ACTIVITY_VERSION,
@@ -88,6 +90,106 @@ const stations = [
   },
 ] as const;
 
+type StationId = (typeof stations)[number]["id"];
+
+function LabMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 3h6M10 3v5.3l-5.2 8.5A2.7 2.7 0 0 0 7.1 21h9.8a2.7 2.7 0 0 0 2.3-4.2L14 8.3V3" />
+      <path d="M7.4 15h9.2M9.2 12h5.6" />
+    </svg>
+  );
+}
+
+function MagnifierMark() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="20" cy="20" r="12" />
+      <path d="m29 29 11 11" />
+    </svg>
+  );
+}
+
+function CheckMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 12 4.2 4.2L19 6.5" />
+    </svg>
+  );
+}
+
+function StationArtwork({ id }: { id: StationId }) {
+  if (id === "sender-inspector") {
+    return (
+      <div className={`${styles.artwork} ${styles.senderArtwork}`} aria-hidden="true">
+        <div className={styles.senderEnvelope}>
+          <span className={styles.senderFlap} />
+          <span className={styles.senderAvatar}>AS</span>
+          <span className={styles.senderIdentity}>
+            <strong>André Silva</strong>
+            <small>Suporte de Identidade</small>
+            <small>andre.silva@acessos-corporativos.example</small>
+          </span>
+        </div>
+        <span className={styles.magnifier}><MagnifierMark /></span>
+        <span className={styles.evidenceTag}>remetente</span>
+      </div>
+    );
+  }
+
+  if (id === "link-analyzer") {
+    return (
+      <div className={`${styles.artwork} ${styles.domainArtwork}`} aria-hidden="true">
+        <div className={styles.browserBar}>
+          <span /><span /><span />
+        </div>
+        <div className={styles.urlSegments}>
+          <span className={styles.protocol}>https://</span>
+          <span className={styles.subdomain}>leroymerlin.</span>
+          <strong>seguranca-contas.example</strong>
+          <span className={styles.path}>/confirmar</span>
+        </div>
+        <div className={styles.domainLegend}>
+          <span>protocolo</span><span>subdomínio</span><strong>domínio real</strong>
+        </div>
+        <span className={styles.domainMagnifier}><MagnifierMark /></span>
+      </div>
+    );
+  }
+
+  if (id === "mirror-page") {
+    return (
+      <div className={`${styles.artwork} ${styles.mirrorArtwork}`} aria-hidden="true">
+        <div className={styles.mirrorPage}>
+          <span className={styles.mirrorHeader} />
+          <span className={styles.mirrorTitle} />
+          <span className={styles.mirrorLine} />
+          <span className={styles.mirrorButton} />
+        </div>
+        <span className={styles.mirrorDivider}>≠</span>
+        <div className={`${styles.mirrorPage} ${styles.mirrorPageGhost}`}>
+          <span className={styles.mirrorHeader} />
+          <span className={styles.mirrorTitle} />
+          <span className={styles.mirrorLine} />
+          <span className={styles.mirrorButton} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${styles.artwork} ${styles.timelineArtwork}`} aria-hidden="true">
+      <span className={styles.timelineRail} />
+      <span className={`${styles.timelinePoint} ${styles.timelinePointOne}`}><b>1</b></span>
+      <span className={`${styles.timelinePoint} ${styles.timelinePointTwo}`}><b>2</b></span>
+      <span className={`${styles.timelinePoint} ${styles.timelinePointThree}`}><b>3</b></span>
+      <span className={styles.timelineCardOne}>Identificar</span>
+      <span className={styles.timelineCardTwo}>Conter</span>
+      <span className={styles.timelineCardThree}>Reportar</span>
+    </div>
+  );
+}
+
 export function PhishLabHub({
   recommendedActivityId,
   domainResult,
@@ -108,34 +210,46 @@ export function PhishLabHub({
 
   return (
     <div className="page-stack lab-page">
-      <section className="lab-hero lab-hero--compact">
-        <div>
-          <span className="section-badge">Laboratório de investigação</span>
-          <h1>PhishLab</h1>
-          <p>
-            Investigue um artefato por vez e aplique a técnica em um novo caso.
-          </p>
-          <div className="lab-hero-actions">
-            <button type="button" className="text-button light" onClick={onBackToOverview}>
-              Voltar à visão geral <span aria-hidden="true">→</span>
-            </button>
-          </div>
+      <header className={styles.labHeader}>
+        <div className={styles.headerTopline}>
+          <span className={styles.labEyebrow}>
+            <span className={styles.labMark}><LabMark /></span>
+            Laboratório de investigação
+          </span>
+          <button type="button" className={styles.backButton} onClick={onBackToOverview}>
+            <span aria-hidden="true">←</span> Voltar à visão geral
+          </button>
         </div>
-        <aside className={isRecommended ? "lab-recommendation active" : "lab-recommendation"}>
-          <span>{isRecommended ? "Reforço recomendado" : "Prática opcional"}</span>
-          <strong>{recommendedTitle}</strong>
+        <div className={styles.headerMain}>
+          <div className={styles.headerCopy}>
+            <h1>PhishLab</h1>
+            <p>Observe evidências, teste uma hipótese e leve a técnica para o próximo caso.</p>
+          </div>
+          <p className={styles.investigationQuestion}>
+            <span>Seu próximo experimento</span>
+            <strong>O que você quer investigar?</strong>
+          </p>
+        </div>
+        <aside className={`${styles.recommendation} ${isRecommended ? styles.recommendationActive : ""}`}>
+          <span className={styles.recommendationIcon} aria-hidden="true">
+            {isRecommended ? <CheckMark /> : <MagnifierMark />}
+          </span>
+          <div>
+            <span>{isRecommended ? "Boa próxima prática" : "Prática opcional"}</span>
+            <strong>{recommendedTitle}</strong>
+          </div>
           <p>
             {isRecommended
-              ? "Uma prática curta para reforçar seu raciocínio. Você pode continuar a jornada quando quiser."
-              : "Escolha livremente uma técnica para praticar no seu ritmo."}
+              ? "Esta indicação usa seu progresso atual e ajuda a reforçar uma habilidade já observada."
+              : "Escolha livremente uma técnica e investigue no seu ritmo."}
           </p>
         </aside>
-      </section>
+      </header>
 
       {senderResult || domainResult ? (
-        <div className="lab-last-results" aria-label="Resultados do PhishLab">
+        <div className={styles.lastResults} aria-label="Resultados do PhishLab">
           {senderResult ? (
-            <section className="lab-last-result">
+            <section className={styles.lastResult}>
               <div>
                 <span className="section-kicker">Resultado registrado</span>
                 <h2>{senderResult.score}/100 em Quem enviou de verdade?</h2>
@@ -144,11 +258,11 @@ export function PhishLabHub({
                   evidências permanecem no Meu perfil.
                 </p>
               </div>
-              <span className="lab-result-status">Resultado salvo</span>
+              <span className={styles.resultStatus}><CheckMark /> Resultado salvo</span>
             </section>
           ) : null}
           {domainResult ? (
-            <section className="lab-last-result">
+            <section className={styles.lastResult}>
               <div>
                 <span className="section-kicker">Resultado registrado</span>
                 <h2>{domainResult.score}/100 em Domínio sob a lupa</h2>
@@ -157,21 +271,21 @@ export function PhishLabHub({
                   evidências permanecem no Meu perfil.
                 </p>
               </div>
-              <span className="lab-result-status">Resultado salvo</span>
+              <span className={styles.resultStatus}><CheckMark /> Resultado salvo</span>
             </section>
           ) : null}
         </div>
       ) : null}
 
-      <section className="content-section compact">
-        <div className="section-heading-row">
+      <section className={styles.stationsSection} aria-labelledby="phishlab-stations-title">
+        <div className={styles.sectionHeading}>
           <div>
             <span className="section-kicker">Estações</span>
-            <h2>Escolha o que investigar</h2>
+            <h2 id="phishlab-stations-title">Escolha uma bancada</h2>
           </div>
-          <p>Duas estações estão disponíveis; as próximas seguem visíveis no roadmap.</p>
+          <p>Duas investigações estão abertas agora. As próximas aparecem como parte do roteiro do laboratório.</p>
         </div>
-        <div className="lab-station-grid">
+        <div className={styles.stationGrid}>
           {stations.map((station) => {
             const stationIsRecommended =
               (station.target === "sender" &&
@@ -182,15 +296,28 @@ export function PhishLabHub({
             return (
               <article
                 key={station.id}
-                className={`${station.playable ? "is-playable" : "is-future"}${stationIsRecommended ? " is-recommended" : ""}`}
+                data-station-id={station.id}
+                className={`${styles.station} ${styles[station.id]} ${station.playable ? styles.stationPlayable : styles.stationFuture} ${stationIsRecommended ? styles.stationRecommended : ""}`}
+                aria-labelledby={`${station.id}-title`}
               >
-                <div className="lab-station-topline">
+                <div className={styles.stationTopline}>
                   <span>{station.eyebrow}</span>
-                  <strong>{stationIsRecommended ? "Recomendado" : station.statusLabel}</strong>
+                  <strong className={station.playable ? styles.availableStatus : styles.productionStatus}>
+                    {stationIsRecommended ? "Recomendado para você" : station.statusLabel}
+                  </strong>
                 </div>
-                <h3>{station.title}</h3>
-                <p>{station.summary}</p>
-                <dl className="lab-station-meta">
+                <StationArtwork id={station.id} />
+                <div className={styles.stationBody}>
+                  <h3 id={`${station.id}-title`}>{station.title}</h3>
+                  <p className={styles.stationSummary}>{station.summary}</p>
+                  {stationIsRecommended ? (
+                    <p className={styles.positiveRecommendation}>
+                      <span><CheckMark /></span>
+                      <strong>Uma boa próxima escolha com base no seu progresso.</strong>
+                    </p>
+                  ) : null}
+                </div>
+                <dl className={styles.stationMeta}>
                   <div><dt>Formato</dt><dd>{station.format}</dd></div>
                   <div><dt>Duração</dt><dd>{station.duration}</dd></div>
                   <div><dt>Habilidade</dt><dd>{station.skill}</dd></div>
@@ -202,6 +329,7 @@ export function PhishLabHub({
                 {station.playable ? (
                   <button
                     type="button"
+                    className={styles.stationButton}
                     onClick={
                       station.target === "sender"
                         ? onOpenSenderInspector
@@ -212,12 +340,13 @@ export function PhishLabHub({
                       ? "Ver resultado ou refazer"
                       : station.target === "domain" && domainResult
                         ? "Ver resultado ou refazer"
-                        : "Abrir estação"}
+                      : "Abrir estação"}
                   </button>
                 ) : (
-                  <span className="lab-station-planned">
-                    Em produção · disponibilidade futura
-                  </span>
+                  <p className={styles.productionNotice}>
+                    <span aria-hidden="true">●</span>
+                    <strong>Em produção</strong> · disponibilidade futura
+                  </p>
                 )}
               </article>
             );
