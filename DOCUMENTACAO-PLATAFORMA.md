@@ -7491,3 +7491,167 @@ validada novamente com build de produção, os 36 testes do portal e lint dos
 arquivos alterados. O lint global permaneceu impedido somente porque o diretório
 gerado `playwright-report/`, já presente no workspace, passou a ser varrido como
 código-fonte; esse relatório não foi removido nem modificado neste ajuste.
+
+## 52. Biblioteca de pesquisas sobre campanhas corporativas reais
+
+Foi criada em `documentacao/pesquisas/campanhas-corporativas/` uma biblioteca
+separada para estudar campanhas reais de phishing e engenharia social com
+aplicação ao ambiente corporativo. Ela não substitui a documentação das
+atividades e não publica conteúdo no portal. Seu inventário inicial contém 24
+dossiês: oito fundamentais, oito intermediários e oito avançados.
+
+A hierarquia de arquivos segue **dificuldade → área corporativa → técnica
+dominante**. A área identifica quem recebe ou precisa decidir no processo, como
+Financeiro, RH, TI, Diretoria, Vendas ou Operações. Setores de indústria, papéis
+atingidos, canais e técnicas secundárias permanecem como metadados porque uma
+mesma campanha pode atravessar organizações e combinar várias formas de ataque.
+
+As faixas de dificuldade partem da lógica da NIST Phish Scale — quantidade de
+indícios observáveis e alinhamento do pretexto ao público — e acrescentam
+fatores necessários ao currículo: quantidade de canais, uso de infraestrutura
+ou contas legítimas, dependência de contexto interno, adaptação do atacante e
+complexidade da resposta. A dificuldade representa o esforço humano para
+reconhecer e responder ao caso, não a sofisticação do malware.
+
+Cada dossiê registra metadados, resumo factual, sequência observada, texto usado
+na campanha, motivo de plausibilidade, indícios e limites da observação humana,
+comportamento seguro ensinável, possibilidade de atividade, justificativa da
+dificuldade, relação com o currículo atual e fontes. A seção de texto sempre
+informa sua natureza:
+
+- **trecho literal curto** quando a própria fonte reproduz o texto;
+- **tradução curta** quando um fragmento publicado precisa ser apresentado em
+  português;
+- **reconstrução segura** quando o exemplo foi escrito para representar o
+  pretexto documentado, sem alegar que são palavras originais do atacante;
+- **descrição do tema** quando a fonte revela o assunto ou a ação, mas não uma
+  transcrição suficiente.
+
+Domínios ativos, indicadores operacionais, comandos, códigos, telefones,
+credenciais e arquivos maliciosos não são reproduzidos. As reconstruções usam
+dados inertes e não podem ser reaproveitadas para disparar phishing real. Essa
+separação preserva o valor pedagógico dos textos sem transformar a pesquisa em
+um kit executável nem atribuir frases inventadas às campanhas observadas.
+
+O índice geral está em
+`documentacao/pesquisas/campanhas-corporativas/README.md`, a matriz de cobertura
+em `MATRIZ-DE-COBERTURA.md`, os critérios em
+`CRITERIOS-DE-DIFICULDADE.md`, o padrão de novos dossiês em `_MODELO.md` e as
+fontes centrais em `FONTES.md`. A pasta `documentacao/pesquisas/README.md`
+mantém essa coleção separada dos blueprints e das atividades proprietárias.
+
+O arquivo `RESUMO-CASOS-TEXTOS-E-DOMINIOS.md` reúne uma leitura curta dos 24
+casos com resumo, texto observado ou reconstruído e infraestrutura publicada.
+Domínios históricos aparecem desativados com `[.]`; domínios do atacante,
+padrões de nomenclatura e serviços legítimos abusados recebem rótulos distintos.
+Quando a fonte não publica um domínio atribuível ao caso, o resumo registra
+`não publicado` em vez de inferir ou misturar indicadores de outra campanha.
+Esses indicadores são contexto de pesquisa, não links, destinos de teste ou uma
+lista estática suficiente para decidir se uma mensagem é legítima.
+
+Os 24 casos são material de pesquisa, e não uma decisão de criar 24 atividades.
+A conversão futura deverá comparar cada caso com os conceitos e experiências já
+planejados, identificar uma lacuna de comportamento, decidir se o caso será
+núcleo, variação, transferência ou debrief e somente depois produzir blueprint,
+contrato de resposta, avaliador, acessibilidade, segurança e testes. Nenhum
+`activityId`, rota, versão, ponto, recompensa ou progresso foi criado neste
+lote. Radar e Arcade não foram alterados, o recorte de celular permanece
+adiado e o backend autoritativo continua obrigatório antes do uso real.
+
+### 52.1 Restrição corporativa de remetentes simulados
+
+Foi estabelecida uma limitação editorial obrigatória para qualquer phishing
+futuro da Fortifica: a identidade maliciosa simulada nunca poderá ser uma pessoa
+física. Toda experiência deverá começar por um e-mail institucional cujo
+remetente aparente seja uma área ou serviço interno da empresa, uma pessoa
+jurídica externa — inclusive fornecedora, prestadora ou possível parceira — ou
+um órgão ou serviço público.
+
+A restrição define quem poderá ser representado como remetente, não o conteúdo
+permitido no e-mail. Não existe lista fechada de assuntos, pedidos, documentos,
+ações ou consequências. A mensagem poderá tratar de qualquer situação
+empresarial coerente com a área, organização ou órgão que aparenta enviá-la.
+Caixas como `comunicados@`, `notificacoes@`, `servicos@` e `nao-responda@` são
+compatíveis; assinatura, endereço, imagem, voz, vídeo ou conta de pessoa física
+não são.
+
+Os casos não deverão repetir uma única fórmula de saudação, justificativa,
+lista, etapas e botão. O portfólio poderá combinar peça visual interna,
+notificação automática curta, ofício ou protocolo, proposta comercial, convite,
+boletim técnico, demonstrativo, compartilhamento de documento, assinatura
+eletrônica, sala de dados, formulário, relatório ou mensagem de serviço. Essa
+enumeração representa possibilidades e não uma limitação editorial. Estrutura,
+extensão, tom, artefato, ação solicitada e técnica deverão variar de acordo com
+o caso e permanecer coerentes com o processo apresentado.
+
+Ficam proibidas simulações que personifiquem diretor, gestor, colega, advogado,
+auditor, recrutador, técnico, motorista, cliente, atendente ou representante
+individual de outra organização. Conversas de WhatsApp, SMS, telefone, reunião,
+chat, contas pessoais e deepfakes também não poderão ser o estímulo da
+atividade. Uma possível colaboração deverá ser apresentada pela pessoa jurídica
+interessada, nunca pelo colaborador que a representa. Um comunicado público
+deverá vir do órgão ou serviço, nunca de servidor ou fiscal identificado.
+
+Os dossiês históricos que dependem de personificação individual permanecem na
+biblioteca como pesquisa de ameaça, mas não estão autorizados como atividades.
+Uma técnica somente poderá ser reaproveitada se for reconstruída como e-mail
+institucional, preservar sentido pedagógico e passar por nova aprovação. Se a
+remoção da pessoa física descaracterizar o caso, ele ficará como referência e
+não será implementado.
+
+Cada adaptação deverá oferecer uma rota independente de confirmação e pelo
+menos um e-mail legítimo com acabamento equivalente. O objetivo não será ensinar
+que comunicações de RH, Jurídico, Governo, fornecedores ou parceiros são
+suspeitas por natureza, mas que aparência e assunto precisam ser confrontados
+com remetente, destino, procedimento e fonte conhecida.
+
+A política completa está em
+`documentacao/pesquisas/campanhas-corporativas/POLITICA-DE-REMETENTES-SIMULADOS.md`.
+Identidades, marcas, domínios, links, anexos e QR Codes continuarão fictícios e
+inertes, com `.example` como padrão. A regra não autoriza disparos reais e não
+altera o requisito de backend autoritativo antes do uso corporativo.
+
+## 53. Criação individual de campanhas simuladas — primeiro caso
+
+Em 2026-09-02, a etapa posterior à pesquisa deixou de prever a produção de uma
+bateria de e-mails de uma só vez. Cada phishing simulado será desenvolvido e
+revisado individualmente antes que o caso seguinte seja iniciado. Tema, público,
+processo retratado, redação, evidências, confirmação independente, comunicação
+legítima de controle, resultado e segurança deverão formar um conjunto coerente;
+a simples troca de assunto em um mesmo modelo não será considerada um caso novo.
+
+Um relatório confidencial de uma campanha interna, fornecido pelo usuário, foi
+analisado como referência contextual. O documento mostrou exemplos setoriais e
+peças completas, mas também reforçou riscos que a Fortifica não repetirá:
+dependência excessiva do fluxo **e-mail → botão → login**, variáveis de template
+visíveis, conclusão de comprometimento baseada apenas em clique ou formulário e
+coleta de credenciais durante treinamento. Nenhum nome, marca, domínio, texto,
+imagem, métrica ou dado identificável desse relatório foi incorporado ao
+repositório.
+
+O primeiro caso proposto chama-se **Apontamento devolvido** e está documentado em
+`documentacao/campanhas-simuladas/001--apontamento-devolvido.md`. Ele se destina
+somente a funcionários que realmente usam um processo de apontamento de horas e
+avalia um comportamento principal: confirmar a suposta pendência abrindo o
+portal pela rota conhecida, sem depender do botão recebido no e-mail. O remetente
+é a área fictícia **Central de Apontamentos**; não existe pessoa física simulada.
+
+A proposta inclui o texto integral da isca, uma comunicação legítima com
+acabamento equivalente, os indícios observáveis, a evidência decisiva no portal
+oficial, a página educativa imediata depois do clique, os eventos mínimos e as
+condições de elegibilidade do público. O e-mail não solicita senha. Clique não é
+chamado de comprometimento, ausência de interação não é tratada como acerto e
+abertura por pixel não é usada como medida de comportamento.
+
+Os únicos eventos candidatos são entrega técnica, clique no link inerte,
+visualização do debrief e reporte quando houver integração institucional
+confiável. Senhas, texto digitado, respostas, conteúdo da caixa postal, histórico
+de navegação, projeto, cliente, centro de custo e alocação reais ficam proibidos.
+Resultados individuais não alimentam pontos, conquistas ou rankings.
+
+Este registro é uma proposta editorial e técnica, não uma funcionalidade. Não
+foram criados rota, tela, `activityId`, disparo, domínio, rastreamento, recompensa
+ou integração com o Painel de gestão. A passagem para protótipo depende de
+aprovação do caso, definição do processo real, domínio controlado, retenção,
+governança e backend autoritativo. O Arcade, o Radar e as atividades existentes
+não foram alterados.
