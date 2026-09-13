@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import { useDragReorder } from "@/features/activities/useDragReorder";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import {
   findRecoveryBuilderV2Package,
@@ -228,6 +230,8 @@ export function RecoveryMission({
     setSubmissionError("");
     setStage(nextStage);
   };
+
+  const dragFact = useDragReorder((source, target) => setTimelineFactIds(current => { const next = [...current]; const from = next.indexOf(source), to = next.indexOf(target); if (from < 0 || to < 0) return current; next.splice(from, 1); next.splice(to, 0, source); return next; }));
 
   const moveTimelineFact = (index: number, direction: -1 | 1) => {
     setTimelineFactIds((current) => moveItem(current, index, direction));
@@ -504,9 +508,9 @@ export function RecoveryMission({
   }, [actionById, allowlists, builderResult, content, submittedAnswer, timelineById]);
 
   return (
-    <div className="page-stack mission-page recovery-mission-page recovery-builder-page">
+    <div className="activity-workspace page-stack mission-page recovery-mission-page recovery-builder-page">
       <section className="mission-shell">
-        <header className="mission-header">
+        <header className={`mission-header ${stage > 0 ? "activity-context-summary" : ""}`}>
           <div>
             <span className="section-badge">Jornada principal · Resposta ao incidente</span>
             <h1 tabIndex={-1} ref={stage === 0 ? stageTitleRef : undefined}>
@@ -541,8 +545,7 @@ export function RecoveryMission({
                 <div className="recovery-no-blame-note">
                   <strong>Sua tarefa</strong>
                   <p>{content.task}</p>
-                  <strong>O que você protege</strong>
-                  <p>{content.protectedConsequence}</p>
+                  
                 </div>
                 <button
                   type="button"
@@ -552,15 +555,7 @@ export function RecoveryMission({
                   Reconstruir o ocorrido
                 </button>
               </div>
-              <aside className="recovery-principles">
-                <span className="section-kicker">O que importa agora</span>
-                <ol>
-                  <li><span>01</span><div><strong>Precisão</strong><p>Dizer até onde a interação realmente chegou.</p></div></li>
-                  <li><span>02</span><div><strong>Interrupção</strong><p>Não retomar o conteúdo suspeito por conta própria.</p></div></li>
-                  <li><span>03</span><div><strong>Reporte cedo</strong><p>Preservar fatos e pedir orientação no canal conhecido.</p></div></li>
-                </ol>
-                <small>Nenhuma ação desta demonstração envia reporte, altera conta ou opera um dispositivo real.</small>
-              </aside>
+
             </div>
           ) : null}
 
@@ -569,14 +564,14 @@ export function RecoveryMission({
               <div className="decision-heading">
                 <span className="section-kicker">Reconstrução</span>
                 <h2 tabIndex={-1} ref={stageTitleRef}>Coloque os fatos na ordem em que ocorreram</h2>
-                <p>Use os horários e a descrição de cada registro. Depois, indique o último estágio que os fatos realmente comprovam.</p>
+                <p>Arraste os registros para colocá-los em ordem, ou use as setas. Depois indique até onde você chegou.</p>
               </div>
               <ol className="recovery-timeline-builder">
                 {timelineFactIds.map((factId, index) => {
                   const fact = timelineById.get(factId);
                   if (!fact) return null;
                   return (
-                    <li key={fact.id}>
+                    <li key={fact.id} {...dragFact(fact.id)}>
                       <span className="recovery-timeline-builder__position">{index + 1}</span>
                       <div><span>{fact.timeLabel}</span><strong>{fact.title}</strong><p>{fact.detail}</p></div>
                       <div className="recovery-timeline-builder__buttons">
@@ -588,12 +583,12 @@ export function RecoveryMission({
                 })}
               </ol>
               <fieldset className="recovery-exposure-options">
-                <legend>Até onde a interação chegou, segundo estes fatos?</legend>
-                <p>Escolha o último estágio comprovado — não o pior resultado possível.</p>
+                <legend>O que você chegou a fazer?</legend>
+                <p>Use apenas o que aparece nos registros.</p>
                 {content.exposureOptions.map((option) => (
                   <label key={option.id} className={exposureStageId === option.id ? "selected" : ""}>
                     <input type="radio" name="recovery-exposure" checked={exposureStageId === option.id} onChange={() => setExposureStageId(option.id)} />
-                    <span><strong>{option.label}</strong><small>{option.detail}</small></span>
+                    <span><strong>{option.label}</strong></span>
                   </label>
                 ))}
               </fieldset>
@@ -608,7 +603,7 @@ export function RecoveryMission({
             <div className="recovery-builder-stage">
               <div className="decision-heading">
                 <span className="section-kicker">Montador de resposta</span>
-                <h2 tabIndex={-1} ref={stageTitleRef}>Classifique as ações deste caso</h2>
+                <h2 tabIndex={-1} ref={stageTitleRef}>Monte seu plano de resposta</h2>
                 <p>Decida quais ações podem começar imediatamente, quais dependem da orientação da equipe responsável e quais aumentariam o risco.</p>
               </div>
               <aside className="recovery-case-reminder" aria-label="Contexto deste exercício">
@@ -704,28 +699,19 @@ export function RecoveryMission({
             <div className="recovery-builder-stage">
               <div className="decision-heading">
                 <span className="section-kicker">Reporte simulado</span>
-                <h2 tabIndex={-1} ref={stageTitleRef}>Escolha onde buscar orientação e quais fatos informar</h2>
-                <p>A referência segura existe antes deste incidente e fora da mensagem suspeita. O reporte deve conter fatos úteis, nunca senhas, códigos ou conclusões não comprovadas.</p>
+                <h2 tabIndex={-1} ref={stageTitleRef}>Peça ajuda à equipe de segurança</h2>
+                <p>Escolha o canal de atendimento. Depois coloque na pasta as informações que você enviaria à equipe.</p>
               </div>
               <fieldset className="recovery-route-options">
-                <legend>Qual caminho você usaria para abrir a orientação oficial?</legend>
+                <legend>Como você pediria ajuda?</legend>
                 {RECOVERY_OFFICIAL_ROUTE_OPTIONS.map((option) => (
                   <label key={option.id} className={officialRouteActionId === option.id ? "selected" : ""}>
                     <input type="radio" name="official-route" checked={officialRouteActionId === option.id} onChange={() => setOfficialRouteActionId(option.id)} />
-                    <span><strong>{option.label}</strong><small>{option.detail}</small></span>
+                    <span><strong>{option.label}</strong></span>
                   </label>
                 ))}
               </fieldset>
-              <fieldset className="recovery-report-builder">
-                <legend>Quais informações devem entrar no reporte?</legend>
-                <p>Selecione tudo o que ajuda a equipe responsável a entender o ocorrido.</p>
-                {RECOVERY_REPORT_BLOCK_OPTIONS.map((option) => (
-                  <label key={option.id} className={reportBlockIds.includes(option.id) ? "selected" : ""}>
-                    <input type="checkbox" checked={reportBlockIds.includes(option.id)} onChange={() => toggleReportBlock(option.id)} />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </fieldset>
+              <EvidenceTray items={RECOVERY_REPORT_BLOCK_OPTIONS.map(({ id, label }) => ({ id, label }))} selectedIds={reportBlockIds} onToggle={toggleReportBlock} />
               <div className="recovery-channel-notice" role="note"><strong>Demonstração local</strong><p>Nenhuma escolha envia dados, abre chamado ou executa recuperação real.</p></div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goToStage(4)}>← Rever o plano</button>
@@ -746,7 +732,7 @@ export function RecoveryMission({
                 {content.transfer.exposureOptions.map((option) => (
                   <label key={option.id} className={transferExposureId === option.id ? "selected" : ""}>
                     <input type="radio" name="transfer-exposure" checked={transferExposureId === option.id} onChange={() => setTransferExposureId(option.id)} />
-                    <span><strong>{option.label}</strong><small>{option.detail}</small></span>
+                    <span><strong>{option.label}</strong></span>
                   </label>
                 ))}
               </fieldset>
@@ -789,7 +775,7 @@ export function RecoveryMission({
                 <article><span>Reporte e transferência</span><strong>{builderResult.reportPoints}/20</strong><p>{builderResult.safeReportBlocks} blocos seguros selecionados.</p></article>
                 <article className="reward-result-card"><span>Pontos gerais</span><strong>{rewardGrantedInAttempt ? `+${builderResult.potentialReward}` : `${claimedPoints} registrados`}</strong><p>Base {POINT_RULES.mainMission} + bônus de {bonusPercentage}% ({bonusPoints} pontos).</p></article>
               </div>
-              <ActivityAnswerReview items={answerReviewItems} />
+              <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details>
               <div className="mission-navigation"><button type="button" className="primary-button dark" onClick={() => goToStage(8)}>Ver resumo final</button></div>
             </div>
           ) : null}

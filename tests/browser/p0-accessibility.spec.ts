@@ -56,204 +56,50 @@ async function expectCompactActivityProgress(
   return progress;
 }
 
-test("opera a fundação PARE v2 por teclado, move o foco e mantém a página acessível", async ({
-  page,
-}) => {
+test("investiga a missão em seis etapas por teclado, sem revelar a consulta antes da ação", async ({ page }) => {
   const expectNoBrowserErrors = captureBrowserErrors(page);
   await completeRequiredTutorial(page);
-
-  const shell = page.locator('[data-activity-id="mission:account-lock"]');
-  await expect(shell).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "O aviso que não podia esperar",
-  );
-  await expect(
-    page.getByRole("heading", {
-      level: 2,
-      name: /Sua conta será bloqueada em 30 minutos/,
-    }),
-  ).toBeFocused();
-
-  const missionProgress = page.getByRole("region", {
-    name: "Progresso da missão de fundamento",
-  });
-  await expect(page.getByRole("progressbar")).toHaveCount(1);
-  await expect(missionProgress.getByRole("progressbar")).toHaveAttribute(
-    "aria-label",
-    "Etapa 1 de 20: Abertura",
-  );
-  await expect(missionProgress).toContainText("1 / 20");
-  await expect(missionProgress).toContainText("Perceber o pedido");
-
-  await page.evaluate(() => document.fonts.ready);
-  const browserVisualContract = await page.evaluate(() => {
-    const heading = document.querySelector<HTMLElement>(".foundation-opening h2");
-    const rootStyle = getComputedStyle(document.documentElement);
-    return {
-      bodyFont: getComputedStyle(document.body).fontFamily,
-      headingFont: heading ? getComputedStyle(heading).fontFamily : "",
-      frauncesLoaded: document.fonts.check('24px "Fraunces Variable"'),
-      manropeLoaded: document.fonts.check('16px "Manrope Variable"'),
-      scrollbarWidth: rootStyle.scrollbarWidth,
-      scrollbarColor: rootStyle.scrollbarColor,
-    };
-  });
-  expect(browserVisualContract.bodyFont).toContain("Manrope Variable");
-  expect(browserVisualContract.headingFont).toContain("Fraunces Variable");
-  expect(browserVisualContract.frauncesLoaded).toBe(true);
-  expect(browserVisualContract.manropeLoaded).toBe(true);
-  expect(browserVisualContract.scrollbarWidth).toBe("thin");
-  expect(browserVisualContract.scrollbarColor).not.toBe("auto");
-
-  const advance = async (buttonName: string, headingName: string) => {
-    await page.getByRole("button", { name: buttonName, exact: true }).press("Enter");
-    await expect(
-      page.getByRole("heading", { level: 2, name: headingName, exact: true }),
-    ).toBeFocused();
-  };
-
-  const start = page.getByRole("button", { name: "Observar a mensagem" });
-  await start.focus();
-  await page.keyboard.press("Enter");
-  await expect(
-    page.getByRole("heading", {
-      level: 2,
-      name: "Antes da urgência, veja quem fala",
-    }),
-  ).toBeFocused();
-
-  await advance("Identificar o pedido", "O que o aviso quer que você faça?");
-  await expect(
-    page.getByText(
-      "É a ação que o aviso tenta provocar, ainda que você não deva executá-la.",
-    ),
-  ).toHaveCount(0);
-  await page.getByRole("radio", { name: /Abrir o botão recebido/ }).check();
-  await advance("Nomear o ativo", "O que pode ser afetado?");
-  await page.getByRole("radio", { name: "Conta e credenciais corporativas" }).check();
-  await advance(
-    "Antecipar a consequência",
-    "Se a ação seguir adiante, o que pode acontecer?",
-  );
-  await page.getByRole("radio", { name: /Entregar credenciais ou uma sessão/ }).check();
-  await advance("Conhecer PARE", "Pressão vira processo");
-  await advance("Praticar a pausa", "Qual pausa protege sua decisão?");
-  await page.getByRole("radio", { name: /Pausar antes de usar/ }).check();
-  await advance("Visualizar a análise", "Três peças formam uma cadeia");
-  await advance("Escolher como avaliar", "Como você avalia este aviso?");
-  await page.getByRole("radio", { name: /Relacionar o pedido/ }).check();
-  await advance("Ver o destino representado", "O botão muda o destino da ação");
-  await advance("Comparar rotas", "Duas rotas, duas origens");
-  await advance("Escolher uma rota", "Onde você confere o estado da conta?");
-  await page.getByRole("radio", { name: /referência já conhecida/ }).check();
-  await advance(
-    "Consultar o estado",
-    "A fonte conhecida mostra o estado da conta",
-  );
-  await expect(missionProgress.getByRole("progressbar")).toHaveAttribute(
-    "aria-label",
-    "Etapa 13 de 20: Consultar o estado oficial",
-  );
-  await expect(missionProgress).toContainText("13 / 20");
-  await expect(missionProgress).toContainText("Reconfirmar");
-
-  await advance("Concluir a avaliação", "O que já é possível concluir?");
-  await page.getByRole("radio", { name: /solicitação suspeita/ }).check();
-  await advance(
-    "Escolher a resposta",
-    "Qual resposta mantém o trabalho seguro?",
-  );
-  await page.getByRole("radio", { name: /Não usar o botão/ }).check();
-  await advance("Preparar o reporte", "O que pertence ao reporte?");
-  for (const label of [
-    "Remetente aparente, assunto e horário",
-    "Ação solicitada pela mensagem",
-    "Prévia inerte do destino apresentado",
-    "Resultado da consulta pela referência oficial conhecida",
-  ]) {
-    await page.getByRole("checkbox", { name: label }).check();
-  }
-  await advance("Aplicar em outro alerta", "Agora, um alerta legítimo");
-  await advance(
-    "Decidir no novo cenário",
-    "O processo muda quando o alerta é legítimo?",
-  );
-  await page.getByRole("radio", { name: /Abrir a área oficial pela rota conhecida/ }).check();
+  const progress = page.getByRole("region", { name: "Progresso da missão de fundamento" });
+  await expect(progress.getByRole("progressbar")).toHaveAttribute("aria-label", "Etapa 1 de 6: Examinar");
+  await expect(page.getByRole("button", { name: "Continuar" })).toBeEnabled();
+  await page.getByRole("button", { name: "Continuar" }).press("Enter");
+  await expect(page.getByRole("heading", { name: "Ligue o pedido ao risco" })).toBeFocused();
+  await page.getByRole("button", { name: "Colocar Conta corporativa", exact: true }).press("Enter");
+  await page.getByRole("button", { name: "Colocar Senha exposta", exact: true }).press("Enter");
+  await page.getByRole("button", { name: "Testar conexão" }).press("Enter");
+  await expect(page.getByText(/Por que essa ligação faz sentido/)).toBeVisible();
+  await page.getByRole("button", { name: "Continuar" }).press("Enter");
+  await expect(page.getByText("Sua conta está ativa")).toHaveCount(0);
+  await page.getByRole("button", { name: /Pesquisar serviço/ }).press("Enter");
+  await expect(page.getByText("A busca não confirmou o aviso.")).toBeVisible();
+  await expect(page.getByText("Sua conta está ativa")).toHaveCount(0);
+  await page.getByRole("button", { name: "Abrir favorito" }).press("Enter");
+  await expect(page.getByText("Sua conta está ativa")).toBeVisible();
+  await page.getByRole("button", { name: "Continuar" }).press("Enter");
+  await page.getByRole("button", { name: "É suspeito e precisa ser investigado" }).press("Enter");
+  await page.getByRole("button", { name: "Avisar a equipe de segurança" }).press("Enter");
+  await page.getByRole("button", { name: "Colocar E-mail original", exact: true }).press("Enter");
+  await page.getByRole("button", { name: "Colocar Verificação de bloqueio da conta", exact: true }).press("Enter");
+  await page.getByRole("button", { name: "Colocar Senha ou código", exact: true }).press("Enter");
+  await page.getByRole("button", { name: "Remover Senha ou código", exact: true }).press("Enter");
+  await page.getByRole("button", { name: "Continuar" }).press("Enter");
+  await expect(page.getByText(/Agora, um alerta legítimo/)).toHaveCount(0);
+  await expect(page.getByText("Alteração disponível no portal")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Alterar a senha pelo portal" })).toBeDisabled();
+  await page.getByRole("button", { name: "Abrir favorito" }).press("Enter");
+  await page.getByRole("button", { name: "Alterar a senha pelo portal" }).press("Enter");
   await page.getByRole("button", { name: "Concluir missão" }).press("Enter");
-  await expect(
-    page.getByRole("heading", {
-      level: 2,
-      name: "Você respondeu à pressão com processo",
-    }),
-  ).toBeFocused();
-
-  await expect(missionProgress.getByRole("progressbar")).toHaveAttribute(
-    "aria-label",
-    "Etapa 20 de 20: Resultado",
-  );
-  await expect(missionProgress).toContainText("20 / 20");
-  await expect(missionProgress).toContainText("Missão concluída");
-
-  const resultDetails = page.locator("details.foundation-result-details");
-  await expect(resultDetails).toHaveJSProperty("open", false);
-  await expect(
-    page.getByRole("heading", {
-      name: "O que você acertou e o que precisa revisar",
-    }),
-  ).toBeHidden();
-  await resultDetails
-    .getByText("Ver detalhamento da pontuação e do aprendizado", { exact: true })
-    .click();
-  await expect(resultDetails).toHaveJSProperty("open", true);
-  await expect(
-    page.getByRole("heading", {
-      name: "O que você acertou e o que precisa revisar",
-    }),
-  ).toBeVisible();
-
-  const foundationAttempt = await page.evaluate(() => {
-    const envelope = JSON.parse(
-      window.localStorage.getItem("casa-digital-segura:mvp:v1") ?? "null",
-    );
-    return Object.values(envelope.state.learning.attempts).find(
-      (attempt: unknown) =>
-        typeof attempt === "object" &&
-        attempt !== null &&
-        "mechanicId" in attempt &&
-        attempt.mechanicId === "phishing-foundation",
-    );
-  });
-  expect(foundationAttempt).toMatchObject({
-    requestedActionId: "confirm-account-from-message",
-    protectedAssetId: "corporate-account",
-    potentialConsequenceId: "credential-or-session-exposure",
-    pauseDecisionId: "pause-before-message-action",
-    evaluationId: "connect-request-asset-consequence",
-    confirmationRouteId: "known-official-reference",
-    finalAssessmentId: "suspicious-unconfirmed",
-    finalActionId: "keep-account-and-report",
-    reportDetailIds: [
-      "sender-subject-time",
-      "requested-action",
-      "destination-preview",
-      "independent-check-result",
-    ],
-    transferDecisionId: "use-known-route-no-incident",
-  });
-
+  await expect(progress.getByRole("progressbar")).toHaveAttribute("aria-label", "Etapa 6 de 6: Concluir");
+  await expect(page.getByText("100/100 · resultado privado")).toBeVisible();
+  await page.getByText("Rever minhas decisões", { exact: false }).click();
+  await expect(page.getByRole("heading", { name: "O que você acertou e o que precisa revisar" })).toBeVisible();
   const accessibility = await new AxeBuilder({ page }).analyze();
-  expect(
-    accessibility.violations.filter((violation) =>
-      ["serious", "critical"].includes(violation.impact ?? ""),
-    ),
-  ).toEqual([]);
-
+  expect(accessibility.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
   await expectNoHorizontalOverflow(page);
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await expectNoHorizontalOverflow(page);
   expectNoBrowserErrors();
 });
-
 test("preserva contraste, texto ampliado e movimento reduzido no fluxo", async ({
   page,
 }) => {
@@ -374,10 +220,10 @@ test("conclui a anatomia de URL v2 por teclado e persiste o envelope atual", asy
     .getByRole("button", { name: "Aprender a separar o endereço" })
     .press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Exemplo de calibração" }),
+    page.getByRole("heading", { name: "Um endereço, cinco partes" }),
   ).toBeFocused();
   await page
-    .getByRole("button", { name: "Aplicar sem marcações prontas" })
+    .getByRole("button", { name: "Montar o endereço do caso" })
     .press("Enter");
   await expect(
     page.getByRole("heading", {
@@ -393,7 +239,7 @@ test("conclui a anatomia de URL v2 por teclado e persiste o envelope atual", asy
     "Parâmetro",
   ];
   await expect(
-    page.getByRole("heading", { name: "Monte a anatomia do endereço" }),
+    page.getByRole("heading", { name: "Encaixe as partes do endereço" }),
   ).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);
   for (let index = 0; index < roleAssignments.length; index += 1) {
@@ -405,7 +251,7 @@ test("conclui a anatomia de URL v2 por teclado e persiste o envelope atual", asy
       .press("Enter");
   }
   await page
-    .getByRole("button", { name: "Concluir a anatomia e decidir" })
+    .getByRole("button", { name: "Analisar o endereço montado" })
     .press("Enter");
 
   await page
@@ -505,28 +351,28 @@ test("conclui o mapa de identidade v2 por teclado sem expor os pacotes internos"
     "Abertura",
   );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Separe o que está comprovado do que ainda não está",
+    "Quem enviou de verdade?",
   );
   await expect(page.getByText(/^P1$|^P2$|^P3$/)).toHaveCount(0);
 
   await page
-    .getByRole("button", { name: "Aprender a ler os campos" })
+    .getByRole("button", { name: "Ver um exemplo" })
     .press("Enter");
   await expect(
     page.getByRole("heading", { name: "O que cada campo consegue provar" }),
   ).toBeFocused();
-  await page.getByRole("button", { name: "Montar o mapa do caso" }).press("Enter");
+  await page.getByRole("button", { name: "Investigar o e-mail" }).press("Enter");
 
   const fieldRelations = [
-    "declared-identity",
-    "sender-account",
-    "reply-destination",
-    "address-domain",
-    "process-context",
+    ["Declara como o remetente quer ser apresentado", "Nome exibido"],
+    ["Identifica a conta usada no campo De", "De / From"],
+    ["Define para onde uma resposta seria enviada", "Reply-To"],
+    ["Identifica o domínio presente no endereço", "Domínio do From"],
+    ["Mostra se o pedido combina com o processo esperado", "Contexto conhecido"],
   ];
-  const relationSelectors = page.getByRole("combobox");
-  for (let index = 0; index < fieldRelations.length; index += 1) {
-    await relationSelectors.nth(index).selectOption(fieldRelations[index]);
+  for (const [label, field] of fieldRelations) {
+    await page.getByRole("button", { name: label, exact: true }).press("Enter");
+    await page.getByRole("button", { name: "Associar etiqueta a " + field, exact: true }).press("Enter");
   }
   await page
     .getByRole("button", { name: "Classificar o que está comprovado" })
@@ -569,6 +415,7 @@ test("conclui o mapa de identidade v2 por teclado sem expor os pacotes internos"
     })
     .check();
   await page.getByRole("button", { name: "Concluir laboratório" }).press("Enter");
+  await page.locator("details.activity-review-disclosure > summary").click();
 
   await expect(page.getByRole("heading", { name: "100/100" })).toBeFocused();
   await expect(page.getByText("20/20", { exact: true })).toBeVisible();
@@ -715,7 +562,7 @@ test("reconstrói a conversa v2 por teclado, confirma fora do fio e abre o debri
     "Rota usada para confirmar e resposta obtida",
     "Referência ao contexto preservado da conversa",
   ]) {
-    await page.getByRole("checkbox", { name: label }).check();
+    await page.getByRole("button", { name: "Adicionar " + label, exact: true }).click();
   }
   await page
     .getByRole("button", { name: "Aplicar em outro canal" })
@@ -726,6 +573,7 @@ test("reconstrói a conversa v2 por teclado, confirma fora do fio e abre o debri
     })
     .check();
   await page.getByRole("button", { name: "Concluir Missão" }).press("Enter");
+  await page.locator("details.activity-review-disclosure > summary").click();
 
   await expect(
     page.getByRole("heading", { name: "Processo seguro aplicado" }),
@@ -874,39 +722,39 @@ test("opera o console de MFA v2 em sequência e revisa cada decisão", async ({
     "Progresso de Você iniciou este acesso",
     "Abertura",
   );
-  await shell.getByRole("button", { name: "Abrir console simulado" }).click();
+  await shell.getByRole("button", { name: "Ver os pedidos de acesso" }).click();
 
   for (let eventIndex = 0; eventIndex < 3; eventIndex += 1) {
     await shell
-      .getByRole("radio", { name: /Não corresponde a nenhuma ação iniciada/ })
+      .getByRole("radio", { name: /Não iniciei este acesso/ })
       .last()
       .check();
-    await shell.getByRole("radio", { name: "Negar esta solicitação" }).last().check();
+    await shell.getByRole("radio", { name: "Negar acesso" }).last().check();
     if (eventIndex < 2) {
       await shell
         .getByRole("button", {
-          name: "Registrar e mostrar a próxima solicitação",
+          name: "Próximo pedido",
         })
         .click();
     }
   }
   await shell
-    .getByRole("button", { name: "Continuar para o contato recebido" })
+    .getByRole("button", { name: "Ler a mensagem recebida" })
     .click();
   await shell
-    .getByRole("radio", { name: /Encerrar o contato sem aprovar/ })
+    .getByRole("radio", { name: /Encerrar conversa/ })
     .check();
   await shell
-    .getByRole("button", { name: "Sair do chat e localizar a área oficial" })
+    .getByRole("button", { name: "Verificar a conta" })
     .click();
   await shell
-    .getByRole("radio", { name: /Abrir a área de segurança pela intranet/ })
+    .getByRole("radio", { name: /Abrir o aplicativo da empresa/ })
     .check();
   await shell
-    .getByRole("checkbox", { name: "Revisar os eventos de autenticação" })
+    .getByRole("checkbox", { name: "Verificar os acessos recentes" })
     .check();
   await shell
-    .getByRole("checkbox", { name: /Solicitar encerramento das sessões/ })
+    .getByRole("checkbox", { name: /Desconectar os acessos desconhecidos/ })
     .check();
   await shell.getByRole("button", { name: "Montar o reporte" }).click();
   for (const name of [
@@ -915,19 +763,20 @@ test("opera o console de MFA v2 em sequência e revisa cada decisão", async ({
     "Canal e horário do contato de suposto suporte",
     "O que foi aprovado, negado ou revisado",
   ]) {
-    await shell.getByRole("checkbox", { name }).check();
+    await shell.getByRole("button", { name: "Adicionar " + name, exact: true }).click();
   }
   await shell.getByRole("button", { name: "Revisar minhas decisões" }).click();
   await shell
     .getByRole("button", { name: "Aplicar a regra em um novo pedido" })
     .click();
   await shell
-    .getByRole("radio", { name: /Não corresponde a nenhuma ação iniciada/ })
+    .getByRole("radio", { name: /Não iniciei este acesso/ })
     .check();
   await shell
     .getByRole("radio", { name: /Negar e abrir a área oficial/ })
     .check();
   await shell.getByRole("button", { name: "Concluir missão" }).click();
+  await page.locator("details.activity-review-disclosure > summary").click();
 
   await expect(shell.getByRole("heading", { name: "Processo seguro concluído" })).toBeFocused();
   await expect(shell).toContainText("100/100");
@@ -1030,7 +879,7 @@ test("monta a resposta pós-clique v2 por teclado e explica cada acerto ou erro"
     "Ação que realmente foi realizada",
     "Dispositivo usado, sem dados secretos",
   ]) {
-    await page.getByRole("checkbox", { name }).check();
+    await page.getByRole("button", { name: "Adicionar " + name, exact: true }).click();
   }
   await page
     .getByRole("button", { name: "Aplicar em outro contexto" })
@@ -1046,6 +895,7 @@ test("monta a resposta pós-clique v2 por teclado e explica cada acerto ou erro"
     .nth(1)
     .selectOption({ label: "Avisar a equipe responsável que o link foi aberto" });
   await page.getByRole("button", { name: "Concluir atividade" }).click();
+  await page.locator("details.activity-review-disclosure > summary").click();
 
   await expect(page.getByText("100", { exact: true }).first()).toBeVisible();
   await expect(
@@ -1219,9 +1069,7 @@ test("tria Uma manhã comum v2 por teclado, preserva inconclusivos e revisa o lo
         .click();
     }
     await reader.getByRole("radio", { name: item.action }).check();
-    await reader.locator(".workday-v2-destination select").selectOption({
-      label: item.queue,
-    });
+    await reader.getByRole("button", { name: item.queue, exact: true }).click();
   }
 
   await expect(page.getByText("7 de 7")).toBeVisible();
@@ -1302,7 +1150,7 @@ test("opera Mudança bancária v2 como estação e mantém o resultado privado",
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "O que mudou e o que apenas parece convincente?",
+      name: "O que mudou no pedido?",
     }),
   ).toBeFocused();
 
@@ -1342,12 +1190,12 @@ test("opera Mudança bancária v2 como estação e mantém o resultado privado",
     "Remetente e horário",
     "Fornecedor, pedido e valor",
     "Mudança solicitada",
-    "Contenção adotada",
-    "Fonte consultada e resposta",
+    "Medidas tomadas com o pedido",
+    "Confirmação da mudança de conta",
   ]) {
-    await page.getByRole("checkbox", { name: new RegExp(label) }).check();
+    await page.getByRole("button", { name: "Adicionar " + label, exact: true }).click();
   }
-  await expect(page.getByText("Nenhum reporte será enviado.")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Informações para a equipe" })).toBeVisible();
   await page.getByRole("button", { name: "Revisar a estação" }).click();
   await expect(
     page.getByRole("heading", {

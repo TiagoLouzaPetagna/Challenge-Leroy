@@ -252,7 +252,7 @@ export function WorkdayTriageSimulation({
   if (stage === 6 && existingResult && !existingAttempt) {
     return (
       <ActivityShell
-        className="page-stack simulation-player-page workday-v2-page"
+        className="activity-workspace page-stack simulation-player-page workday-v2-page"
         activityId={WORKDAY_TRIAGE_ACTIVITY_ID}
       >
         <section className="simulation-player-shell workday-v2-legacy">
@@ -282,7 +282,7 @@ export function WorkdayTriageSimulation({
 
   return (
     <ActivityShell
-      className="page-stack simulation-player-page workday-v2-page"
+      className="activity-workspace page-stack simulation-player-page workday-v2-page"
       activityId={WORKDAY_TRIAGE_ACTIVITY_ID}
     >
       <section className="simulation-player-shell workday-v2-shell foundation-shell">
@@ -313,9 +313,7 @@ export function WorkdayTriageSimulation({
               <span className="section-kicker">O expediente</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>{content.pathLabel}</h2>
               <p>{content.openingContext}</p>
-              <div className="foundation-safety-note">
-                Ambiente seguro: nenhum item abre links reais e o resultado permanece privado.
-              </div>
+
               <div className="mission-navigation workday-opening-actions">
                 <button type="button" className="primary-button learning-button" onClick={() => goToStage(1)}>
                   Começar a triagem <span aria-hidden="true">→</span>
@@ -348,24 +346,14 @@ export function WorkdayTriageSimulation({
               </aside>
             </div>
             <div className="workday-v2-context-grid">
-              <article>
-                <strong>Seu papel</strong>
-                <p>Você cuida da entrada de trabalho e precisa manter o fluxo sem liberar uma ação sensível cedo demais.</p>
-              </article>
+
               <article>
                 <strong>Sua tarefa</strong>
                 <p>{content.task}</p>
               </article>
-              <article>
-                <strong>O que você protege</strong>
-                <p>O trabalho legítimo continua avançando enquanto itens suspeitos ou inconclusivos recebem a verificação necessária.</p>
-              </article>
+
             </div>
-            <ul className="workday-opening-principles">
-              <li>Você não precisa resolver um item sem informação suficiente.</li>
-              <li>Investigar não significa acusar o remetente.</li>
-              <li>O diagnóstico aparece somente depois da revisão do lote.</li>
-            </ul>
+
           </div>
         ) : null}
 
@@ -373,10 +361,9 @@ export function WorkdayTriageSimulation({
           <div className="workday-v2-stage foundation-stage">
             <div className="decision-heading foundation-stage-heading">
               <span className="section-kicker">Triagem em lote</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>Reduza a entrada sem forçar uma certeza</h2>
+              <h2 ref={stageTitleRef} tabIndex={-1}>Organize sua caixa de entrada</h2>
               <p>
-                Abra um item, consulte as evidências necessárias, escolha a ação e dê
-                um destino. Inconclusivos continuam controlados e podem ser revistos.
+                Abra um e-mail, verifique as informações e escolha o que fazer. Depois mova-o para Resolvidos ou Inconclusivos.
               </p>
             </div>
 
@@ -384,8 +371,8 @@ export function WorkdayTriageSimulation({
               <header>
                 <div>
                   <span className="section-kicker">Caixa de entrada</span>
-                  <h3 id="workday-inbox-title">Todos os e-mails do lote</h3>
-                  <p>Os {content.items.length} itens permanecem aqui. Selecione qualquer linha ou use os botões de anterior e próximo no e-mail aberto.</p>
+                  <h3 id="workday-inbox-title">E-mails recebidos</h3>
+                  <p>Clique em um dos {content.items.length} e-mails para abri-lo.</p>
                 </div>
                 <strong>{finalCount} de {content.items.length} respondidos</strong>
               </header>
@@ -438,7 +425,7 @@ export function WorkdayTriageSimulation({
 
               <section className="workday-v2-evidence" aria-labelledby="workday-evidence-title">
                 <div>
-                  <h4 id="workday-evidence-title">Fontes disponíveis</h4>
+                  <h4 id="workday-evidence-title">O que você pode verificar</h4>
                   <p>Abra somente o que ajuda a confirmar o contexto deste item.</p>
                 </div>
                 <div>
@@ -454,7 +441,7 @@ export function WorkdayTriageSimulation({
                       >
                         <span>{entryEvidence.label}</span>
                         <strong>{inspected ? entryEvidence.value : "Consultar fonte"}</strong>
-                        <small>{inspected ? entryEvidence.explanation : "A consulta não revela o gabarito; mostra apenas um fato do caso."}</small>
+                        <small>{inspected ? entryEvidence.explanation : "Clique para ver a informação."}</small>
                       </button>
                     );
                   })}
@@ -463,7 +450,7 @@ export function WorkdayTriageSimulation({
 
               <div className="workday-v2-decision">
                 <fieldset>
-                  <legend>Qual ação é proporcional aos fatos disponíveis?</legend>
+                  <legend>O que você faz com este e-mail?</legend>
                   {WORKDAY_ACTION_OPTIONS.map((action) => (
                     <label key={action.id} className={selectedDraft.actionId === action.id ? "selected" : ""}>
                       <input
@@ -476,16 +463,11 @@ export function WorkdayTriageSimulation({
                     </label>
                   ))}
                 </fieldset>
-                <label className="workday-v2-destination">
-                  <span>Destino deste item</span>
-                  <select
-                    value={selectedDraft.queueId}
-                    onChange={(event) => updateDraft(selectedItem.id, { queueId: event.target.value as WorkdayDraftQueueId })}
-                  >
-                    {queueOptions.map((queue) => <option key={queue.id} value={queue.id}>{queue.label}</option>)}
-                  </select>
-                  <small>Para concluir o lote, todos os itens devem terminar em Resolvidos ou Inconclusivos.</small>
-                </label>
+                <fieldset className="workday-v2-destination activity-folder-actions">
+                  <legend>Em qual pasta este e-mail fica?</legend>
+                  <div>{queueOptions.map(queue => <button type="button" key={queue.id} aria-pressed={selectedDraft.queueId === queue.id} onClick={() => updateDraft(selectedItem.id, { queueId: queue.id })}>{queue.label}</button>)}</div>
+                  <p>Use Resolvidos quando a decisão estiver tomada ou Inconclusivos quando faltar confirmação.</p>
+                </fieldset>
               </div>
 
               <nav className="workday-v2-mail-navigation" aria-label="Navegação entre e-mails">
@@ -515,7 +497,7 @@ export function WorkdayTriageSimulation({
             <div className="workday-v2-footer">
               <p role="status"><strong>{finalCount} de {content.items.length}</strong> itens possuem destino final.</p>
               <button type="button" className="primary-button dark" disabled={!allFinal} onClick={() => goToStage(2)}>
-                {allFinal ? "Revisar o lote" : `Faltam ${content.items.length - finalCount} destinos finais`}
+                {allFinal ? "Revisar os e-mails" : `Faltam ${content.items.length - finalCount} destinos finais`}
               </button>
             </div>
           </div>
@@ -634,14 +616,14 @@ export function WorkdayTriageSimulation({
               }]}
             />
             <div className="mission-navigation">
-              <button type="button" className="primary-button dark" onClick={() => goToStage(5)}>Ver debrief</button>
+              <button type="button" className="primary-button dark" onClick={() => goToStage(5)}>Ver o que aprendeu</button>
             </div>
           </div>
         ) : null}
 
         {stage === 5 && displayResult ? (
           <div className="workday-v2-stage workday-v2-debrief foundation-stage">
-            <span className="section-kicker">Debrief</span>
+            <span className="section-kicker">O que levar para o trabalho</span>
             <h2 ref={stageTitleRef} tabIndex={-1}>{contentPackage.debrief.title}</h2>
             <p>{contentPackage.debrief.body}</p>
             <div className="workday-v2-task"><strong>Leve para a rotina</strong><p>Um item pode ser urgente e legítimo, familiar e perigoso ou simplesmente inconclusivo. A ação correta nasce dos fatos e do processo, não da aparência.</p></div>

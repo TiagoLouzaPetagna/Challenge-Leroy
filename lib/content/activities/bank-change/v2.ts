@@ -144,11 +144,11 @@ const content: BankProcessContent = {
     { id: "sender-and-time", label: "Remetente e horário", detail: "Quem apareceu como remetente e quando o pedido chegou." },
     { id: "supplier-and-order", label: "Fornecedor, pedido e valor", detail: "Contexto operacional suficiente para localizar o caso." },
     { id: "requested-change", label: "Mudança solicitada", detail: "Indicação mascarada de que houve troca de conta e contato." },
-    { id: "containment-taken", label: "Contenção adotada", detail: "Alteração e pagamento relacionados foram suspensos." },
-    { id: "verification-source-and-response", label: "Fonte consultada e resposta", detail: "Contato cadastrado negou a alteração." },
-    { id: "full-bank-details", label: "Dados bancários completos", detail: "Detalhe excessivo que não é necessário para este reporte." },
-    { id: "password-or-code", label: "Senha ou código temporário", detail: "Segredos nunca devem entrar no reporte." },
-    { id: "unverified-accusation", label: "Acusar uma pessoa sem evidência", detail: "O caso sustenta possível comprometimento, não autoria comprovada." },
+    { id: "containment-taken", label: "Medidas tomadas com o pedido", detail: "O que você fez com a alteração e o pagamento." },
+    { id: "verification-source-and-response", label: "Confirmação da mudança de conta", detail: "Contato usado para verificar o pedido e resposta recebida." },
+    { id: "full-bank-details", label: "Dados bancários completos", detail: "Agência e número completo da conta informada." },
+    { id: "password-or-code", label: "Senha ou código temporário", detail: "Senha de acesso ou código do aplicativo." },
+    { id: "unverified-accusation", label: "Acusar uma pessoa sem evidência", detail: "Afirmação sobre quem teria feito a alteração." },
   ],
 };
 

@@ -6,6 +6,7 @@ import { AppProvider } from "./providers";
 import "./globals.css";
 import "./design-system.css";
 import "./styles/mission-foundation.css";
+import "./styles/activity-workspace.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();

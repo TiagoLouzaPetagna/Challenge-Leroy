@@ -509,7 +509,7 @@ export function TeamChallenge({
 
   if (stage === "briefing") {
     return (
-      <div className="page-stack team-challenge-page">
+      <div className="activity-workspace page-stack team-challenge-page">
         <button type="button" className="text-button teams-back-button" onClick={onBackToTeams}>← Voltar para Equipes</button>
         <section className="team-briefing">
           <div>
@@ -519,12 +519,8 @@ export function TeamChallenge({
               Você receberá cinco mensagens completas. Investigue o que precisar,
               escolha uma ação para cada uma e revise tudo antes de concluir.
             </p>
-            <div className="team-briefing-rules">
-              <article><strong>Privado</strong><span>Suas respostas e explicações são visíveis somente para você.</span></article>
-              <article><strong>Sem pistas antecipadas</strong><span>O feedback aparece apenas depois das cinco decisões.</span></article>
-              <article><strong>Contribuição única</strong><span>Só a primeira conclusão válida altera o placar do setor.</span></article>
-            </div>
-            <button type="button" className="primary-button" onClick={() => setStage("challenge")}>Começar os cinco casos</button>
+            <p>Suas respostas ficam privadas. A primeira conclusão contribui para o placar do setor.</p>
+            <button type="button" className="primary-button" onClick={() => setStage("challenge")}>Abrir a caixa de entrada</button>
           </div>
           <aside>
             <span>Recompensa</span>
@@ -539,7 +535,7 @@ export function TeamChallenge({
 
   if (stage === "result" && result) {
     return (
-      <div className="page-stack team-challenge-page">
+      <div className="activity-workspace page-stack team-challenge-page">
         <section className="team-result-hero">
           <div>
             <span className="section-kicker">Resultado privado</span>
@@ -567,7 +563,7 @@ export function TeamChallenge({
           </div>
         </section>
 
-        <section className="team-case-review">
+        <details className="activity-review-disclosure team-case-review"><summary>Rever minhas decisões</summary>
           <div><span className="section-kicker">Revisão das respostas</span><h2>O que você acertou e o que precisa revisar</h2></div>
           <div className="team-review-list">
             {TEAM_CHALLENGE_CASES.map((item, index) => {
@@ -586,7 +582,7 @@ export function TeamChallenge({
               );
             })}
           </div>
-        </section>
+        </details>
 
         <section className="team-result-actions">
           <div><span className="section-kicker">Próximo passo</span><h2>Veja o efeito coletivo sem expor seu resultado</h2></div>
@@ -602,7 +598,7 @@ export function TeamChallenge({
 
   const inspected = new Set(evidence[activeCase.id] ?? []);
   return (
-    <div className="page-stack team-challenge-page">
+    <div className="activity-workspace page-stack team-challenge-page">
       <div className="team-challenge-topbar">
         <button type="button" className="text-button" onClick={onBackToTeams}>← Sair do desafio</button>
         <div><span>{answeredCount} de {TEAM_CHALLENGE_CASES.length} decisões</span><div><span style={{ width: `${(answeredCount / TEAM_CHALLENGE_CASES.length) * 100}%` }} /></div></div>
@@ -622,8 +618,8 @@ export function TeamChallenge({
 
         <div className="team-message-reader">
           <header><span>Mensagem {TEAM_CHALLENGE_CASES.findIndex((item) => item.id === activeCase.id) + 1}</span><h2>{activeCase.subject}</h2><p>{activeCase.preview}</p></header>
+          <p className="activity-instruction">Leia a mensagem, consulte os detalhes nos botões abaixo e escolha o que fazer.</p>
           <div className="team-evidence-tools">
-            <span>Investigue antes de decidir</span>
             <div>
               <button type="button" className={inspected.has("sender") ? "inspected" : ""} onClick={() => inspectEvidence("sender")}>Remetente</button>
               <button type="button" className={inspected.has("link") ? "inspected" : ""} onClick={() => inspectEvidence("link")}>Destino ou anexo</button>
@@ -634,7 +630,6 @@ export function TeamChallenge({
             {inspected.has("sender") ? <article><span>Remetente</span><strong>{activeCase.sender}</strong><p>{activeCase.address}</p></article> : null}
             {inspected.has("link") ? <article><span>Destino ou anexo</span><p>{activeCase.destination}</p></article> : null}
             {inspected.has("context") ? <article><span>Contexto conhecido</span><p>{activeCase.context}</p></article> : null}
-            {!inspected.size ? <p>Escolha uma evidência para revelar os detalhes do caso.</p> : null}
           </div>
           <fieldset className="team-action-fieldset">
             <legend>Qual ação você tomaria?</legend>
@@ -658,7 +653,7 @@ export function TeamChallenge({
           {error ? <p className="team-submit-error" role="alert">{error}</p> : null}
         </div>
       </section>
-      {!allAnswered ? <p className="team-completion-hint">Responda às cinco mensagens para liberar a conclusão. Nenhum feedback será mostrado antes disso.</p> : null}
+      {!allAnswered ? <p className="team-completion-hint">Escolha uma ação para cada mensagem antes de concluir.</p> : null}
     </div>
   );
 }

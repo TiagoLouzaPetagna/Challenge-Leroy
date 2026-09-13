@@ -44,7 +44,7 @@ const steps = [
   "Confirmar",
   "Transferir",
   "Resultado",
-  "Debrief",
+  "O que levar para o trabalho",
 ] as const;
 
 type PreviousResult = PhishLabResult | DomainAnalyzerV2Result;
@@ -167,7 +167,7 @@ function SegmentDragBoard({
       <div className="url-drag-board__heading">
         <div>
           <span className="pare-step-badge">Arraste e solte</span>
-          <h3>Monte a anatomia do endereço</h3>
+          <h3>Encaixe as partes do endereço</h3>
         </div>
         <p id="url-drag-instructions">
           Arraste cada função até o trecho correspondente. No teclado ou no toque,
@@ -655,17 +655,16 @@ export function DomainUnderMagnifierLab({
 
   return (
     <ActivityShell
-      className="page-stack lab-player-page url-anatomy-page"
+      className="activity-workspace page-stack lab-player-page url-anatomy-page"
       activityId={DOMAIN_ANALYZER_V2_ACTIVITY_ID}
     >
       <section className="lab-player-shell url-anatomy-shell foundation-shell">
         <header className="lab-player-header foundation-header">
           <div>
-            <span className="section-badge">PhishLab · versão 2</span>
+            <span className="section-badge">PhishLab</span>
             <h1>Domínio sob a lupa</h1>
             <p>
-              Aprenda a encontrar a origem de um endereço antes de abrir qualquer
-              página. Todos os exemplos são fictícios e não funcionam como links.
+              Separe as partes de um endereço e descubra qual delas identifica o site.
             </p>
           </div>
           <div className="lab-player-meta">
@@ -688,15 +687,12 @@ export function DomainUnderMagnifierLab({
               <div className="url-anatomy-opening__heading foundation-opening__copy">
                 <span className="section-kicker">Antes de começar</span>
                 <h2 ref={stageTitleRef} tabIndex={-1}>
-                  Descubra qual domínio controla a origem do endereço
+                  Qual parte identifica o site?
                 </h2>
                 <p>
-                  Este laboratório atribui um caso por tentativa. Você primeiro verá
-                  um exemplo resolvido e depois fará a análise sem marcações prontas.
+                  Veja um exemplo e depois encaixe as partes do endereço nas categorias correspondentes.
                 </p>
-                <div className="foundation-safety-note">
-                  Ambiente seguro: os endereços são fictícios e nenhuma página será aberta.
-                </div>
+
                 <div className="lab-player-actions domain-opening-actions">
                   <button
                     type="button"
@@ -722,17 +718,17 @@ export function DomainUnderMagnifierLab({
                   <small>Qual trecho controla a origem?</small>
                 </div>
                 <aside className="url-anatomy-assigned-case">
-                  <span>Caso atribuído</span>
+                  <span>Seu caso</span>
                   <strong>{content.pathLabel}</strong>
                   <p>{content.summary}</p>
-                  <small>Os outros casos ficam disponíveis quando você escolher praticar novamente.</small>
+                  
                 </aside>
               </div>
               <div className="url-anatomy-briefing-grid">
-                <article><span>Seu papel</span><p>{content.role}</p></article>
+                
                 <article><span>O que aconteceu</span><p>{content.situation}</p></article>
                 <article><span>Sua tarefa</span><p>{content.task}</p></article>
-                <article><span>O que esta análise protege</span><p>{content.protectedConsequence}</p></article>
+                
               </div>
             </div>
           ) : null}
@@ -741,9 +737,9 @@ export function DomainUnderMagnifierLab({
             <div className="url-anatomy-investigation foundation-stage">
               {!calibrationAcknowledged ? (
                 <section className="url-calibration-card">
-                  <span className="section-kicker">Calibração curta</span>
+                  <span className="section-kicker">Veja um exemplo</span>
                   <h2 ref={stageTitleRef} tabIndex={-1}>
-                    {content.calibration.title}
+                    Um endereço, cinco partes
                   </h2>
                   <p>{content.calibration.context}</p>
                   <p className="safe-url">{content.calibration.url}</p>
@@ -771,7 +767,7 @@ export function DomainUnderMagnifierLab({
                       );
                     }}
                   >
-                    Aplicar sem marcações prontas
+                    Montar o endereço do caso
                   </button>
                 </section>
               ) : (
@@ -781,11 +777,7 @@ export function DomainUnderMagnifierLab({
                     {content.mainCase.title}
                   </h2>
                   <p>{content.mainCase.context}</p>
-                  <p className="url-anatomy-instruction">
-                    <strong>Sua tarefa agora:</strong> classifique cada trecho pela
-                    função que ele exerce. Ainda não decida se o endereço é seguro;
-                    primeiro encontre o domínio registrado.
-                  </p>
+
                   <div className="url-reference-row">
                     <p className="safe-url">{content.mainCase.url}</p>
                     <p>
@@ -815,7 +807,7 @@ export function DomainUnderMagnifierLab({
                       disabled={!mainAssignmentsComplete}
                       onClick={() => goTo(2)}
                     >
-                      Concluir a anatomia e decidir
+                      Analisar o endereço montado
                     </button>
                     <button type="button" className="text-button" onClick={() => goTo(0)}>
                       Voltar ao contexto do caso
@@ -1082,9 +1074,7 @@ export function DomainUnderMagnifierLab({
                     </p>
                   </article>
                 </div>
-                <ActivityAnswerReview
-                  items={answerReviewItems}
-                /></>
+                <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details></>
               ) : (
                 <div className="legacy-result-notice">
                   <strong>A tentativa antiga foi preservada sem reinterpretação.</strong>
@@ -1100,7 +1090,7 @@ export function DomainUnderMagnifierLab({
                   className="primary-button dark"
                   onClick={() => goTo(8)}
                 >
-                  Ver debrief
+                  Ver o que aprendeu
                 </button>
                 <button type="button" className="text-button" onClick={onOpenProfile}>
                   Ver no Meu perfil
@@ -1114,7 +1104,7 @@ export function DomainUnderMagnifierLab({
 
           {stage === 8 && displayResult ? (
             <div className="url-anatomy-debrief foundation-stage">
-              <span className="section-kicker">Debrief</span>
+              <span className="section-kicker">O que levar para o trabalho</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 {isV2Result
                   ? contentPackage.debrief.title
@@ -1142,7 +1132,7 @@ export function DomainUnderMagnifierLab({
                 </dl>
               ) : (
                 <div className="legacy-result-notice">
-                  <strong>Debrief correspondente à versão 1.</strong>
+                  <strong>O que levar para o trabalho correspondente à versão 1.</strong>
                   <p>A tentativa antiga não recebe segmentos, pacote ou interpretação da versão 2.</p>
                 </div>
               )}

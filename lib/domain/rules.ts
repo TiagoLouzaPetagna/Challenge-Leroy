@@ -487,7 +487,8 @@ export function isValidPhishingFoundationV2Submission(
   const allowlists = contentPackage.allowlists;
 
   return (
-    allowlists.requestedActionIds.includes(submission.requestedActionId) &&
+    (submission.requestedActionId === undefined ||
+      allowlists.requestedActionIds.includes(submission.requestedActionId)) &&
     allowlists.protectedAssetIds.includes(submission.protectedAssetId) &&
     allowlists.consequenceIds.includes(submission.potentialConsequenceId) &&
     allowlists.pauseDecisionIds.includes(submission.pauseDecisionId) &&
@@ -515,13 +516,20 @@ export function evaluatePhishingFoundationV2(
     submission.casePackageId,
   )!;
   const allowlists = contentPackage.allowlists;
-  const requestImpactMatches = [
-    submission.requestedActionId === allowlists.correctRequestedActionId,
+  const requestImpactChecks = [
+    ...(submission.requestedActionId === undefined
+      ? []
+      : [submission.requestedActionId === allowlists.correctRequestedActionId]),
     submission.protectedAssetId === allowlists.correctProtectedAssetId,
     submission.potentialConsequenceId === allowlists.correctConsequenceId,
-  ].filter(Boolean).length;
+  ];
+  const requestImpactMatches = requestImpactChecks.filter(Boolean).length;
   const requestImpactPoints =
-    requestImpactMatches === 3 ? 20 : requestImpactMatches === 2 ? 10 : 0;
+    requestImpactMatches === requestImpactChecks.length
+      ? 20
+      : requestImpactMatches === requestImpactChecks.length - 1
+        ? 10
+        : 0;
   const pauseIsCorrect =
     submission.pauseDecisionId === allowlists.correctPauseDecisionId;
   const evaluationIsCorrect =

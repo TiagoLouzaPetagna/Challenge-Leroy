@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { FieldMatcher } from "@/features/activities/primitives/FieldMatcher";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
@@ -37,7 +38,7 @@ const STAGES = [
   "Revisão",
   "Transferência",
   "Resultado",
-  "Debrief",
+  "O que levar para o trabalho",
 ] as const;
 
 type SenderInspectorLabProps = {
@@ -158,17 +159,6 @@ export function SenderInspectorLab({
   );
   const allClaimsAssessed = content.claims.every(
     (claim) => claimAssessmentById[claim.id],
-  );
-  const relationRows = useMemo(
-    () =>
-      content.fields.map((field) => ({
-        ...field,
-        selectedLabel: findOptionLabel(
-          IDENTITY_RELATION_OPTIONS,
-          fieldRelationById[field.id],
-        ),
-      })),
-    [content.fields, fieldRelationById],
   );
   const answerReviewItems = useMemo(() => {
     if (!displayResult) return [];
@@ -359,16 +349,15 @@ export function SenderInspectorLab({
   return (
     <ActivityShell
       activityId={TRUE_SENDER_V2_ACTIVITY_ID}
-      className="page-stack identity-map-page"
+      className="activity-workspace page-stack identity-map-page"
     >
       <section className="identity-map-shell">
-        <header className="identity-map-hero">
+        <header className={`identity-map-hero ${stage > 0 ? "activity-context-summary" : ""}`}>
           <div>
             <span className="section-badge">PhishLab · Quem enviou de verdade?</span>
-              <h1>Separe o que está comprovado do que ainda não está</h1>
+              <h1>Quem enviou de verdade?</h1>
             <p>
-              Cada campo da mensagem responde a uma pergunta diferente. Monte o
-              mapa antes de decidir o que os dados realmente comprovam.
+              Relacione os campos do e-mail ao que eles informam sobre o remetente.
             </p>
           </div>
           <aside>
@@ -388,18 +377,16 @@ export function SenderInspectorLab({
           <section className="identity-stage identity-opening">
             <header>
               <span className="section-kicker">Antes de começar</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>Seu papel e sua tarefa</h2>
+              <h2 ref={stageTitleRef} tabIndex={-1}>Observe quem está pedindo</h2>
               <p>
-                Este laboratório não pede que você adivinhe quem é o atacante. Ele
-                pede que você diga exatamente o que os dados comprovam e onde ainda
-                falta confirmação.
+                Um nome conhecido pode aparecer em um e-mail suspeito. Examine os campos da mensagem para entender quem enviou e para onde iria sua resposta.
               </p>
             </header>
             <div className="identity-context-grid">
-              <article><span>Seu papel</span><p>{content.role}</p></article>
+              
               <article><span>O que aconteceu</span><p>{content.situation}</p></article>
               <article><span>Sua tarefa</span><p>{content.task}</p></article>
-              <article><span>O que o processo protege</span><p>{content.protectedConsequence}</p></article>
+              
             </div>
             {historicalV1Result ? (
               <p className="identity-history-note">
@@ -409,7 +396,7 @@ export function SenderInspectorLab({
             ) : null}
             <div className="identity-nav">
               <button type="button" className="primary-button dark" onClick={() => goToStage(1)}>
-                Aprender a ler os campos
+                Ver um exemplo
               </button>
               <button type="button" className="text-button" onClick={onBackToHub}>
                 Voltar às estações
@@ -421,7 +408,7 @@ export function SenderInspectorLab({
         {stage === 1 ? (
           <section className="identity-stage">
             <header>
-              <span className="section-kicker">Exemplo guiado · não pontuado</span>
+              <span className="section-kicker">Exemplo</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>{content.calibration.title}</h2>
               <p>{content.calibration.body}</p>
             </header>
@@ -444,7 +431,7 @@ export function SenderInspectorLab({
             <div className="identity-nav">
               <button type="button" className="text-button" onClick={() => goToStage(0)}>Voltar</button>
               <button type="button" className="primary-button dark" onClick={() => goToStage(2)}>
-                Montar o mapa do caso
+                Investigar o e-mail
               </button>
             </div>
           </section>
@@ -453,57 +440,19 @@ export function SenderInspectorLab({
         {stage === 2 ? (
           <section className="identity-stage">
             <header>
-              <span className="section-kicker">Caso principal · mapa da identidade</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>O que cada campo desta mensagem informa?</h2>
+              <span className="section-kicker">E-mail recebido</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>Ligue cada campo ao que ele informa</h2>
               <p>
-                Leia a mensagem fictícia e, em cada linha, escolha apenas a função
-                daquele campo. Todas as relações podem ser feitas por teclado.
+                Associe cada campo ao que ele informa. Escolha uma etiqueta para cada um; no computador, você também pode arrastá-la até o campo.
               </p>
             </header>
             <article className="identity-message" aria-label="Mensagem fictícia do caso">
               <span>Assunto</span>
               <h3>{content.message.subject}</h3>
               <p>{content.message.body}</p>
-              <small>{content.message.note}</small>
+              
             </article>
-            <div className="identity-map-grid">
-              {content.fields.map((field) => (
-                <article key={field.id} className="identity-field-card">
-                  <header><span>{field.label}</span><strong>{field.value}</strong></header>
-                  <label htmlFor={`${field.id}-relation`}>Este campo informa:</label>
-                  <select
-                    id={`${field.id}-relation`}
-                    value={fieldRelationById[field.id] ?? ""}
-                    onChange={(event) => mapField(field.id, event.target.value as IdentityRelationId)}
-                  >
-                    <option value="" disabled>Escolha a relação</option>
-                    {IDENTITY_RELATION_OPTIONS.map((option) => (
-                      <option key={option.id} value={option.id}>{option.label}</option>
-                    ))}
-                  </select>
-                  <details
-                    onToggle={(event) => {
-                      if (event.currentTarget.open) {
-                        setInspectedEvidenceIds((current) =>
-                          current.includes(field.id) ? current : [...current, field.id],
-                        );
-                      }
-                    }}
-                  >
-                    <summary>Por que este campo importa?</summary>
-                    <p>{field.explanation}</p>
-                  </details>
-                </article>
-              ))}
-            </div>
-            <aside className="identity-map-summary" aria-label="Mapa textual atual">
-              <h3>Mapa que você está construindo</h3>
-              <dl>
-                {relationRows.map((row) => (
-                  <div key={row.id}><dt>{row.label}</dt><dd>{row.selectedLabel}</dd></div>
-                ))}
-              </dl>
-            </aside>
+            <FieldMatcher fields={content.fields} options={IDENTITY_RELATION_OPTIONS} values={fieldRelationById} onMatch={mapField} onInspect={id => setInspectedEvidenceIds(current => current.includes(id) ? current : [...current, id])} />
             <div className="identity-nav">
               <button type="button" className="text-button" onClick={() => goToStage(1)}>Voltar</button>
               <button type="button" className="primary-button dark" disabled={!allFieldsMapped} onClick={() => goToStage(3)}>
@@ -516,11 +465,10 @@ export function SenderInspectorLab({
         {stage === 3 ? (
           <section className="identity-stage">
             <header>
-              <span className="section-kicker">Caso principal · alcance das evidências</span>
+              <span className="section-kicker">Sua análise</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>O que já sabemos e o que ainda não sabemos?</h2>
               <p>
-                Para cada afirmação, indique se ela é mostrada diretamente, se é uma
-                comprovada ou se ainda não está comprovada pelos dados disponíveis.
+                Leia cada afirmação e indique se o e-mail apresenta informação suficiente para comprová-la.
               </p>
             </header>
             <div className="identity-claim-list">
@@ -565,11 +513,10 @@ export function SenderInspectorLab({
         {stage === 4 ? (
           <section className="identity-stage">
             <header>
-              <span className="section-kicker">Caso principal · decisão</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>O conjunto de evidências permite fazer o quê?</h2>
+              <span className="section-kicker">Sua decisão</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>Já é possível confiar neste pedido?</h2>
               <p>
-                Você não está decidindo se o endereço existe. Está decidindo se a
-                identidade e o pedido estão suficientemente confirmados para seguir.
+                Escolha uma conclusão sobre o pedido e como você verificaria quem o enviou.
               </p>
             </header>
             <div className="identity-decision-grid">
@@ -632,7 +579,7 @@ export function SenderInspectorLab({
         {stage === 6 ? (
           <section className="identity-stage">
             <header>
-              <span className="section-kicker">Transferência curta</span>
+              <span className="section-kicker">Novo e-mail</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>{content.transferCase.title}</h2>
               <p>{content.transferCase.context}</p>
             </header>
@@ -643,7 +590,7 @@ export function SenderInspectorLab({
             </dl>
             <div className="identity-decision-grid">
               <ChoiceGroup legend="Como você classifica este novo caso?" name="identity-transfer-verdict" value={transferVerdictId} options={IDENTITY_VERDICT_OPTIONS} onChange={setTransferVerdictId} />
-              <ChoiceGroup legend="Qual rota sustenta sua decisão?" name="identity-transfer-route" value={transferVerificationRouteId} options={IDENTITY_VERIFICATION_OPTIONS} onChange={setTransferVerificationRouteId} />
+              <ChoiceGroup legend="Como você verificaria o pedido?" name="identity-transfer-route" value={transferVerificationRouteId} options={IDENTITY_VERIFICATION_OPTIONS} onChange={setTransferVerificationRouteId} />
             </div>
             <ActivityError message={error} className="identity-error" />
             <div className="identity-nav">
@@ -679,9 +626,9 @@ export function SenderInspectorLab({
                 </ul>
               </div>
             ) : null}
-            <ActivityAnswerReview items={answerReviewItems} />
+            <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details>
             <div className="identity-nav">
-              <button type="button" className="primary-button dark" onClick={() => goToStage(8)}>Ver debrief</button>
+              <button type="button" className="primary-button dark" onClick={() => goToStage(8)}>Ver o que aprendeu</button>
               <button type="button" className="text-button" onClick={onOpenProfile}>Ver no Meu perfil</button>
             </div>
           </section>
@@ -690,7 +637,7 @@ export function SenderInspectorLab({
         {stage === 8 && displayResult ? (
           <section className="identity-stage identity-debrief">
             <header>
-              <span className="section-kicker">Debrief</span>
+              <span className="section-kicker">O que levar para o trabalho</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>{contentPackage.debrief.title}</h2>
               <p>{contentPackage.debrief.body}</p>
             </header>

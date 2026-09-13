@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import {
   ActivityAnswerReview,
@@ -42,7 +43,7 @@ const steps = [
   "Revisão",
   "Transferência",
   "Resultado",
-  "Debrief",
+  "O que levar para o trabalho",
 ] as const;
 
 const associationOptions: readonly {
@@ -52,17 +53,17 @@ const associationOptions: readonly {
 }[] = [
   {
     id: "active-self-action",
-    label: "Corresponde a uma ação que eu iniciei e ainda está aberta",
+    label: "Eu iniciei este acesso e ainda estou entrando",
     detail: "Serviço, finalidade e número do desafio precisam coincidir.",
   },
   {
     id: "ended-self-action",
-    label: "Parece relacionado, mas a ação que eu iniciei já terminou",
+    label: "Meu acesso anterior já terminou",
     detail: "Uma nova solicitação não herda a autorização de um fluxo encerrado.",
   },
   {
     id: "no-self-action",
-    label: "Não corresponde a nenhuma ação iniciada por mim",
+    label: "Não iniciei este acesso",
     detail: "A aparência da notificação não comprova quem iniciou a entrada.",
   },
 ] as const;
@@ -74,17 +75,17 @@ const eventActionOptions: readonly {
 }[] = [
   {
     id: "approve",
-    label: "Aprovar esta solicitação",
+    label: "Aprovar acesso",
     detail: "Só cabe quando a ação própria ainda está ativa e todos os dados coincidem.",
   },
   {
     id: "deny",
-    label: "Negar esta solicitação",
+    label: "Negar acesso",
     detail: "Impede que esta aprovação seja usada para liberar a entrada.",
   },
   {
     id: "review-official",
-    label: "Não responder aqui e revisar pela área oficial",
+    label: "Verificar no aplicativo da empresa",
     detail: "Use uma rota que já existia antes da notificação.",
   },
 ] as const;
@@ -96,22 +97,22 @@ const supportOptions: readonly {
 }[] = [
   {
     id: "end-contact",
-    label: "Encerrar o contato sem aprovar nem fornecer código",
+    label: "Encerrar conversa",
     detail: "Depois, a verificação continua pela área oficial conhecida.",
   },
   {
     id: "refuse-and-question",
-    label: "Recusar, mas perguntar por que isso seria necessário",
+    label: "Recusar e pedir uma explicação",
     detail: "Não entrega o fator, porém mantém o atacante em posição de pressionar.",
   },
   {
     id: "share-code",
-    label: "Enviar o código para o suposto suporte",
+    label: "Enviar o código",
     detail: "O código é um fator de autenticação e não deve ser entregue a outra pessoa.",
   },
   {
     id: "approve-next",
-    label: "Aprovar o próximo pedido para encerrar o problema",
+    label: "Aprovar o próximo pedido",
     detail: "A aprovação não cancela uma tentativa: ela pode autorizar o acesso.",
   },
 ] as const;
@@ -123,17 +124,17 @@ const routeOptions: readonly {
 }[] = [
   {
     id: "known-security-area",
-    label: "Abrir a área de segurança pela intranet ou aplicativo já conhecido",
+    label: "Abrir o aplicativo da empresa",
     detail: "A rota existia antes do incidente e não foi fornecida pela mensagem.",
   },
   {
     id: "message-link",
-    label: "Usar o endereço enviado pelo suposto suporte",
+    label: "Abrir o link recebido no chat",
     detail: "O próprio contato suspeito continuaria escolhendo o destino da verificação.",
   },
   {
     id: "first-search-result",
-    label: "Pesquisar o serviço e abrir o primeiro resultado",
+    label: "Abrir o primeiro resultado da busca",
     detail: "A posição na busca não comprova que o endereço pertence ao serviço.",
   },
 ] as const;
@@ -145,22 +146,22 @@ const consoleActionOptions: readonly {
 }[] = [
   {
     id: "review-events",
-    label: "Revisar os eventos de autenticação",
+    label: "Verificar os acessos recentes",
     detail: "Comparar horário, dispositivo, localização e finalidade.",
   },
   {
     id: "end-unrecognized-sessions",
-    label: "Solicitar encerramento das sessões não reconhecidas",
+    label: "Desconectar os acessos desconhecidos",
     detail: "Neste protótipo, a ação é apenas simulada e não altera uma conta real.",
   },
   {
     id: "request-account-recovery",
-    label: "Iniciar recuperação pelo processo oficial",
+    label: "Iniciar recuperação da conta",
     detail: "Necessário quando o caso informa que uma aprovação já aconteceu.",
   },
   {
     id: "keep-everything",
-    label: "Manter todas as sessões para não interromper o trabalho",
+    label: "Manter todos os acessos conectados",
     detail: "Isso preserva também a sessão que pode ter sido aberta por outra pessoa.",
   },
 ] as const;
@@ -297,9 +298,9 @@ export function MfaFatigueMission(props: Props) {
 
   if (!prerequisitesCompleted && !existingResult) {
     return (
-      <ActivityShell activityId={MFA_CONSOLE_ACTIVITY_ID} className="page-stack mission-page mfa-mission-page">
+      <ActivityShell activityId={MFA_CONSOLE_ACTIVITY_ID} className="activity-workspace page-stack mission-page mfa-mission-page">
         <section className="mission-shell mfa-prerequisite-gate">
-          <header className="mission-header"><div><span className="section-badge">Confiança sob pressão · Etapa 05</span><h1>Você iniciou este acesso?</h1><p>Antes desta missão, conclua os dois laboratórios que ensinam a verificar identidade e destino.</p></div></header>
+          <header className={`mission-header ${stage > 0 ? "activity-context-summary" : ""}`}><div><span className="section-badge">Confiança sob pressão · Etapa 05</span><h1>Você iniciou este acesso?</h1><p>Antes desta missão, conclua os dois laboratórios que ensinam a verificar identidade e destino.</p></div></header>
           <div className="mfa-prerequisite-content"><h2>Preparação necessária</h2><div className="mfa-prerequisite-list">
             <article className={senderLabCompleted ? "is-complete" : ""}><span>{senderLabCompleted ? "Concluído" : "Pendente"}</span><h3>Quem enviou de verdade?</h3>{!senderLabCompleted ? <button className="text-button" onClick={onOpenSenderLab} type="button">Abrir PhishLab</button> : null}</article>
             <article className={domainLabCompleted ? "is-complete" : ""}><span>{domainLabCompleted ? "Concluído" : "Pendente"}</span><h3>Domínio sob a lupa</h3>{!domainLabCompleted ? <button className="text-button" onClick={onOpenDomainLab} type="button">Abrir PhishLab</button> : null}</article>
@@ -335,48 +336,48 @@ export function MfaFatigueMission(props: Props) {
   const bonusPercentage = result ? Math.round(calculatePerformanceBonus(result.score) * 100) : 0;
 
   return (
-    <ActivityShell activityId={MFA_CONSOLE_ACTIVITY_ID} className="page-stack mission-page mfa-mission-page">
+    <ActivityShell activityId={MFA_CONSOLE_ACTIVITY_ID} className="activity-workspace page-stack mission-page mfa-mission-page">
       <section className="mission-shell">
-        <header className="mission-header"><div><span className="section-badge">Confiança sob pressão · Etapa 05</span><h1>Você iniciou este acesso?</h1><p>Decida quando uma solicitação de autenticação pertence a uma ação sua e trate qualquer interferência por uma área oficial independente.</p></div><div className="mission-meta" aria-label="Informações da missão"><span>Tempo estimado</span><strong>9 minutos</strong><small>{POINT_RULES.mainMission} pontos-base</small></div></header>
+        <header className={`mission-header ${stage > 0 ? "activity-context-summary" : ""}`}><div><span className="section-badge">Confiança sob pressão · Etapa 05</span><h1>Você iniciou este acesso?</h1><p>Compare os pedidos de acesso com o que você está fazendo e decida quais deve aprovar.</p></div><div className="mission-meta" aria-label="Informações da missão"><span>Tempo estimado</span><strong>9 minutos</strong><small>{POINT_RULES.mainMission} pontos-base</small></div></header>
         <ActivityProgress steps={steps} currentStep={stage} ariaLabel="Progresso de Você iniciou este acesso" />
         <div className="mission-content" aria-live="polite">
-          {stage === 0 ? <div className="mission-briefing"><div className="briefing-copy"><span className="section-kicker">Situação</span><h2 ref={titleRef} tabIndex={-1}>Pedidos de acesso começam a chegar</h2><p>{content.situation}</p>{content.priorExposureNote ? <div className="briefing-callout"><span aria-hidden="true">!</span><p>{content.priorExposureNote}</p></div> : null}<p>Todo o ambiente é fictício. Nenhuma aprovação, sessão, recuperação ou comunicação real será executada.</p></div><div className="briefing-objectives mfa-briefing-context"><span className="section-kicker">O que você fará</span><h3>{content.pathLabel}</h3><p>{content.summary}</p><p><strong>Seu papel:</strong> {content.role}</p><p><strong>O que proteger:</strong> {content.protectedConsequence}</p><button className="primary-button dark" type="button" onClick={() => setStage(1)}>Abrir console simulado</button></div></div> : null}
+          {stage === 0 ? <div className="mission-briefing"><div className="briefing-copy"><span className="section-kicker">Situação</span><h2 ref={titleRef} tabIndex={-1}>Pedidos de acesso começam a chegar</h2><p>{content.situation}</p>{content.priorExposureNote ? <div className="briefing-callout"><span aria-hidden="true">!</span><p>{content.priorExposureNote}</p></div> : null}</div><div className="briefing-objectives mfa-briefing-context"><span className="section-kicker">O que você fará</span><p><strong>Seu papel:</strong> {content.role}</p><button className="primary-button dark" type="button" onClick={() => setStage(1)}>Ver os pedidos de acesso</button></div></div> : null}
 
-          {stage === 1 ? <div className="mfa-workspace"><section className="mfa-event-panel" aria-labelledby="mfa-events-title"><span className="simulation-label">Console fictício · nenhum efeito real</span><h2 id="mfa-events-title" ref={titleRef} tabIndex={-1}>Relacione cada pedido ao que você realmente iniciou</h2><p>Primeiro identifique se existe uma ação sua ainda ativa. Depois escolha o que fazer com a solicitação.</p>
+          {stage === 1 ? <div className="mfa-workspace"><section className="mfa-event-panel" aria-labelledby="mfa-events-title"><span className="simulation-label">Pedidos de acesso</span><h2 id="mfa-events-title" ref={titleRef} tabIndex={-1}>Você iniciou este pedido de acesso?</h2><p>Compare os dados do pedido com seu acesso. Indique se foi você e escolha uma ação.</p>
             {content.ownActions.length > 0 ? <div className="mfa-request-list">{content.ownActions.map((action) => <article key={action.id}><div><span>{action.timeLabel} · ação registrada por você</span><h3>{action.service}</h3><p>{action.purpose} · desafio {action.challenge}</p></div><strong>{action.status === "active" ? "Ainda ativa" : "Encerrada"}</strong></article>)}</div> : <div className="briefing-callout"><span aria-hidden="true">i</span><p>Você não iniciou nenhuma entrada ou alteração neste período.</p></div>}
-            <div className="mfa-request-list">{content.events.slice(0, revealedEventCount).map((event, index) => <article key={event.id} className={index === revealedEventCount - 1 ? "is-critical" : ""}><div><span>{event.timeLabel} · solicitação {index + 1}</span><h3>{event.title}</h3><p>{event.device} · {event.location}</p><p>Serviço: {event.service} · finalidade: {event.purpose} · desafio {event.challenge}</p><small>{event.statusLabel}</small></div><div className="mfa-investigation-panel">
-              <fieldset><legend>Este pedido corresponde a qual situação?</legend>{associationOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name={`association-${event.id}`} checked={associationByEventId[event.id] === option.id} onChange={() => setAssociationByEventId((current) => ({ ...current, [event.id]: option.id }))} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset>
-              <fieldset><legend>O que você faz com esta solicitação?</legend>{eventActionOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name={`action-${event.id}`} checked={actionByEventId[event.id] === option.id} onChange={() => setActionByEventId((current) => ({ ...current, [event.id]: option.id }))} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset>
+            <div className="mfa-request-list">{content.events.slice(revealedEventCount - 1, revealedEventCount).map((event) => <article key={event.id} className="mfa-current-request"><div><span>{event.timeLabel} · solicitação {revealedEventCount} de {content.events.length}</span><h3>{event.title}</h3><p>{event.device} · {event.location}</p><p>Serviço: {event.service} · finalidade: {event.purpose} · desafio {event.challenge}</p><small>{event.statusLabel}</small></div><div className="mfa-investigation-panel">
+              <fieldset><legend>Este pedido corresponde a qual situação?</legend>{associationOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name={`association-${event.id}`} checked={associationByEventId[event.id] === option.id} onChange={() => setAssociationByEventId((current) => ({ ...current, [event.id]: option.id }))} /><span><strong>{option.label}</strong></span></label>)}</fieldset>
+              <fieldset><legend>O que você faz com esta solicitação?</legend>{eventActionOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name={`action-${event.id}`} checked={actionByEventId[event.id] === option.id} onChange={() => setActionByEventId((current) => ({ ...current, [event.id]: option.id }))} /><span><strong>{option.label}</strong></span></label>)}</fieldset>
             </div></article>)}</div>
-            {revealedEventCount < content.events.length ? <button type="button" className="primary-button dark" disabled={!associationByEventId[currentEvent.id] || !actionByEventId[currentEvent.id]} onClick={() => setRevealedEventCount((count) => count + 1)}>Registrar e mostrar a próxima solicitação</button> : <button type="button" className="primary-button dark" disabled={!allEventAnswersReady} onClick={() => setStage(2)}>Continuar para o contato recebido</button>}
+            {revealedEventCount > 1 && <button type="button" className="text-button" onClick={() => setRevealedEventCount(count => count - 1)}>Solicitação anterior</button>}{revealedEventCount < content.events.length ? <button type="button" className="primary-button dark" disabled={!associationByEventId[currentEvent.id] || !actionByEventId[currentEvent.id]} onClick={() => setRevealedEventCount((count) => count + 1)}>Próximo pedido</button> : <button type="button" className="primary-button dark" disabled={!allEventAnswersReady} onClick={() => setStage(2)}>Ler a mensagem recebida</button>}
           </section></div> : null}
 
-          {stage === 2 ? <div className="mission-decision-panel"><span className="section-kicker">Contato recebido</span><h2 ref={titleRef} tabIndex={-1}>O suposto suporte tenta orientar sua resposta</h2><p>Este chat surgiu depois das solicitações. Ele não foi aberto por um chamado ou canal que você já conhecia.</p><article className="support-chat-card"><header><strong>{content.supportTurns[0].sender}</strong><span>agora</span></header><p>{unsafeApprovalChosen ? content.supportTurns[0].unsafeBranchMessage : content.supportTurns[0].safeBranchMessage}</p></article>
-            <fieldset><legend>Como você responde a este contato?</legend>{supportOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="support-turn-1" checked={supportResponseIds[0] === option.id} onChange={() => setSupportResponseIds([option.id])} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset>
-            {supportNeedsSecondTurn ? <><article className="support-chat-card"><header><strong>{content.supportTurns[1].sender}</strong><span>nova pressão</span></header><p>{supportResponseIds[0] === "share-code" || supportResponseIds[0] === "approve-next" ? content.supportTurns[1].unsafeBranchMessage : content.supportTurns[1].safeBranchMessage}</p></article><fieldset><legend>O contato insiste. Qual é sua decisão final?</legend>{supportOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="support-turn-2" checked={supportResponseIds[1] === option.id} onChange={() => setSupportResponseIds((current) => [current[0], option.id])} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset></> : null}
-            <div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(1)}>Voltar às solicitações</button><button type="button" className="primary-button dark" disabled={!supportResponseIds[0] || (supportNeedsSecondTurn && !supportResponseIds[1])} onClick={() => setStage(3)}>Sair do chat e localizar a área oficial</button></div>
+          {stage === 2 ? <div className="mission-decision-panel"><span className="section-kicker">Contato recebido</span><h2 ref={titleRef} tabIndex={-1}>Chegou uma mensagem do suporte</h2><p>Este chat surgiu depois das solicitações. Ele não foi aberto por um chamado ou canal que você já conhecia.</p><article className="support-chat-card"><header><strong>{content.supportTurns[0].sender}</strong><span>agora</span></header><p>{unsafeApprovalChosen ? content.supportTurns[0].unsafeBranchMessage : content.supportTurns[0].safeBranchMessage}</p></article>
+            <fieldset><legend>Como você responde a este contato?</legend>{supportOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="support-turn-1" checked={supportResponseIds[0] === option.id} onChange={() => setSupportResponseIds([option.id])} /><span><strong>{option.label}</strong></span></label>)}</fieldset>
+            {supportNeedsSecondTurn ? <><article className="support-chat-card"><header><strong>{content.supportTurns[1].sender}</strong><span>nova pressão</span></header><p>{supportResponseIds[0] === "share-code" || supportResponseIds[0] === "approve-next" ? content.supportTurns[1].unsafeBranchMessage : content.supportTurns[1].safeBranchMessage}</p></article><fieldset><legend>O contato insiste. Qual é sua decisão final?</legend>{supportOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="support-turn-2" checked={supportResponseIds[1] === option.id} onChange={() => setSupportResponseIds((current) => [current[0], option.id])} /><span><strong>{option.label}</strong></span></label>)}</fieldset></> : null}
+            <div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(1)}>Voltar às solicitações</button><button type="button" className="primary-button dark" disabled={!supportResponseIds[0] || (supportNeedsSecondTurn && !supportResponseIds[1])} onClick={() => setStage(3)}>Verificar a conta</button></div>
           </div> : null}
 
-          {stage === 3 ? <div className="mission-decision-panel"><span className="section-kicker">Verificação independente</span><h2 ref={titleRef} tabIndex={-1}>Como você chega à área de segurança?</h2><p>Escolha a origem do endereço. Depois indique as medidas que pediria dentro da área oficial fictícia.</p>
-            <fieldset><legend>Qual rota não depende do contato que você está verificando?</legend>{routeOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="official-route" checked={officialEntryRouteId === option.id} onChange={() => setOfficialEntryRouteId(option.id)} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset>
-            <section className="mfa-event-panel" aria-label="Área de segurança simulada"><h3>{content.officialArea.title}</h3><p>{content.officialArea.description}</p><div className="mfa-request-list">{content.officialArea.sessions.map((session) => <article key={session.id} className={session.recognized ? "" : "is-critical"}><div><strong>{session.device}</strong><p>{session.location} · {session.lastSeen}</p></div><span>{session.recognized ? "Reconhecida" : "Não reconhecida"}</span></article>)}</div></section>
-            <fieldset><legend>Quais medidas você solicita nesta área?</legend>{consoleActionOptions.map((option) => <label key={option.id} className="choice-card"><input type="checkbox" checked={officialConsoleActionIds.includes(option.id)} onChange={() => toggleConsoleAction(option.id)} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset>
-            <div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(2)}>Voltar ao contato</button><button type="button" className="primary-button dark" disabled={!officialEntryRouteId || officialConsoleActionIds.length === 0} onClick={() => setStage(4)}>Montar o reporte</button></div>
+          {stage === 3 ? <div className="mission-decision-panel"><span className="section-kicker">Verificação independente</span><h2 ref={titleRef} tabIndex={-1}>Abra a área de segurança da conta</h2><p>Escolha como acessar sua conta. Depois veja os dispositivos conectados e escolha o que fazer.</p>
+            <fieldset><legend>Como você abriria sua conta?</legend>{routeOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="official-route" checked={officialEntryRouteId === option.id} onChange={() => setOfficialEntryRouteId(option.id)} /><span><strong>{option.label}</strong></span></label>)}</fieldset>
+            {officialEntryRouteId === allowlists.correctOfficialEntryRouteId ? <><section className="mfa-event-panel" aria-label="Área de segurança simulada"><h3>{content.officialArea.title}</h3><p>Dispositivos com acesso à sua conta</p><div className="mfa-request-list">{content.officialArea.sessions.map((session) => <article key={session.id} className={session.recognized ? "" : "is-critical"}><div><strong>{session.device}</strong><p>{session.location} · {session.lastSeen}</p></div><span>{session.recognized ? "Reconhecida" : "Não reconhecida"}</span></article>)}</div></section>
+            <fieldset><legend>Quais medidas você solicita nesta área?</legend>{consoleActionOptions.map((option) => <label key={option.id} className="choice-card"><input type="checkbox" checked={officialConsoleActionIds.includes(option.id)} onChange={() => toggleConsoleAction(option.id)} /><span><strong>{option.label}</strong></span></label>)}</fieldset> </> : officialEntryRouteId ? <p className="activity-instruction" role="status">Esse caminho não confirma que você está no serviço da empresa. Volte à escolha de acesso e use o aplicativo da empresa.</p> : null}
+            <div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(2)}>Voltar ao contato</button><button type="button" className="primary-button dark" disabled={officialEntryRouteId !== allowlists.correctOfficialEntryRouteId || officialConsoleActionIds.length === 0} onClick={() => setStage(4)}>Montar o reporte</button></div>
           </div> : null}
 
-          {stage === 4 ? <div className="mission-decision-panel"><span className="section-kicker">Reporte seguro</span><h2 ref={titleRef} tabIndex={-1}>Quais informações ajudam sem expor segredos?</h2><p>Marque tudo o que deve constar no reporte fictício. O objetivo é registrar o incidente cedo e com fatos suficientes para a equipe agir.</p><fieldset><legend>Informações que você incluiria</legend>{reportOptions.map((option) => <label key={option.id} className="choice-card"><input type="checkbox" checked={reportDetailIds.includes(option.id)} onChange={() => toggleReportDetail(option.id)} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset><div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(3)}>Voltar à área oficial</button><button type="button" className="primary-button dark" disabled={reportDetailIds.length === 0} onClick={() => setStage(5)}>Revisar minhas decisões</button></div></div> : null}
+          {stage === 4 ? <div className="mission-decision-panel"><span className="section-kicker">Reporte seguro</span><h2 ref={titleRef} tabIndex={-1}>Separe as informações para a equipe</h2><p>Coloque na pasta o que ajudaria a equipe de segurança a investigar. Arraste os cartões ou clique neles.</p><EvidenceTray items={reportOptions.map(({ id, label }) => ({ id, label }))} selectedIds={reportDetailIds} onToggle={toggleReportDetail} /><div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(3)}>Voltar à área oficial</button><button type="button" className="primary-button dark" disabled={reportDetailIds.length === 0} onClick={() => setStage(5)}>Revisar minhas decisões</button></div></div> : null}
 
           {stage === 5 ? <div className="mission-decision-panel"><span className="section-kicker">Antes de concluir</span><h2 ref={titleRef} tabIndex={-1}>Revise o processo completo</h2><p>Você ainda pode voltar e alterar qualquer parte. Nenhuma resposta foi avaliada até aqui.</p><div className="mfa-prerequisite-list"><article><span>Solicitações</span><h3>{content.events.length} avaliadas</h3><button type="button" className="text-button" onClick={() => setStage(1)}>Revisar solicitações</button></article><article><span>Contato</span><h3>{supportResponseIds.length} resposta(s)</h3><button type="button" className="text-button" onClick={() => setStage(2)}>Revisar contato</button></article><article><span>Área oficial</span><h3>{officialConsoleActionIds.length} medida(s)</h3><button type="button" className="text-button" onClick={() => setStage(3)}>Revisar área</button></article><article><span>Reporte</span><h3>{reportDetailIds.length} informação(ões)</h3><button type="button" className="text-button" onClick={() => setStage(4)}>Revisar reporte</button></article></div><button type="button" className="primary-button dark" onClick={() => setStage(6)}>Aplicar a regra em um novo pedido</button></div> : null}
 
-          {stage === 6 ? <div className="mission-decision-panel"><span className="section-kicker">Transferência curta</span><h2 ref={titleRef} tabIndex={-1}>{content.transfer.title}</h2><p>{content.transfer.context}</p><article className="mfa-request-list is-critical"><div><span>{content.transfer.event.timeLabel}</span><h3>{content.transfer.event.title}</h3><p>{content.transfer.event.device} · {content.transfer.event.location}</p><small>{content.transfer.event.statusLabel}</small></div></article>
-            <fieldset><legend>Este pedido corresponde a qual situação?</legend>{associationOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="transfer-association" checked={transferAssociationId === option.id} onChange={() => setTransferAssociationId(option.id)} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</fieldset>
+          {stage === 6 ? <div className="mission-decision-panel"><span className="section-kicker">Novo pedido</span><h2 ref={titleRef} tabIndex={-1}>{content.transfer.title}</h2><p>{content.transfer.context}</p><article className="mfa-request-list is-critical"><div><span>{content.transfer.event.timeLabel}</span><h3>{content.transfer.event.title}</h3><p>{content.transfer.event.device} · {content.transfer.event.location}</p><small>{content.transfer.event.statusLabel}</small></div></article>
+            <fieldset><legend>Este pedido corresponde a qual situação?</legend>{associationOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="transfer-association" checked={transferAssociationId === option.id} onChange={() => setTransferAssociationId(option.id)} /><span><strong>{option.label}</strong></span></label>)}</fieldset>
             <fieldset><legend>Qual é sua resposta?</legend>{transferActionOptions.map((option) => <label key={option.id} className="choice-card"><input type="radio" name="transfer-action" checked={transferActionId === option.id} onChange={() => setTransferActionId(option.id)} /><span><strong>{option.label}</strong></span></label>)}</fieldset>
             <ActivityError message={submissionError} /><div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(5)}>Voltar à revisão</button><button type="button" className="primary-button dark" disabled={!transferAssociationId || !transferActionId || isSubmitting} onClick={finish}>{isSubmitting ? "Avaliando…" : "Concluir missão"}</button></div>
           </div> : null}
 
-          {stage === 7 && result ? <div className="mission-result"><div className="result-hero"><div className="score-ring" aria-label={`Pontuação ${result.score} de 100`}><strong>{result.score}</strong><span>/100</span></div><div><span className="section-kicker">Resultado privado</span><h2 ref={titleRef} tabIndex={-1}>{result.needsReview ? "Há decisões importantes para revisar" : "Processo seguro concluído"}</h2><p>A repetição, a aparência do aplicativo e a fala do suporte não substituem uma ação iniciada por você nem uma verificação independente.</p></div></div><div className="reward-card"><span>Recompensa desta atividade</span><strong>+{rewardGrantedInAttempt ? result.potentialReward : claimedPoints} pontos</strong><small>{rewardGrantedInAttempt ? `${POINT_RULES.mainMission} base + ${bonusPoints} de bônus (${bonusPercentage}%)` : rewardAlreadyClaimed ? "A primeira conclusão já concedeu a recompensa; repetições não duplicam pontos." : "Tentativa anterior preservada."}</small></div><ActivityAnswerReview items={answerReviewItems} /><div className="mission-actions"><button type="button" className="primary-button dark" onClick={() => setStage(8)}>Ver debrief</button><button type="button" className="secondary-button" onClick={() => resetForPackage(contentPackage.casePackageId)}>Refazer este caso</button></div></div> : null}
+          {stage === 7 && result ? <div className="mission-result"><div className="result-hero"><div className="score-ring" aria-label={`Pontuação ${result.score} de 100`}><strong>{result.score}</strong><span>/100</span></div><div><span className="section-kicker">Resultado privado</span><h2 ref={titleRef} tabIndex={-1}>{result.needsReview ? "Há decisões importantes para revisar" : "Processo seguro concluído"}</h2><p>A repetição, a aparência do aplicativo e a fala do suporte não substituem uma ação iniciada por você nem uma verificação independente.</p></div></div><div className="reward-card"><span>Recompensa desta atividade</span><strong>+{rewardGrantedInAttempt ? result.potentialReward : claimedPoints} pontos</strong><small>{rewardGrantedInAttempt ? `${POINT_RULES.mainMission} base + ${bonusPoints} de bônus (${bonusPercentage}%)` : rewardAlreadyClaimed ? "A primeira conclusão já concedeu a recompensa; repetições não duplicam pontos." : "Tentativa anterior preservada."}</small></div><details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details><div className="mission-actions"><button type="button" className="primary-button dark" onClick={() => setStage(8)}>Ver o que aprendeu</button><button type="button" className="secondary-button" onClick={() => resetForPackage(contentPackage.casePackageId)}>Refazer este caso</button></div></div> : null}
 
-          {stage === 8 ? <div className="mission-decision-panel"><span className="section-kicker">Debrief</span><h2 ref={titleRef} tabIndex={-1}>A pergunta central é “eu iniciei isto?”</h2><p>Uma solicitação só deve ser aprovada quando nasce de uma ação sua ainda ativa e os detalhes exibidos correspondem ao serviço, finalidade e desafio esperados. Se isso não ocorrer, negue e use uma rota oficial que já existia antes da mensagem.</p><p>Se uma aprovação ou código já foi entregue, não esconda o ocorrido: interrompa o contato, revise sessões, inicie a recuperação adequada e reporte rapidamente. O erro não elimina a possibilidade de contenção.</p><div className="mission-actions"><button type="button" className="primary-button dark" onClick={onOpenRecovery}>Continuar para “Cliquei. E agora?”</button><button type="button" className="secondary-button" onClick={() => { const currentIndex = MFA_CONSOLE_V2_PACKAGES.findIndex((item) => item.casePackageId === contentPackage.casePackageId); const next = MFA_CONSOLE_V2_PACKAGES[(currentIndex + 1) % MFA_CONSOLE_V2_PACKAGES.length]; resetForPackage(next.casePackageId); }}>Praticar com outro caso</button><button type="button" className="text-button" onClick={onOpenProfile}>Ver meu perfil</button><button type="button" className="text-button" onClick={onBackToMissions}>Voltar ao percurso</button></div></div> : null}
+          {stage === 8 ? <div className="mission-decision-panel"><span className="section-kicker">O que levar para o trabalho</span><h2 ref={titleRef} tabIndex={-1}>A pergunta central é “eu iniciei isto?”</h2><p>Uma solicitação só deve ser aprovada quando nasce de uma ação sua ainda ativa e os detalhes exibidos correspondem ao serviço, finalidade e desafio esperados. Se isso não ocorrer, negue e use uma rota oficial que já existia antes da mensagem.</p><p>Se uma aprovação ou código já foi entregue, não esconda o ocorrido: interrompa o contato, revise sessões, inicie a recuperação adequada e reporte rapidamente. O erro não elimina a possibilidade de contenção.</p><div className="mission-actions"><button type="button" className="primary-button dark" onClick={onOpenRecovery}>Continuar para “Cliquei. E agora?”</button><button type="button" className="secondary-button" onClick={() => { const currentIndex = MFA_CONSOLE_V2_PACKAGES.findIndex((item) => item.casePackageId === contentPackage.casePackageId); const next = MFA_CONSOLE_V2_PACKAGES[(currentIndex + 1) % MFA_CONSOLE_V2_PACKAGES.length]; resetForPackage(next.casePackageId); }}>Praticar com outro caso</button><button type="button" className="text-button" onClick={onOpenProfile}>Ver meu perfil</button><button type="button" className="text-button" onClick={onBackToMissions}>Voltar ao percurso</button></div></div> : null}
         </div>
       </section>
     </ActivityShell>

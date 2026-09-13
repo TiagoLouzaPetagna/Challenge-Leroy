@@ -356,7 +356,7 @@ export const PHISHING_FOUNDATION_V2_PACKAGE: ActivityContentPackage<
       senderAddress: "identidade@casa-digital.example",
       subject: "Sua senha expira amanhã",
       body:
-        "A senha corporativa expira amanhã. Não há link nesta mensagem. Quando for conveniente, abra a Área oficial de acesso pelo seu favorito.",
+        "Sua senha corporativa expira amanhã. Altere sua senha antes do vencimento para manter o acesso aos sistemas da empresa.",
       officialStatus:
         "A área oficial confirma que a senha expira amanhã e oferece o fluxo normal de alteração.",
     },

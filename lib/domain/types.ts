@@ -217,7 +217,7 @@ export type PhishingFoundationV2Submission = {
   casePackageId: string;
   completedAt: string;
   mechanicId: "phishing-foundation";
-  requestedActionId: FoundationRequestedActionId;
+  requestedActionId?: FoundationRequestedActionId;
   protectedAssetId: FoundationProtectedAssetId;
   potentialConsequenceId: FoundationConsequenceId;
   pauseDecisionId: FoundationPauseDecisionId;

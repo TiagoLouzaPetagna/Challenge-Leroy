@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
+import { useDragReorder } from "@/features/activities/useDragReorder";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import {
   ActivityAnswerReview,
@@ -40,7 +42,7 @@ const steps = [
   "Confirmar",
   "Transferir",
   "Resultado",
-  "Debrief",
+  "O que levar para o trabalho",
 ] as const;
 
 const classificationOptions: readonly {
@@ -69,9 +71,9 @@ const conclusionOptions: readonly {
   id: ConversationConclusionId;
   label: string;
 }[] = [
-  { id: "legitimate", label: "Pedido legítimo confirmado" },
-  { id: "malicious-probable", label: "Uso indevido provável" },
-  { id: "inconclusive", label: "Ainda inconclusivo" },
+  { id: "legitimate", label: "O pedido foi confirmado" },
+  { id: "malicious-probable", label: "Há suspeita de uso indevido da conta" },
+  { id: "inconclusive", label: "Ainda não tenho informação suficiente" },
 ] as const;
 
 const confirmationOptions: readonly {
@@ -112,7 +114,7 @@ const transferOptions: readonly {
   {
     id: "pause-use-known-route",
     label:
-      "Pausar e confirmar pelo diretório, portal ou contato que já existia antes desta mensagem",
+      "Confirmar pelo contato salvo da empresa",
   },
   {
     id: "continue-familiar-channel",
@@ -259,6 +261,8 @@ export function ConversationReconstructionMission({
       return next;
     });
   };
+
+  const dragMessage = useDragReorder((source, target) => moveMessage(source, orderedArtifactIds.indexOf(target)));
 
   const toggleEvidence = (evidenceId: string) => {
     setEvidenceAssessments((current) =>
@@ -471,7 +475,7 @@ export function ConversationReconstructionMission({
           },
           {
             id: "final-conclusion",
-            title: "Conclusão depois da confirmação",
+            title: "O que você conclui depois de verificar?",
             status:
               finalConclusionId === allowlists.correctFinalConclusionId
                 ? "correct"
@@ -571,11 +575,11 @@ export function ConversationReconstructionMission({
 
   return (
     <ActivityShell
-      className="page-stack conversation-reconstruction-page"
+      className="activity-workspace page-stack conversation-reconstruction-page"
       activityId={CONVERSATION_RECONSTRUCTION_ACTIVITY_ID}
     >
       <section className="mission-shell conversation-reconstruction-shell">
-        <header className="mission-header">
+        <header className={`mission-header ${stage > 0 ? "activity-context-summary" : ""}`}>
           <div>
             <span className="section-badge">Missão · versão 2</span>
             <h1>A conversa já estava acontecendo</h1>
@@ -606,29 +610,18 @@ export function ConversationReconstructionMission({
               <div className="conversation-opening__heading">
                 <span className="section-kicker">Antes de começar</span>
                 <h2 ref={stageTitleRef} tabIndex={-1}>
-                  Reconstrua o caso antes de decidir se o pedido pode continuar
+                  O que mudou nesta conversa?
                 </h2>
                 <p>
-                  Esta missão atribui um caso por tentativa. Você organizará as
-                  mensagens, reunirá evidências e localizará o momento em que o
-                  pedido deixou de seguir o processo conhecido.
+                  Organize as mensagens e encontre o pedido que mudou o rumo da conversa.
                 </p>
-                <div className="briefing-callout">
-                  <span aria-hidden="true">!</span>
-                  <p>
-                    Nenhum contato, chamado ou reporte é real. Os endereços usam
-                    domínios reservados <code>.example</code>.
-                  </p>
-                </div>
+
               </div>
               <aside className="conversation-assigned-case">
                 <span>Caso atribuído</span>
                 <strong>{content.pathLabel}</strong>
                 <p>{content.summary}</p>
-                <small>
-                  Os outros casos ficam disponíveis depois da conclusão em
-                  Praticar com outro caso.
-                </small>
+
               </aside>
               <div className="conversation-briefing-grid">
                 <article>
@@ -642,17 +635,10 @@ export function ConversationReconstructionMission({
                 <article>
                   <span>Sua tarefa</span>
                   <p>
-                    Coloque as seis mensagens em ordem, prenda ao painel pelo
-                    menos três evidências e marque onde o pedido mudou.
+                    Organize as mensagens, adicione ao painel três informações importantes e marque onde o pedido mudou.
                   </p>
                 </article>
-                <article>
-                  <span>O que esta análise protege</span>
-                  <p>
-                    Evita que familiaridade, urgência ou uma conta conhecida
-                    substituam a confirmação exigida pelo processo.
-                  </p>
-                </article>
+
               </div>
               <div className="mission-navigation">
                 <button type="button" className="primary-button dark" onClick={() => goTo(1)}>
@@ -669,14 +655,10 @@ export function ConversationReconstructionMission({
             <div className="conversation-investigation-stage">
               <span className="section-kicker">Investigação · {content.pathLabel}</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
-                Primeiro organize as mensagens; depois sustente sua leitura com evidências
+                O que mudou nesta conversa?
               </h2>
-              <p>{content.caseContext}</p>
               <p className="conversation-stage-instruction">
-                <strong>O que fazer:</strong> use os controles de posição para
-                montar a sequência cronológica. No painel ao lado, prenda pelo
-                menos três itens que ajudem a explicar o caso e classifique cada
-                um pelo que ele realmente comprova.
+                Arraste as mensagens para colocá-las em ordem, ou use as setas. Depois adicione ao painel três informações que ajudem a explicar o caso.
               </p>
               <div className="conversation-investigation-grid">
                 <section aria-labelledby="timeline-title">
@@ -686,7 +668,7 @@ export function ConversationReconstructionMission({
                       const message = content.messages.find((item) => item.id === artifactId);
                       if (!message) return null;
                       return (
-                        <li key={message.id} data-artifact-id={message.id}>
+                        <li key={message.id} data-artifact-id={message.id} {...dragMessage(message.id)}>
                           <div className="conversation-position" aria-label={`Posição ${index + 1}`}>
                             {index + 1}
                           </div>
@@ -737,7 +719,7 @@ export function ConversationReconstructionMission({
 
                 <aside className="conversation-evidence-board" aria-labelledby="evidence-board-title">
                   <h3 id="evidence-board-title">Painel de evidências</h3>
-                  <p>Prenda uma evidência e classifique o que ela realmente permite afirmar.</p>
+                  <p>Adicione os trechos que ajudam a explicar o pedido e indique o que cada um comprova.</p>
                   {content.evidence.map((evidence) => {
                     const assessment = evidenceAssessments.find(
                       (item) => item.evidenceId === evidence.id,
@@ -752,7 +734,7 @@ export function ConversationReconstructionMission({
                           aria-pressed={Boolean(assessment)}
                           onClick={() => toggleEvidence(evidence.id)}
                         >
-                          {assessment ? "Remover do painel" : "Prender no painel"}
+                          {assessment ? "Remover do painel" : "Adicionar ao painel"}
                         </button>
                         {assessment ? (
                           <label>
@@ -977,7 +959,7 @@ export function ConversationReconstructionMission({
                   ))}
                 </fieldset>
                 <fieldset className="conversation-choice-group">
-                  <legend>Conclusão depois da confirmação</legend>
+                  <legend>O que você conclui depois de verificar?</legend>
                   {conclusionOptions.map((option) => (
                     <label key={option.id} className={finalConclusionId === option.id ? "selected" : ""}>
                       <input
@@ -991,7 +973,7 @@ export function ConversationReconstructionMission({
                   ))}
                 </fieldset>
                 <fieldset className="conversation-choice-group conversation-actions">
-                  <legend>Ação proporcional</legend>
+                  <legend>O que você faz agora?</legend>
                   {content.finalActionOptions.map((option) => (
                     <label key={option.id} className={finalActionId === option.id ? "selected" : ""}>
                       <input
@@ -1009,19 +991,7 @@ export function ConversationReconstructionMission({
                 </fieldset>
               </div>
               {allowlists.requiresIncidentReport ? (
-                <fieldset className="conversation-report-builder">
-                  <legend>Informações apropriadas para o reporte fictício</legend>
-                  {content.reportDetailOptions.map((option) => (
-                    <label key={option.id}>
-                      <input
-                        type="checkbox"
-                        checked={reportDetailIds.includes(option.id)}
-                        onChange={() => toggleReportDetail(option.id)}
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
-                </fieldset>
+                <EvidenceTray items={content.reportDetailOptions} selectedIds={reportDetailIds} onToggle={toggleReportDetail} />
               ) : (
                 <div className="conversation-no-report">
                   <strong>Nenhum incidente foi confirmado.</strong>
@@ -1110,7 +1080,7 @@ export function ConversationReconstructionMission({
                   </h3>
                   <p>
                     {isV2Result
-                      ? "A nota descreve apenas esta tentativa e não comprova retenção ou domínio permanente."
+                      ? "Revise abaixo as decisões que merecem mais atenção."
                       : "A versão 1 não recebe artificialmente a reconstrução, os pacotes ou a avaliação da versão 2."}
                   </p>
                 </div>
@@ -1125,7 +1095,7 @@ export function ConversationReconstructionMission({
                   <article><span>Confirmação</span><strong>{(displayResult as ConversationReconstructionV2Result).confirmationPoints}/15</strong></article>
                   <article><span>Resposta</span><strong>{(displayResult as ConversationReconstructionV2Result).responsePoints}/10</strong></article>
                 </div>
-                <ActivityAnswerReview items={answerReviewItems} /></>
+                <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details></>
               ) : null}
 
               <div className="result-grid">
@@ -1146,7 +1116,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="primary-button dark" onClick={() => goTo(8)}>
-                  Abrir debrief
+                  Ver o que aprendeu
                 </button>
                 <button type="button" className="text-button" onClick={onOpenProfile}>
                   Ver no Meu perfil
@@ -1157,7 +1127,7 @@ export function ConversationReconstructionMission({
 
           {stage === 8 && displayResult ? (
             <div className="conversation-debrief-stage">
-              <span className="section-kicker">Debrief</span>
+              <span className="section-kicker">O que levar para o trabalho</span>
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 {isV2Result
                   ? contentPackage.debrief.title

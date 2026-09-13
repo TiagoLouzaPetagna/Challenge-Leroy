@@ -1,4 +1,5 @@
 "use client";
+import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 
 import { useMemo, useState, type FormEvent } from "react";
 
@@ -526,6 +527,19 @@ type RadarArticleProps = {
   onOpenMission: () => void;
 };
 
+function RadarFactCheck() {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [checked, setChecked] = useState(false);
+  const { confirmed, unconfirmed } = RADAR_QUISHING_CONTENT.evidence;
+  const items = confirmed.flatMap((label, index) => [{ id: 'fact-' + index, label }, { id: 'unknown-' + index, label: unconfirmed[index] }]);
+  const correct = items.filter(item => selected.includes(item.id) === item.id.startsWith('fact-')).length;
+  return <div>
+    <EvidenceTray items={items} selectedIds={selected} title="Fatos observados no cartaz" onToggle={id => { setSelected(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]); setChecked(false); }} />
+    <button type="button" className={articleStyles.secondaryButton} onClick={() => setChecked(true)}>Conferir minha separação</button>
+    {checked && <div className={articleStyles.practiceFeedback} role="status"><strong>{correct === items.length ? 'Você separou os fatos das suposições.' : correct + ' de ' + items.length + ' informações no lugar certo.'}</strong><p>O prazo e a diferença entre os endereços podem ser observados. O cartaz não informa quem colocou o código nem confirma a origem ou a segurança do pedido.</p>{correct < items.length && <p>Ajuste os cartões e confira novamente.</p>}</div>}
+  </div>;
+}
+
 const RADAR_ARTICLE_STEPS = [
   "Entenda",
   "Observe",
@@ -625,14 +639,14 @@ export function RadarArticle({
 
   return (
     <ActivityShell
-      className={`page-stack radar-article-page ${articleStyles.page}`}
+      className={`activity-workspace page-stack radar-article-page ${articleStyles.page}`}
       activityId={article.id}
     >
       <button type="button" className={articleStyles.backToRadar} onClick={onBackToRadar}>
         <span aria-hidden="true">←</span> Voltar ao Radar
       </button>
 
-      <header className={articleStyles.hero}>
+      <header className={`${articleStyles.hero} ${stage > 0 ? "activity-context-summary" : ""}`}>
         <div className={articleStyles.heroCopy}>
           <span className={articleStyles.eyebrow}>{article.categoryLabel}</span>
           <h1>{article.title}</h1>
@@ -692,7 +706,7 @@ export function RadarArticle({
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 {RADAR_QUISHING_CONTENT.observe.title}
               </h2>
-              <p>{RADAR_QUISHING_CONTENT.observe.intro}</p>
+              <p>Você encontrou este cartaz no refeitório. Compare os endereços e abra os detalhes ao lado para investigar o pedido.</p>
             </header>
 
             <div className={articleStyles.observeLayout}>
@@ -709,7 +723,7 @@ export function RadarArticle({
                   <div className={articleStyles.previewCard}>
                     <small>{RADAR_QUISHING_CONTENT.observe.poster.previewLabel}</small>
                     <code>{RADAR_QUISHING_CONTENT.observe.poster.previewAddress}</code>
-                    <span>Representação inerte · não abre</span>
+                    
                   </div>
                 </div>
                 <div className={articleStyles.knownRoute}>
@@ -719,12 +733,11 @@ export function RadarArticle({
               </article>
 
               <div className={articleStyles.cluePanel}>
-                <span className={articleStyles.panelLabel}>Três sinais para investigar</span>
+                <span className={articleStyles.panelLabel}>Explore os detalhes</span>
                 <ol>
                   {RADAR_QUISHING_CONTENT.observe.clues.map((clue, index) => (
                     <li key={clue}>
-                      <span>{index + 1}</span>
-                      <p>{clue}</p>
+                      <details><summary>{['O prazo do pedido', 'O adesivo no cartaz', 'Os dois endereços'][index]}</summary><p>{clue}</p></details>
                     </li>
                   ))}
                 </ol>
@@ -750,32 +763,10 @@ export function RadarArticle({
               <h2 ref={stageTitleRef} tabIndex={-1}>
                 {RADAR_QUISHING_CONTENT.evidence.title}
               </h2>
-              <p>{RADAR_QUISHING_CONTENT.evidence.intro}</p>
+              <p>Coloque na pasta apenas o que pode ser observado no cartaz. Deixe de fora o que ainda precisa de confirmação. Arraste os cartões ou clique para adicionar.</p>
             </header>
 
-            <div className={articleStyles.evidenceGrid}>
-              <article className={articleStyles.confirmedCard}>
-                <span>Comprovado neste caso</span>
-                <ul>
-                  {RADAR_QUISHING_CONTENT.evidence.confirmed.map((item) => (
-                    <li key={item}><span aria-hidden="true">✓</span>{item}</li>
-                  ))}
-                </ul>
-              </article>
-              <article className={articleStyles.unconfirmedCard}>
-                <span>Não comprovado</span>
-                <ul>
-                  {RADAR_QUISHING_CONTENT.evidence.unconfirmed.map((item) => (
-                    <li key={item}><span aria-hidden="true">?</span>{item}</li>
-                  ))}
-                </ul>
-              </article>
-            </div>
-
-            <aside className={articleStyles.keyMessage}>
-              <span>Ideia principal</span>
-              <strong>{RADAR_QUISHING_CONTENT.keyMessage}</strong>
-            </aside>
+            <RadarFactCheck />
 
             <RadarStageNavigation
               backLabel="Rever o cartaz"
@@ -808,10 +799,7 @@ export function RadarArticle({
               ))}
             </ol>
 
-            <p className={articleStyles.prototypeNote}>
-              <strong>Limite desta demonstração.</strong>{" "}
-              {RADAR_QUISHING_CONTENT.act.prototypeNote}
-            </p>
+
 
             <RadarStageNavigation
               backLabel="Rever as evidências"

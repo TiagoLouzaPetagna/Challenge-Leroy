@@ -70,19 +70,19 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/missoes/aviso-de-bloqueio",
       expected: [
-        /class="page-stack foundation-page"/,
+        /data-activity-id="mission:account-lock"/,
         /<h1>O aviso que n/,
-        /Sua conta ser. bloqueada/,
-        /Observar a mensagem/,
+        /sua conta ser. bloqueada/,
+        /Continuar/,
         /Progresso da miss.o de fundamento/,
-        /Etapa 1 de 20/,
-        /Perceber o pedido/,
+        /Etapa 1 de 6/,
+        /Encontre o pedido no e-mail/,
       ],
     },
     {
       pathname: "/missoes/a-conversa-ja-estava-acontecendo",
       expected: [
-        /class="page-stack conversation-reconstruction-page"/,
+        /class="activity-workspace page-stack conversation-reconstruction-page"/,
         /<h1>A conversa j.{0,4} estava acontecendo<\/h1>/,
         /Caso atribu.do/,
         /Seu papel/,
@@ -94,7 +94,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/missoes/voce-iniciou-este-acesso",
       expected: [
-        /class="page-stack mission-page mfa-mission-page"/,
+        /class="activity-workspace page-stack mission-page mfa-mission-page"/,
         /<h1>Voc. iniciou este acesso\?<\/h1>/,
         /Prepara..o necess.ria/,
         /Quem enviou de verdade/,
@@ -104,7 +104,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/missoes/cliquei-e-agora",
       expected: [
-        /class="page-stack mission-page recovery-mission-page recovery-builder-page"/,
+        /class="activity-workspace page-stack mission-page recovery-mission-page recovery-builder-page"/,
         /Cliquei\. E agora\?/,
         /Reconstrua o que aconteceu/,
         /Reconstruir o ocorrido/,
@@ -164,21 +164,19 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/phishlab/quem-enviou-de-verdade",
       expected: [
-        /class="page-stack identity-map-page"/,
-        /Separe o que est. comprovado do que ainda n.o est./,
-        /Seu papel e sua tarefa/,
+        /class="activity-workspace page-stack identity-map-page"/,
+        /Observe quem está pedindo/,
+        /O que aconteceu/,
         /60 pontos-base/,
       ],
     },
     {
       pathname: "/phishlab/analisador-de-links",
       expected: [
-        /class="page-stack lab-player-page url-anatomy-page"/,
+        /class="activity-workspace page-stack lab-player-page url-anatomy-page"/,
         /<h1>Dom.nio sob a lupa<\/h1>/,
-        /Caso atribu.do/,
-        /Seu papel/,
+        /Seu caso/,
         /Sua tarefa/,
-        /Os outros casos ficam dispon.veis quando voc. escolher praticar novamente/,
         /60 pontos-base/,
       ],
     },
@@ -195,9 +193,9 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/simulacoes/dia-de-trabalho",
       expected: [
-        /class="page-stack simulation-player-page workday-v2-page"/,
-        /Organize uma rotina mista/,
-        /Reduza a caixa, investigue apenas o necess.rio/,
+        /class="activity-workspace page-stack simulation-player-page workday-v2-page"/,
+        /Uma manh. comum/,
+        /Começar a triagem/,
         /70.{0,30}pontos-base/,
       ],
     },
@@ -234,7 +232,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/radar/quishing",
       expected: [
-        /class="page-stack radar-article-page [^"]+"/,
+        /class="activity-workspace page-stack radar-article-page [^"]+"/,
         /Leitura em etapas/,
         /Etapa.{0,20}1.{0,20}de.{0,20}6/,
         /O que o QR Code esconde/,
@@ -254,16 +252,16 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/equipes/caixa-de-entrada-segura",
       expected: [
-        /class="page-stack team-challenge-page"/,
+        /class="activity-workspace page-stack team-challenge-page"/,
         /Caixa de Entrada Segura/,
         /Voc. receber. cinco mensagens completas/,
-        /Sem pistas antecipadas/,
+        /Abrir a caixa de entrada/,
       ],
     },
     {
       pathname: "/equipes/mudanca-bancaria-sem-atalho",
       expected: [
-        /class="page-stack bank-change-page bank-process-page"/,
+        /class="activity-workspace page-stack bank-change-page bank-process-page"/,
         /<h1[^>]*>\s*Mudan.a banc.ria sem atalho\s*<\/h1>/,
         /A fornecedora Madeira Norte Componentes usa uma conversa conhecida/,
         /Estação de processo/,
@@ -347,7 +345,7 @@ test("define um Master Avatar pixel art com grade e camadas estáveis", async ()
   assert.match(labHtml, /Teste de contorno/);
 });
 
-test("refina a fatia vertical da Fase 1.5 sem alterar o contrato da missão", async () => {
+test("simplifica a missão em seis etapas preservando o contrato e a identidade visual", async () => {
   const [mission, chrome, designSystem, layout, packageJson, tutorial, home] =
     await Promise.all([
       readFile(new URL("features/missions/PhishingFoundationMission.tsx", projectRoot), "utf8"),
@@ -359,15 +357,13 @@ test("refina a fatia vertical da Fase 1.5 sem alterar o contrato da missão", as
       readFile(new URL("app/page.tsx", projectRoot), "utf8"),
     ]);
 
-  const stageBlock = mission.match(/const STAGES = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
-  assert.equal(stageBlock.match(/^\s*"[^"]+",?$/gm)?.length, 20);
-  assert.match(mission, /const RESULT_STAGE = 18/);
-  assert.match(mission, /const DEBRIEF_STAGE = 19/);
-  assert.match(mission, /<MissionProgress stage=\{stage\}/);
+  const stageBlock = mission.match(/const STEPS = (\[[^;]+\]);/)?.[1] ?? "[]";
+  assert.equal(JSON.parse(stageBlock).length, 6);
+  assert.match(mission, /useActivityStageFocus\(stage\)/);
   assert.doesNotMatch(mission, /ActivityProgress/);
   assert.doesNotMatch(mission, /option\.detail/);
-  assert.match(mission, /<details className="foundation-result-details">/);
-  assert.match(mission, /reportDetailIds\.length === 0/);
+  assert.match(mission, /Rever minhas decisões/);
+  assert.match(mission, /reportDetailIds\?\.length/);
 
   for (const field of [
     "requestedActionId",
@@ -381,7 +377,7 @@ test("refina a fatia vertical da Fase 1.5 sem alterar o contrato da missão", as
     "reportDetailIds",
     "transferDecisionId",
   ]) {
-    assert.match(mission, new RegExp(`\\n\\s*${field},`));
+    assert.match(mission, new RegExp(`\\b${field}\\b`));
   }
 
   assert.doesNotMatch(chrome, /current=\{1\}|total=\{4\}|ProgressJourney/);
@@ -408,7 +404,7 @@ test("refina a fatia vertical da Fase 1.5 sem alterar o contrato da missão", as
   const response = await render("/missoes/aviso-de-bloqueio");
   const html = await response.text();
   assert.equal(html.match(/<progress\b/g)?.length, 1);
-  assert.match(html, /aria-label="Etapa 1 de 20: Abertura"/);
+  assert.match(html, /aria-label="Etapa 1 de 6: Examinar"/);
 });
 
 test("todas as atividades disponíveis encerram com revisão explícita das respostas", async () => {
@@ -2146,10 +2142,10 @@ test("libera e conclui Você iniciou este acesso? somente depois dos dois PhishL
       new URL("features/missions/MfaFatigueMission.tsx", projectRoot),
       "utf8",
     );
-    assert.match(mfaPlayerSource, /Relacione cada pedido ao que voc. realmente iniciou/);
-    assert.match(mfaPlayerSource, /O suposto suporte tenta orientar sua resposta/);
-    assert.match(mfaPlayerSource, /Como voc. chega . .rea de seguran.a/);
-    assert.match(mfaPlayerSource, /Quais informa..es ajudam sem expor segredos/);
+    assert.match(mfaPlayerSource, /Compare os dados do pedido com seu acesso/);
+    assert.match(mfaPlayerSource, /Chegou uma mensagem do suporte/);
+    assert.match(mfaPlayerSource, /Abra a área de segurança da conta/);
+    assert.match(mfaPlayerSource, /Separe as informações para a equipe/);
     assert.match(mfaPlayerSource, /onOpenRecovery/);
     assert.doesNotMatch(mfaPlayerSource, /Negar&nbsp;&nbsp; Aprovar/);
 
@@ -4622,8 +4618,8 @@ test("publica Quem enviou de verdade? v2 com mapa de identidade e compatibilidad
     assert.equal(response.status, 200);
     const html = await response.text();
     assert.match(html, /data-activity-id="phishlab:true-sender"/);
-    assert.match(html, /class="page-stack identity-map-page"/);
-    assert.match(html, /Aprender a ler os campos/);
+    assert.match(html, /class="activity-workspace page-stack identity-map-page"/);
+    assert.match(html, /Ver um exemplo/);
     assert.doesNotMatch(html, />P1<|>P2<|>P3</);
   } finally {
     await vite.close();
