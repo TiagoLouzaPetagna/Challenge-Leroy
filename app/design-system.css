@@ -131,6 +131,8 @@ button { color: inherit; }
 .portal-brand-lockup strong { font-size: 15px; letter-spacing: -.02em; }
 .portal-brand-lockup span { color: var(--learn-muted); font-size: 12px; }
 .portal-brand-mark { display: grid; flex: 0 0 auto; place-items: center; }
+.portal-brand-mark img { display: block; width: 36px; height: 36px; }
+.portal-mobile-menu { display: none; }
 .prototype-tag {
   align-self: flex-start;
   margin: 0 8px 20px;
@@ -747,7 +749,7 @@ button { color: inherit; }
 
 .workday-v2-page .workday-v2-reader { padding: 0; overflow: hidden; border: 1px solid #d4d9d5; border-radius: 20px; background: #fff; box-shadow: 0 18px 40px rgb(25 45 35 / 8%); }
 .workday-v2-mail-toolbar { display: flex; min-height: 46px; align-items: center; justify-content: space-between; gap: 18px; padding: 0 22px; border-bottom: 1px solid #dfe3df; color: #5f6963; background: #f2f4f2; font-size: 11px; }
-.workday-v2-mail-toolbar > span::before { margin-right: 8px; content: "✉"; font-size: 14px; }
+.workday-v2-mail-toolbar > span { display: inline-flex; align-items: center; gap: 8px; }
 .workday-v2-mail-toolbar strong { color: #344039; font-size: 11px; }
 .workday-v2-page .workday-v2-reader > header { align-items: start; margin: 0; padding: 28px 30px 22px; border-bottom: 1px solid #e3e6e3; }
 .workday-v2-page .workday-v2-reader > header h3 { margin: 9px 0 13px; color: #202a25; font-family: var(--learn-display); font-size: clamp(28px, 3vw, 39px); letter-spacing: -.025em; line-height: 1; }
@@ -983,13 +985,22 @@ button { color: inherit; }
 
 @media (max-width: 900px) {
   .app-shell-layout { grid-template-columns: 1fr; }
-  .portal-sidebar { position: sticky; width: 100%; height: auto; padding: 10px 16px 8px; border-right: 0; border-bottom: 1px solid var(--learn-line); }
-  .portal-brand-lockup { padding: 0 0 7px; }
-  .portal-brand-lockup svg { width: 28px; height: 28px; }
+  .portal-sidebar { position: sticky; overflow: visible; width: 100%; height: auto; flex-direction: row; align-items: center; justify-content: space-between; gap: 18px; padding: 10px 16px; border-right: 0; border-bottom: 1px solid var(--learn-line); }
+  .portal-brand-lockup { min-width: 0; padding: 0; }
+  .portal-brand-lockup > div { display: none; }
+  .portal-brand-mark img { width: 32px; height: 32px; }
   .prototype-tag, .sidebar-note, .portal-nav-group > p { display: none; }
-  .portal-sidebar nav { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: thin; }
-  .portal-nav-group { display: contents; }
-  .portal-sidebar .nav-item { width: auto; flex: 0 0 auto; padding: 8px 10px; }
+  .portal-sidebar > nav { display: none; }
+  .portal-mobile-menu { position: relative; display: block; width: min(100%, 270px); }
+  .portal-mobile-menu summary { display: flex; min-height: 40px; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px 8px 13px; border: 1px solid #d7ded1; border-radius: 12px; background: var(--learn-paper); cursor: pointer; list-style: none; }
+  .portal-mobile-menu summary::-webkit-details-marker { display: none; }
+  .portal-mobile-menu__current { display: flex; min-width: 0; align-items: center; gap: 9px; font-size: 13px; font-weight: 800; }
+  .portal-mobile-menu__current span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .portal-mobile-menu__toggle { display: grid; flex: 0 0 auto; place-items: center; }
+  .portal-mobile-menu__panel { position: absolute; z-index: 120; top: calc(100% + 8px); right: 0; display: grid; width: min(340px, calc(100vw - 32px)); max-height: min(68vh, 520px); grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 10px; overflow: auto; border: 1px solid #d7ded1; border-radius: 18px; background: var(--learn-paper); box-shadow: 0 22px 55px rgb(13 46 39 / 22%); }
+  .portal-mobile-menu__panel button { display: flex; min-width: 0; min-height: 52px; align-items: center; gap: 9px; padding: 10px 11px; border: 0; border-radius: 11px; color: #456158; background: transparent; text-align: left; cursor: pointer; }
+  .portal-mobile-menu__panel button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 750; }
+  .portal-mobile-menu__panel button.active { color: var(--learn-forest-deep); background: var(--learn-lime); }
   .portal-topbar { padding-inline: 20px; }
   .main-content { padding: 24px 20px 54px; }
   .home-learning-hero { min-height: auto; grid-template-columns: 1fr; }
@@ -1025,7 +1036,14 @@ button { color: inherit; }
 }
 
 @media (max-width: 620px) {
-  .portal-topbar-welcome .topbar-kicker, .topbar-progress { display: none; }
+  .portal-topbar { min-height: 50px; padding: 6px 16px; }
+  .portal-topbar-welcome .topbar-kicker { display: none; }
+  .portal-topbar-welcome strong { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .topbar-actions { gap: 9px; }
+  .topbar-progress { display: grid; }
+  .topbar-progress strong { font-size: 11px; }
+  .topbar-progress span { display: none; }
+  .topbar-logout { font-size: 12px; }
   .home-overview-header { align-items: flex-start; flex-direction: column; }
   .home-learning-hero h1 { font-size: 43px; }
   .home-learning-hero__actions { align-items: flex-start; flex-direction: column; }
@@ -1038,9 +1056,14 @@ button { color: inherit; }
   .home-activity-empty { grid-template-columns: 1fr; align-items: flex-start; }
   .home-activity-empty button { margin-left: 0; }
   .missions-hub { gap: 42px; }
-  .missions-hub__hero { min-height: 520px; padding: 36px 26px; }
-  .missions-hub__hero h1 { font-size: 52px; }
-  .missions-hub__progress { left: 20px; right: 20px; grid-template-columns: 1fr; }
+  .missions-hub__hero { min-height: 470px; padding: 30px 22px; border-radius: 28px; }
+  .missions-hub__hero-copy { padding-bottom: 112px; }
+  .missions-hub__hero h1 { font-size: clamp(42px, 13vw, 52px); }
+  .missions-hub__hero-art { inset: 180px -80px 0 0; opacity: .82; }
+  .missions-hub__progress { left: 16px; right: 16px; bottom: 16px; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px; overflow: hidden; }
+  .missions-hub__progress .progress-journey { min-width: 0; gap: 10px; }
+  .missions-hub__progress .progress-journey__rail { min-width: 0; }
+  .missions-hub__progress .progress-journey > strong { flex: 0 0 auto; font-size: 17px; }
   .missions-hub__progress p { display: none; }
   .missions-hub__curriculum-list::before { left: 20px; transform: none; }
   .missions-hub__curriculum-step, .missions-hub__curriculum-step:nth-child(even) { width: 100%; margin-left: 0; padding: 0 0 0 58px; }
@@ -1048,10 +1071,13 @@ button { color: inherit; }
   .missions-hub__curriculum-step.is-current article { transform: none; }
   .missions-hub__radar-note { align-items: flex-start; flex-direction: column; }
   .foundation-header { align-items: flex-start; flex-direction: column; }
-  .activity-focus-bar { grid-template-columns: auto 1fr; padding-inline: 12px; }
+  .activity-focus-bar { min-height: 56px; grid-template-columns: auto minmax(0, 1fr); gap: 8px; padding-inline: 8px 12px; }
+  .activity-focus-back { padding: 8px; }
+  .activity-focus-back span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .activity-focus-meta { display: none; }
-  .activity-focus-context { justify-items: end; text-align: right; }
-  .activity-focus-context strong { font-size: 14px; }
+  .activity-focus-context { min-width: 0; justify-items: start; text-align: left; }
+  .activity-focus-context span { display: none; }
+  .activity-focus-context strong { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
   .foundation-progress { grid-template-columns: 1fr auto; gap: 8px 16px; top: 64px; padding: 11px 16px; }
   .foundation-progress progress { grid-column: 1 / -1; }
   .foundation-progress ol { display: none; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import { FlaskConical } from "lucide-react";
 
 import styles from "./PhishLabHub.module.css";
 
@@ -65,7 +66,7 @@ const stations = [
   {
     id: "mirror-page",
     eyebrow: "Estação 03",
-    statusLabel: "Em produção",
+    statusLabel: "Em breve",
     title: "Espelho de Página",
     summary:
       "Compare uma página fictícia legítima com uma imitação e descubra por que a aparência não comprova identidade.",
@@ -78,7 +79,7 @@ const stations = [
   {
     id: "incident-line",
     eyebrow: "Estação 04",
-    statusLabel: "Em produção",
+    statusLabel: "Em breve",
     title: "Linha do Incidente",
     summary:
       "Organize acontecimentos depois de uma interação e pratique a ordem correta de contenção e reporte.",
@@ -93,12 +94,7 @@ const stations = [
 type StationId = (typeof stations)[number]["id"];
 
 function LabMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 3h6M10 3v5.3l-5.2 8.5A2.7 2.7 0 0 0 7.1 21h9.8a2.7 2.7 0 0 0 2.3-4.2L14 8.3V3" />
-      <path d="M7.4 15h9.2M9.2 12h5.6" />
-    </svg>
-  );
+  return <FlaskConical aria-hidden="true" />;
 }
 
 function MagnifierMark() {
@@ -345,7 +341,7 @@ export function PhishLabHub({
                 ) : (
                   <p className={styles.productionNotice}>
                     <span aria-hidden="true">●</span>
-                    <strong>Em produção</strong> · disponibilidade futura
+                    <strong>Em breve</strong> · estação ainda indisponível
                   </p>
                 )}
               </article>

@@ -297,8 +297,8 @@ export function MissionsHub({
           <details className={styles.roadmapDisclosure}>
             <summary className={styles.roadmapSummary}>
               <span className={styles.roadmapHeading}>
-                <span className={styles.eyebrow}>Visão futura e legado</span>
-                <h2 id="main-missions-title">Roadmap do protótipo</h2>
+                <span className={styles.eyebrow}>Outras práticas</span>
+                <h2 id="main-missions-title">Mais atividades da jornada</h2>
               </span>
               <span className={styles.roadmapCount}>
                 <strong>{missions.length}</strong>
@@ -309,8 +309,8 @@ export function MissionsHub({
 
             <div className={styles.roadmapBody}>
               <p className={styles.roadmapIntro}>
-                Esta lista preserva a sequência anterior e os conteúdos previstos.
-                Use a jornada acima para seguir as atividades publicadas agora.
+                Consulte outras atividades mapeadas para esta trilha. As práticas
+                disponíveis aparecem primeiro no percurso acima.
               </p>
 
               <ol className={styles.roadmapList}>
@@ -321,7 +321,7 @@ export function MissionsHub({
                     ? styles.isPlanned
                     : statusClassNames[mission.status];
                   const visualStatusLabel = isPlanned
-                    ? "Conteúdo previsto"
+                      ? "Em breve"
                     : mission.statusLabel;
 
                   return (
@@ -354,7 +354,7 @@ export function MissionsHub({
                           {isPlanned || isLocked ? (
                             <span className={styles.unavailableAction}>
                               {isPlanned
-                                ? "Disponibilidade futura"
+                                ? "Em breve"
                                 : mission.actionLabel}
                             </span>
                           ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AtSign, Mail, Search, ShieldQuestion } from "lucide-react";
 
 import { FieldMatcher } from "@/features/activities/primitives/FieldMatcher";
 import { ActivityShell } from "@/features/activities/ActivityShell";
@@ -375,13 +376,25 @@ export function SenderInspectorLab({
 
         {stage === 0 ? (
           <section className="identity-stage identity-opening">
-            <header>
-              <span className="section-kicker">Antes de começar</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>Observe quem está pedindo</h2>
-              <p>
-                Um nome conhecido pode aparecer em um e-mail suspeito. Examine os campos da mensagem para entender quem enviou e para onde iria sua resposta.
-              </p>
-            </header>
+            <div className="identity-opening__lead">
+              <header>
+                <span className="section-kicker">Antes de começar</span>
+                <h2 ref={stageTitleRef} tabIndex={-1}>Observe quem está pedindo</h2>
+                <p>
+                  Um nome conhecido pode aparecer em um e-mail suspeito. Examine os campos para descobrir o que a mensagem realmente comprova.
+                </p>
+              </header>
+              <div className="identity-opening__scene" aria-label="Prévia de uma investigação de remetente">
+                <div className="identity-scene__mail">
+                  <span><Mail size={18} aria-hidden="true" /> Mensagem recebida</span>
+                  <strong>Solicitação urgente</strong>
+                  <small>De: nome conhecido &lt;conta@exemplo.com&gt;</small>
+                </div>
+                <div className="identity-scene__lens" aria-hidden="true"><Search size={32} /></div>
+                <div className="identity-scene__clue identity-scene__clue--account"><AtSign size={17} /> Conta usada</div>
+                <div className="identity-scene__clue identity-scene__clue--person"><ShieldQuestion size={17} /> Pessoa ainda não confirmada</div>
+              </div>
+            </div>
             <div className="identity-context-grid">
               
               <article><span>O que aconteceu</span><p>{content.situation}</p></article>

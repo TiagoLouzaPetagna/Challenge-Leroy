@@ -1211,26 +1211,48 @@
   place-items: center;
 }
 
+.achievementMark::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: 62px;
+  height: 62px;
+  border: 1px solid #cbd4cd;
+  border-radius: 20px;
+  background: #eef0eb;
+  transform: rotate(4deg);
+}
+
+.unlocked .achievementMark::before {
+  border-color: #91bd55;
+  background: var(--learn-lime);
+}
+
 .achievementMark svg,
 .achievementMark span {
   grid-area: 1 / 1;
 }
 
 .achievementMark svg {
-  width: 64px;
-  height: 72px;
-  fill: #e2e7e1;
+  width: 34px;
+  height: 34px;
+  fill: none;
   stroke: #89958f;
-  stroke-width: 1.5;
+  stroke-width: 1.8;
 }
 
 .unlocked .achievementMark svg {
-  fill: var(--learn-lime);
+  fill: none;
   stroke: var(--learn-forest);
 }
 
 .achievementMark span {
+  align-self: end;
+  z-index: 2;
+  margin-bottom: -1px;
+  padding: 2px 6px;
+  border-radius: 999px;
   color: var(--learn-forest);
+  background: #fffdf7;
   font-family: var(--learn-display);
   font-size: 17px;
   font-weight: 650;

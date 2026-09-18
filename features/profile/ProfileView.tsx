@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
 } from "react";
+import { ArrowRight, ShieldCheck, Star } from "lucide-react";
 
 import type { LearnerPreferences } from "@/lib/domain/types";
 import { UserAvatar } from "@/features/avatar/UserAvatar";
@@ -561,7 +562,7 @@ export function ProfileView({
               <div className={styles.achievementCollection}>
                 {model.achievements.map((achievement, index) => (
                   <article key={achievement.id} className={`${styles.achievement}${achievement.unlocked ? ` ${styles.unlocked}` : ` ${styles.locked}`}`} aria-label={`${achievement.title}: ${achievement.unlocked ? "Conquistada" : "Em andamento"}`}>
-                    <div className={styles.achievementMark} aria-hidden="true"><svg viewBox="0 0 68 76"><path d="M34 3 62 14v22c0 18-11 30-28 37C17 66 6 54 6 36V14z" /></svg><span>{String(index + 1).padStart(2, "0")}</span></div>
+                    <div className={styles.achievementMark} aria-hidden="true"><ShieldCheck /><span>{String(index + 1).padStart(2, "0")}</span></div>
                     <div className={styles.achievementCopy}><span>{achievement.unlocked ? "Conquistada" : "Em andamento"}</span><h3>{achievement.title}</h3><p>{achievement.description}</p><small>{achievement.condition}</small></div>
                     <div className={styles.achievementStatus}>
                       <div className={styles.achievementProgress} role="progressbar" aria-label={`Progresso de ${achievement.title}`} aria-valuemin={0} aria-valuemax={achievement.target} aria-valuenow={achievement.current} aria-valuetext={achievement.unlocked ? "Conquista concluída" : `${achievement.current} de ${achievement.target}`}><span style={{ width: `${getProgressPercentage(achievement.current, achievement.target)}%` }} /></div>
@@ -570,7 +571,7 @@ export function ProfileView({
                   </article>
                 ))}
               </div>
-            ) : <div className={styles.emptyState}><span className={styles.emptyMark} aria-hidden="true">★</span><div><strong>Seus próximos marcos aparecerão aqui</strong><p>Continue a jornada para descobrir conquistas reais.</p></div></div>}
+            ) : <div className={styles.emptyState}><span className={styles.emptyMark} aria-hidden="true"><Star /></span><div><strong>Seus próximos marcos aparecerão aqui</strong><p>Continue a jornada para descobrir conquistas reais.</p></div></div>}
           </section>
         ) : null}
 
@@ -580,8 +581,8 @@ export function ProfileView({
               <header className={styles.preferencesHeader}>
                 <div><span className={styles.eyebrow}>Controle pessoal</span><h2>Preferências</h2><p>Estas escolhas ficam associadas à sua conta.</p></div>
                 <div>
-                  <button type="button" className="text-button" onClick={onLogout}>Sair desta conta <span aria-hidden="true">→</span></button>
-                  <button type="button" className="text-button" data-tour-start disabled={!isHydrated} onClick={(event) => onOpenTutorial(event.currentTarget)}>{tutorialCompleted ? "Rever tutorial do portal" : "Iniciar tutorial do portal"}<span aria-hidden="true"> →</span></button>
+                  <button type="button" className="text-button" onClick={onLogout}>Sair desta conta <ArrowRight size={16} aria-hidden="true" /></button>
+                  <button type="button" className="text-button" data-tour-start disabled={!isHydrated} onClick={(event) => onOpenTutorial(event.currentTarget)}>{tutorialCompleted ? "Rever tutorial do portal" : "Iniciar tutorial do portal"}<ArrowRight size={16} aria-hidden="true" /></button>
                 </div>
               </header>
 
@@ -590,8 +591,6 @@ export function ProfileView({
                 <Toggle checked={draft.highContrast} label="Alto contraste" description="Reforça bordas, textos e controles da plataforma." onChange={(value) => updateDraft("highContrast", value)} />
                 <label className={styles.selectRow}><span><strong>Tamanho do texto</strong><small>Aumenta o texto sem alterar o conteúdo.</small></span><select value={draft.textSize} onChange={(event) => updateDraft("textSize", event.target.value as LearnerPreferences["textSize"])}><option value="default">Padrão</option><option value="large">Grande</option><option value="extraLarge">Muito grande</option></select></label>
                 <Toggle checked={draft.reducedMotion} label="Reduzir movimentos" description="Remove rolagens e transições animadas sempre que possível." onChange={(value) => updateDraft("reducedMotion", value)} />
-                <Toggle checked={draft.soundEnabled} label="Sons de interface" description="Deixa sons futuros habilitados; nenhum som é reproduzido nesta versão." onChange={(value) => updateDraft("soundEnabled", value)} />
-                <Toggle checked={draft.captionsEnabled} label="Legendas em mídias" description="Mantém legendas futuras ativadas. Textos alternativos continuam obrigatórios." onChange={(value) => updateDraft("captionsEnabled", value)} />
               </fieldset>
 
               <fieldset>
@@ -599,19 +598,6 @@ export function ProfileView({
                 <Toggle checked={draft.leaderboardParticipation} label="Participar de rankings individuais" description="Desativado por padrão. Rankings coletivos continuam usando somente dados agregados." onChange={(value) => updateDraft("leaderboardParticipation", value)} />
                 <label className={`${styles.selectRow}${!draft.leaderboardParticipation ? ` ${styles.disabled}` : ""}`}><span><strong>Identidade no ranking</strong><small>A escolha é mantida mesmo quando a participação está desligada.</small></span><select disabled={!draft.leaderboardParticipation} value={draft.leaderboardIdentity} onChange={(event) => updateDraft("leaderboardIdentity", event.target.value as LearnerPreferences["leaderboardIdentity"])}><option value="initials">Iniciais</option><option value="displayName">Nome de exibição</option><option value="anonymous">Anônimo</option></select></label>
                 <div className={styles.privacyMatrix} role="note"><strong>O que fica visível</strong><p><span>Somente você:</span> tentativas, erros, notas, preferências e conquistas.</p><p><span>Equipe:</span> apenas indicadores e contribuições agregadas.</p><p><span>Demonstração local:</span> dados permanecem neste navegador até reiniciar a demo ou limpar o armazenamento.</p></div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Notificações e lembretes</legend>
-                <Toggle checked={draft.notificationsEnabled} label="Ativar notificações" description="Controla preferências futuras; não solicita permissão do navegador nem envia mensagens." onChange={(value) => updateDraft("notificationsEnabled", value)} />
-                <div className={styles.notificationGrid}>
-                  <Toggle disabled={!draft.notificationsEnabled} checked={draft.notificationMission} label="Novas Missões" description="Avisos sobre conteúdos da jornada." onChange={(value) => updateDraft("notificationMission", value)} />
-                  <Toggle disabled={!draft.notificationsEnabled} checked={draft.notificationReview} label="Revisões recomendadas" description="Lembretes de práticas adaptativas." onChange={(value) => updateDraft("notificationReview", value)} />
-                  <Toggle disabled={!draft.notificationsEnabled} checked={draft.notificationArcade} label="Novidades do Arcade" description="Avisos quando jogos forem integrados." onChange={(value) => updateDraft("notificationArcade", value)} />
-                  <Toggle disabled={!draft.notificationsEnabled} checked={draft.notificationTeam} label="Metas da equipe" description="Atualizações coletivas, nunca resultados individuais." onChange={(value) => updateDraft("notificationTeam", value)} />
-                  <Toggle disabled={!draft.notificationsEnabled} checked={draft.notificationRadar} label="Radar de Segurança" description="Novos conteúdos curtos do Radar." onChange={(value) => updateDraft("notificationRadar", value)} />
-                </div>
-                <label className={`${styles.selectRow}${!draft.notificationsEnabled ? ` ${styles.disabled}` : ""}`}><span><strong>Frequência dos lembretes</strong><small>Preferência preparada para a integração futura.</small></span><select disabled={!draft.notificationsEnabled} value={draft.reminderFrequency} onChange={(event) => updateDraft("reminderFrequency", event.target.value as LearnerPreferences["reminderFrequency"])}><option value="important">Somente importantes</option><option value="weekly">Resumo semanal</option><option value="off">Sem lembretes</option></select></label>
               </fieldset>
 
               <div className={styles.saveBar}><p aria-live="polite">{saveMessage || (isDirty ? "Existem alterações ainda não salvas." : "Preferências atualizadas.")}</p><button type="submit" className="primary-button dark" disabled={!isHydrated || !isDirty}>Salvar preferências</button></div>

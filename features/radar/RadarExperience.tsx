@@ -457,7 +457,7 @@ export function RadarHub({
                           </button>
                         ) : (
                           <span className={styles.plannedNote}>
-                            Em produção · leitura ainda não disponível
+                            Em breve · leitura ainda não disponível
                           </span>
                         )}
                       </div>

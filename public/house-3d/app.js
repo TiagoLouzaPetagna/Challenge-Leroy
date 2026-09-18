@@ -22,10 +22,13 @@ import {configureModels,readModelSave} from './model-versions.js';
 
 const embedParams=new URLSearchParams(location.search);
 const embedded=embedParams.get('embedded')==='1';
+const visitorProfile=embedParams.get('visitor');
+const requestedTheme=embedParams.get('theme');
+const visitorTheme=['crafted','cyberpunk','industrial'].includes(requestedTheme)?requestedTheme:null;
 let requestedHostMode=['edit','view','build'].includes(embedParams.get('mode'))?embedParams.get('mode'):null;
 document.documentElement.classList.toggle('embedded',embedded);
 const $=id=>document.getElementById(id), canvas=$('scene');
-let finishMode='crafted';try{finishMode=readFinish(window.localStorage);}catch{}
+let finishMode=visitorTheme??'crafted';if(!visitorTheme)try{finishMode=readFinish(window.localStorage);}catch{}
 const modernModels=true;configureModels(true);
 const themeLabels={'previous':'Anterior','detailed':'Casa texturizada','crafted':'Tatame trabalhado','crafted-plain':'Sala anterior','default-room':'Cômodo default','industrial':'Industrial','industrial-loft':'Industrial Loft','cyberpunk':'Cyberpunk'};
 for(const id of ['room-theme','new-room-theme']){for(const theme of FINISHES){const option=document.createElement('option');option.value=theme;option.textContent=themeLabels[theme];$(id).append(option);}$(id).value=finishMode;}
@@ -649,9 +652,12 @@ try {
   for(const name of ['Piso','PisoMadeira','Paredes','Janela']){const node=room.scene.getObjectByName(name);if(node)node.visible=false;}
   walls=structure.walls;scene.add(structure.floor,walls,structure.guides,structure.context);
   let saved;
-  try{storage=window.localStorage;}catch{}
-  if(storage){saved=readModelSave(storage,manifest.cells,modernModels);lastRaw=storage.getItem(STORAGE_KEY);}
-  else saved={status:'unavailable'};
+  if(visitorProfile){saved={status:'empty'};saveBlocked=true;saveState='blocked';}
+  else {
+    try{storage=window.localStorage;}catch{}
+    if(storage){saved=readModelSave(storage,manifest.cells,modernModels);lastRaw=storage.getItem(STORAGE_KEY);}
+    else saved={status:'unavailable'};
+  }
   if(saved.modelsAdapted&&lastRaw)storage.setItem(STORAGE_KEY+(saved.furnitureAdapted?':before-furniture-scale-135':':before-model-change'),lastRaw);
   const loadedScene=saved.status==='loaded'?saved.scene:validateScene(seed,manifest.cells);
   const themedScene=upgradeRooms({...loadedScene,cells:loadedScene.cells??manifest.cells});

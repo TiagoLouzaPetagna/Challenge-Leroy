@@ -9,15 +9,26 @@ export type House3DMode = "view" | "edit" | "build" | "visitor";
 type House3DExperienceProps = {
   mode: House3DMode;
   onModeChange?: (mode: Exclude<House3DMode, "visitor">) => void;
+  visitorProfileId?: string;
+  visitorTheme?: "crafted" | "cyberpunk" | "industrial";
+  ownerName?: string;
 };
 
 export function House3DExperience({
   mode,
   onModeChange,
+  visitorProfileId,
+  visitorTheme,
+  ownerName,
 }: House3DExperienceProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const editorMode = mode === "visitor" ? "view" : mode;
+  const visitorQuery = visitorProfileId
+    ? `&visitor=${encodeURIComponent(visitorProfileId)}${
+        visitorTheme ? `&theme=${encodeURIComponent(visitorTheme)}` : ""
+      }`
+    : "";
 
   const sendMode = useCallback(() => {
     frameRef.current?.contentWindow?.postMessage(
@@ -56,9 +67,15 @@ export function House3DExperience({
       {status === "error" && <div className="house-3d-status house-3d-status--error" role="alert">Não foi possível abrir a casa 3D. Atualize a página para tentar novamente.</div>}
       <iframe
         ref={frameRef}
-        className="house-3d-frame"
-        src="/house-3d/?embedded=1&mode=view"
-        title={mode === "visitor" ? "Casa 3D vista como visitante" : "Minha casa 3D"}
+        className={`house-3d-frame ${status === "ready" ? "is-ready" : ""}`.trim()}
+        src={`/house-3d/?embedded=1&mode=view${visitorQuery}`}
+        title={
+          mode === "visitor"
+            ? ownerName
+              ? `Casa 3D de ${ownerName}`
+              : "Casa 3D vista como visitante"
+            : "Minha casa 3D"
+        }
         onLoad={sendMode}
         allow="fullscreen"
       />

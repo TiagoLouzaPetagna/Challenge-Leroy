@@ -692,7 +692,6 @@ h2 {
     padding: 12px;
   }
 
-  .start-grid,
   .play-area,
   .hud,
   .breakdown {
@@ -707,6 +706,10 @@ h2 {
 }
 
 @media (max-width: 680px) {
+  .start-grid {
+    grid-template-columns: 1fr;
+  }
+
   .modal {
     padding: 10px;
   }

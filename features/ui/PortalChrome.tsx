@@ -60,29 +60,9 @@ const PORTAL_NAV_GROUPS: ReadonlyArray<{
 export function BrandMark() {
   return (
     <span className="portal-brand-mark" aria-hidden="true">
-      <svg
-        width="36"
-        height="36"
-        viewBox="0 0 48 48"
-        fill="none"
-        focusable="false"
-      >
-        <path
-          d="M5 22.5 24 6l19 16.5v19a2.5 2.5 0 0 1-2.5 2.5h-33A2.5 2.5 0 0 1 5 41.5v-19Z"
-          fill="var(--brand-lime, #78be20)"
-        />
-        <path
-          d="M24 16.5c4 3 7.2 3.5 10.5 4.2v7.2c0 6.3-4.2 10.5-10.5 13.1-6.3-2.6-10.5-6.8-10.5-13.1v-7.2c3.3-.7 6.5-1.2 10.5-4.2Z"
-          fill="var(--brand-forest, #173f35)"
-        />
-        <path
-          d="m19.5 28 3 3 6.5-7"
-          stroke="white"
-          strokeWidth="2.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      {/* This is a reusable brand asset rather than an interface icon drawn in JSX. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand-mark.svg" width="36" height="36" alt="" />
     </span>
   );
 }
@@ -107,6 +87,8 @@ export function PortalSidebar({
   const visibleGroups = PORTAL_NAV_GROUPS.filter((group) =>
     visibleItems.some((item) => item.group === group.id),
   );
+  const selectedItem =
+    visibleItems.find((item) => item.key === selectedView) ?? visibleItems[0];
   const navigationRef = useRef<HTMLElement>(null);
   const activeItemRef = useRef<HTMLButtonElement>(null);
 
@@ -139,6 +121,35 @@ export function PortalSidebar({
       </div>
 
       <div className="prototype-tag">Protótipo funcional</div>
+
+      <details className="portal-mobile-menu">
+        <summary>
+          <span className="portal-mobile-menu__current">
+            <PortalIcon name={selectedItem.icon} size={19} />
+            <span>{selectedItem.label}</span>
+          </span>
+          <span className="portal-mobile-menu__toggle" aria-hidden="true">
+            <PortalIcon name="menu" size={20} />
+          </span>
+        </summary>
+        <div className="portal-mobile-menu__panel">
+          {visibleItems.map((item) => (
+            <button
+              type="button"
+              key={item.key}
+              className={selectedView === item.key ? "active" : ""}
+              onClick={(event) => {
+                event.currentTarget.closest("details")?.removeAttribute("open");
+                onNavigate(item.key);
+              }}
+              aria-current={selectedView === item.key ? "page" : undefined}
+            >
+              <PortalIcon name={item.icon} size={19} />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </details>
 
       <nav ref={navigationRef} aria-label="Navegação principal">
         {visibleGroups.map((group) => (

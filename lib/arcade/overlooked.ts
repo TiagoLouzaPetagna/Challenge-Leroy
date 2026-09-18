@@ -53,6 +53,10 @@ export type OverlookedValidatedResult = {
 export type OverlookedLeaderboardEntry = {
   position: number;
   displayName: string;
+  nickname: string;
+  avatarUrl: string;
+  animatedAvatarUrl: string;
+  profileId: string | null;
   sectorName: string;
   score: number;
   phishingReported: number;

@@ -76,7 +76,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /Continuar/,
         /Progresso da miss.o de fundamento/,
         /Etapa 1 de 6/,
-        /Encontre o pedido no e-mail/,
+        /Um aviso\. Trinta minutos/,
       ],
     },
     {
@@ -126,11 +126,11 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/avatar-lab",
       expected: [
-        /Laboratório visual local/,
-        /Master Avatar aprovado/,
-        /Olhos arredondados/,
-        /Olhos amendoados/,
-        /Teste de contorno/,
+        /Criador de personagem/,
+        /Carregando peças/,
+        /avatar-creator/,
+        /Voltar ao perfil/,
+        /Meu personagem/,
       ],
     },
     {
@@ -213,11 +213,11 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/arcade/overlooked",
       expected: [
-        /class="page-stack arcade-detail-page"/,
-        /Decidam e processem juntos/,
-        /De .165 a 155 pontos/,
-        /Partida integrada/,
-        /Leaderboard espec.fico/,
+        /class="page-stack arcade-detail-page arcade-game-room"/,
+        /Jogo Overlooked/,
+        /Quem domina o escrit.rio/,
+        /Hall da fama/,
+        /visitar sua casa/,
       ],
     },
     {
@@ -350,7 +350,6 @@ test("simplifica a missão em seis etapas preservando o contrato e a identidade 
   assert.match(mission, /reportDetailIds\?\.length/);
 
   for (const field of [
-    "requestedActionId",
     "protectedAssetId",
     "potentialConsequenceId",
     "pauseDecisionId",
@@ -3102,6 +3101,7 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
       [
         ["account:lucas-learner", 130],
         ["account:marina-admin", 85],
+        ["account:ana-learner", 70],
       ],
     );
     for (const entry of DEMO_OVERLOOKED_LEADERBOARD) {
@@ -3147,6 +3147,18 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
       new URL("features/arcade/OverlookedIntegration.tsx", projectRoot),
       "utf8",
     );
+    const podium = await readFile(
+      new URL("features/arcade/ArcadeLeaderboardPodium.tsx", projectRoot),
+      "utf8",
+    );
+    const visitorHouse = await readFile(
+      new URL("features/house/HouseVisitorPage.tsx", projectRoot),
+      "utf8",
+    );
+    const house3d = await readFile(
+      new URL("public/house-3d/app.js", projectRoot),
+      "utf8",
+    );
     const gameHtml = await readFile(
       new URL("public/arcade-games/overlooked/index.html", projectRoot),
       "utf8",
@@ -3159,9 +3171,15 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
       new URL("public/arcade-games/overlooked/styles.css", projectRoot),
       "utf8",
     );
-    assert.match(component, /Jogar Overlooked/);
+    assert.match(component, /Todos os jogos/);
     assert.match(integration, /\/arcade-games\/overlooked\/index\.html/);
     assert.match(integration, /overlooked:completed/);
+    assert.match(integration, /Tela cheia/);
+    assert.match(integration, /Hall da fama/);
+    assert.match(podium, /entries\.slice\(0, 3\)/);
+    assert.match(podium, /\/casa\/\$\{entry\.profileId\}/);
+    assert.match(visitorHouse, /visitorProfileId=\{profile\.profileId\}/);
+    assert.match(house3d, /if\(visitorProfile\)\{saved=\{status:'empty'\}/);
     assert.match(gameHtml, /<title>Overlooked<\/title>/);
     assert.match(gameHtml, /class="email-app-bar"/);
     assert.match(gameHtml, /Casa Digital/);

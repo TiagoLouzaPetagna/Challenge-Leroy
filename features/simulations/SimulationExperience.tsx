@@ -243,8 +243,8 @@ export function SimulationsHub({
         <section className={styles.productionSection} aria-labelledby="production-title">
         <div className={styles.sectionIntro}>
           <div>
-            <span className={styles.kicker}>Bastidores</span>
-            <h2 id="production-title">Em produção</h2>
+            <span className={styles.kicker}>Próximas práticas</span>
+            <h2 id="production-title">Em breve</h2>
           </div>
           <p>Estes cenários ainda estão sendo construídos e não podem ser iniciados.</p>
         </div>
@@ -263,7 +263,7 @@ export function SimulationsHub({
               </div>
               <div className={styles.futureCopy}>
                 <span className={styles.productionBadge}>
-                  <span aria-hidden="true">◌</span> Em produção
+                  Em breve
                 </span>
                 <h3 id={`${scenario.id}-title`}>{scenario.title}</h3>
                 <p>{scenario.summary}</p>
@@ -271,7 +271,7 @@ export function SimulationsHub({
                   <div><dt>Formato</dt><dd>{scenario.format}</dd></div>
                   <div><dt>Foco</dt><dd>{scenario.focus}</dd></div>
                 </dl>
-                <p className={styles.productionNote}>Disponibilidade futura · sem acesso antecipado</p>
+                <p className={styles.productionNote}>Esta prática ainda não está disponível.</p>
               </div>
             </article>
           ))}

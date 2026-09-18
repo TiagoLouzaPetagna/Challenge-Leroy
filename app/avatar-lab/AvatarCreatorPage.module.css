@@ -155,10 +155,12 @@
 }
 
 @media (max-width: 620px) {
+  .page { height: 100dvh; min-height: 0; overflow: hidden; }
   .topbar { align-items: flex-start; }
   .actions { align-items: flex-end; flex-direction: column-reverse; gap: 6px; }
   .status { font-size: 10px; }
-  .editor { min-height: 980px; }
+  .editor { min-height: 0; height: auto; overflow: hidden; }
+  .frame { height: 100%; min-height: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2570,7 +2570,6 @@ export default function Home() {
               <ArcadeGameDetail
                 game={arcadeGame}
                 onBackToArcade={() => router.push("/arcade")}
-                onOpenMissions={() => navigate("missoes")}
               />
             ) : (
               <ArcadeHub

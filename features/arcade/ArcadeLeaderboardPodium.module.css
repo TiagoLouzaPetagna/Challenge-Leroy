@@ -1,0 +1,252 @@
+.stage {
+  position: relative;
+  height: clamp(520px, 66vw, 700px);
+  overflow: hidden;
+  background: #d9ead2;
+  font-family: "Silkscreen", monospace;
+}
+
+.artboard {
+  position: absolute;
+  right: 2%;
+  bottom: 14px;
+  left: 2%;
+  aspect-ratio: 1659 / 948;
+  overflow: visible;
+}
+
+.podiumSprite {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  user-select: none;
+}
+
+.competitors {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  position: absolute;
+  width: 30%;
+  height: clamp(112px, 21vw, 220px);
+  transform: translateX(-50%);
+}
+
+.card[data-position="1"] {
+  bottom: 59.2%;
+  left: 50%;
+  height: clamp(132px, 24vw, 260px);
+}
+
+.card[data-position="2"] {
+  bottom: 49.4%;
+  left: 20.5%;
+}
+
+.card[data-position="3"] {
+  bottom: 41.3%;
+  left: 80%;
+}
+
+.avatar {
+  position: absolute;
+  z-index: 3;
+  right: 12%;
+  bottom: 0;
+  left: 12%;
+  display: flex;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.card[data-position="1"] .avatar {
+  right: 8%;
+  left: 8%;
+}
+
+.avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.staticAvatar {
+  display: none !important;
+}
+
+.avatarLink {
+  cursor: pointer;
+}
+
+.avatarLink:hover img,
+.avatarLink:focus-visible img {
+  filter: drop-shadow(4px 0 0 #f5d568) drop-shadow(-4px 0 0 #f5d568);
+}
+
+.avatarLink:focus-visible {
+  outline: 4px solid #f5d568;
+  outline-offset: 3px;
+}
+
+.visitHint {
+  position: absolute;
+  z-index: 6;
+  top: 48%;
+  left: 50%;
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 3px solid #173f35;
+  color: #fffdf7;
+  background: #173f35;
+  box-shadow: 4px 4px 0 rgb(23 63 53 / 20%);
+  font-size: 9px;
+  font-weight: 900;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 120ms linear;
+  white-space: nowrap;
+}
+
+.avatarLink:hover .visitHint,
+.avatarLink:focus-visible .visitHint {
+  opacity: 1;
+}
+
+.identity {
+  position: absolute;
+  z-index: 4;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  display: grid;
+  width: max-content;
+  max-width: 94%;
+  justify-items: center;
+  gap: 2px;
+  padding: 7px 11px 6px;
+  border: 3px solid #d9d4e7;
+  color: #fffdf7;
+  background: #2c233d;
+  box-shadow: 4px 4px 0 rgb(44 35 61 / 28%);
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.card[data-position="1"] .identity {
+  border-color: #f5c75a;
+}
+
+.card[data-position="3"] .identity {
+  border-color: #dc9274;
+}
+
+.identity strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: clamp(9px, 1.15vw, 14px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.identity span {
+  font-size: clamp(7px, .82vw, 9px);
+  font-weight: 400;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.identity em {
+  padding: 2px 6px;
+  color: #173f35;
+  background: #efff9d;
+  box-shadow: 2px 2px 0 #173f35;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.current .avatar img {
+  filter: drop-shadow(3px 0 0 #efff9d) drop-shadow(-3px 0 0 #efff9d);
+}
+
+@media (max-width: 760px) {
+  .stage {
+    height: 360px;
+  }
+
+  .artboard {
+    right: 0;
+    bottom: 10px;
+    left: 0;
+  }
+
+  .card {
+    width: 33%;
+    height: clamp(94px, 29vw, 116px);
+  }
+
+  .card[data-position="1"] {
+    height: clamp(108px, 34vw, 136px);
+  }
+
+  .identity {
+    bottom: calc(100% + 5px);
+    width: max-content;
+    max-width: 96%;
+    gap: 1px;
+    padding: 4px 6px;
+    border-width: 2px;
+    box-shadow: 3px 3px 0 rgb(44 35 61 / 24%);
+  }
+
+  .identity strong {
+    font-size: 9px;
+  }
+
+  .identity span {
+    font-size: 7px;
+  }
+
+  .visitHint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animatedAvatar {
+    display: none !important;
+  }
+
+  .staticAvatar {
+    display: block !important;
+  }
+
+  .visitHint {
+    transition: none;
+  }
+}

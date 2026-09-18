@@ -2,6 +2,7 @@ import { getD1Binding } from "@/db";
 import { ensureAuthStorage } from "@/lib/auth/repository";
 import type { AuthenticatedAccount } from "@/lib/auth/types";
 import { DEMO_OVERLOOKED_LEADERBOARD } from "@/lib/content/overlooked-demo-leaderboard";
+import { findArcadePublicProfileByAccountId } from "@/lib/content/arcade-public-profiles";
 
 import {
   OVERLOOKED_GAME_ID,
@@ -202,6 +203,8 @@ export async function getOverlookedLeaderboard(
   currentAccount: AuthenticatedAccount,
 ): Promise<OverlookedLeaderboardResponse> {
   await ensureAuthStorage();
+  const demoAccountIds = DEMO_OVERLOOKED_LEADERBOARD.map((entry) => entry.accountId);
+  const demoPlaceholders = demoAccountIds.map(() => "?").join(", ");
   const query = await getD1Binding()
     .prepare(
       `WITH best_runs AS (
@@ -231,7 +234,7 @@ export async function getOverlookedLeaderboard(
         AND accounts.status = 'active'
         AND (
           COALESCE(account_progress_summaries.leaderboard_participation, 0) = 1
-          OR accounts.id IN (?, ?)
+          OR accounts.id IN (${demoPlaceholders})
         )
       ORDER BY best_runs.raw_score DESC,
         best_runs.phishing_reported DESC,
@@ -243,22 +246,29 @@ export async function getOverlookedLeaderboard(
     )
     .bind(
       OVERLOOKED_GAME_ID,
-      DEMO_OVERLOOKED_LEADERBOARD[0].accountId,
-      DEMO_OVERLOOKED_LEADERBOARD[1].accountId,
+      ...demoAccountIds,
     )
     .all<LeaderboardRow>();
 
-  const entries: OverlookedLeaderboardEntry[] = query.results.map((row, index) => ({
-    position: index + 1,
-    displayName: displayName(row),
-    sectorName: row.sector_name,
-    score: row.raw_score,
-    phishingReported: row.phishing_reported,
-    legitimateCompleted: row.legitimate_completed,
-    mistakes: row.phishing_processed + row.legitimate_discarded,
-    completedAt: row.completed_at,
-    isCurrent: row.account_id === currentAccount.id,
-  }));
+  const entries: OverlookedLeaderboardEntry[] = query.results.map((row, index) => {
+    const publicProfile = findArcadePublicProfileByAccountId(row.account_id);
+    return {
+      position: index + 1,
+      displayName: displayName(row),
+      nickname: publicProfile?.nickname ?? displayName(row),
+      avatarUrl: publicProfile?.avatarUrl ?? "/avatar/master/master.png",
+      animatedAvatarUrl:
+        publicProfile?.animatedAvatarUrl ?? "/avatar/master/master.png",
+      profileId: publicProfile?.profileId ?? null,
+      sectorName: row.sector_name,
+      score: row.raw_score,
+      phishingReported: row.phishing_reported,
+      legitimateCompleted: row.legitimate_completed,
+      mistakes: row.phishing_processed + row.legitimate_discarded,
+      completedAt: row.completed_at,
+      isCurrent: row.account_id === currentAccount.id,
+    };
+  });
 
   return {
     generatedAt: new Date().toISOString(),

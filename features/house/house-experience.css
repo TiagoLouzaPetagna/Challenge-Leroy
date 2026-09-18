@@ -2015,14 +2015,15 @@
   }
 
   .house-page .house-action--build {
-    display: inline-grid;
-    width: 38px;
-    padding: 0;
+    display: inline-flex;
+    width: auto;
+    padding: 0 10px;
     place-items: center;
+    font-size: 11px;
   }
 
   .house-page .house-action--build span {
-    display: none;
+    display: inline;
   }
 
   .house-page .house-focus-context {
@@ -2032,8 +2033,10 @@
   }
 
   .house-page .house-focus-context strong {
-    font-size: 16px;
+    font-size: 14px;
   }
+
+  .house-page .house-focus-context > span { display: none; }
 
   .house-page .house-action {
     min-height: 38px;

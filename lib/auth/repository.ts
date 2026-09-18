@@ -119,6 +119,18 @@ const SEED_ACCOUNTS = [
       "7b86c15a34732ea04f39bdd7eaa8eddf7762306c1becbe2aee92e33a27e78359",
     passwordIterations: 210_000,
   },
+  {
+    id: "account:ana-learner",
+    employeeId: "FUNC-0002",
+    name: "Ana Costa",
+    role: "learner" as const,
+    sectorId: "tecnologia",
+    sectorName: "Tecnologia",
+    passwordSalt: "824f683a215ec021c2938c3aa8c7a4ce",
+    passwordHash:
+      "9386a60731d40c663f575690a304c7f38308e5748bc183a576457d65f5d9f3c2",
+    passwordIterations: 210_000,
+  },
 ] as const;
 
 let storageInitialization: Promise<void> | null = null;

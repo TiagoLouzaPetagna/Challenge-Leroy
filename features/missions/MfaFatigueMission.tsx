@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, KeyRound, MapPin, ShieldAlert, Smartphone } from "lucide-react";
 
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityShell } from "@/features/activities/ActivityShell";
@@ -304,7 +305,7 @@ export function MfaFatigueMission(props: Props) {
           <div className="mfa-prerequisite-content"><h2>Preparação necessária</h2><div className="mfa-prerequisite-list">
             <article className={senderLabCompleted ? "is-complete" : ""}><span>{senderLabCompleted ? "Concluído" : "Pendente"}</span><h3>Quem enviou de verdade?</h3>{!senderLabCompleted ? <button className="text-button" onClick={onOpenSenderLab} type="button">Abrir PhishLab</button> : null}</article>
             <article className={domainLabCompleted ? "is-complete" : ""}><span>{domainLabCompleted ? "Concluído" : "Pendente"}</span><h3>Domínio sob a lupa</h3>{!domainLabCompleted ? <button className="text-button" onClick={onOpenDomainLab} type="button">Abrir PhishLab</button> : null}</article>
-          </div><button className="text-button" onClick={onBackToMissions} type="button">← Voltar ao percurso</button></div>
+          </div><button className="text-button" onClick={onBackToMissions} type="button"><ArrowLeft size={16} aria-hidden="true" /> Voltar ao percurso</button></div>
         </section>
       </ActivityShell>
     );
@@ -341,7 +342,7 @@ export function MfaFatigueMission(props: Props) {
         <header className={`mission-header ${stage > 0 ? "activity-context-summary" : ""}`}><div><span className="section-badge">Confiança sob pressão · Etapa 05</span><h1>Você iniciou este acesso?</h1><p>Compare os pedidos de acesso com o que você está fazendo e decida quais deve aprovar.</p></div><div className="mission-meta" aria-label="Informações da missão"><span>Tempo estimado</span><strong>9 minutos</strong><small>{POINT_RULES.mainMission} pontos-base</small></div></header>
         <ActivityProgress steps={steps} currentStep={stage} ariaLabel="Progresso de Você iniciou este acesso" />
         <div className="mission-content" aria-live="polite">
-          {stage === 0 ? <div className="mission-briefing"><div className="briefing-copy"><span className="section-kicker">Situação</span><h2 ref={titleRef} tabIndex={-1}>Pedidos de acesso começam a chegar</h2><p>{content.situation}</p>{content.priorExposureNote ? <div className="briefing-callout"><span aria-hidden="true">!</span><p>{content.priorExposureNote}</p></div> : null}</div><div className="briefing-objectives mfa-briefing-context"><span className="section-kicker">O que você fará</span><p><strong>Seu papel:</strong> {content.role}</p><button className="primary-button dark" type="button" onClick={() => setStage(1)}>Ver os pedidos de acesso</button></div></div> : null}
+          {stage === 0 ? <div className="mission-briefing mfa-opening"><div className="briefing-copy"><span className="section-kicker">Situação</span><h2 ref={titleRef} tabIndex={-1}>Pedidos de acesso começam a chegar</h2><p>{content.situation}</p>{content.priorExposureNote ? <div className="briefing-callout"><ShieldAlert size={20} aria-hidden="true" /><p>{content.priorExposureNote}</p></div> : null}</div><div className="mfa-opening-scene" aria-label="Celular recebendo uma solicitação de acesso"><div className="mfa-phone"><span className="mfa-phone__camera" /><div className="mfa-phone__app"><KeyRound size={22} aria-hidden="true" /><small>Solicitação de acesso</small><strong>Você está tentando entrar?</strong><p><MapPin size={14} aria-hidden="true" /> Outro dispositivo</p><div><span>Negar</span><span>Aprovar</span></div></div></div><span className="mfa-phone-alert"><Smartphone size={18} aria-hidden="true" /> Novo pedido</span></div><div className="briefing-objectives mfa-briefing-context"><span className="section-kicker">O que você fará</span><p><strong>Seu papel:</strong> {content.role}</p><button className="primary-button dark" type="button" onClick={() => setStage(1)}>Ver os pedidos de acesso</button></div></div> : null}
 
           {stage === 1 ? <div className="mfa-workspace"><section className="mfa-event-panel" aria-labelledby="mfa-events-title"><span className="simulation-label">Pedidos de acesso</span><h2 id="mfa-events-title" ref={titleRef} tabIndex={-1}>Você iniciou este pedido de acesso?</h2><p>Compare os dados do pedido com seu acesso. Indique se foi você e escolha uma ação.</p>
             {content.ownActions.length > 0 ? <div className="mfa-request-list">{content.ownActions.map((action) => <article key={action.id}><div><span>{action.timeLabel} · ação registrada por você</span><h3>{action.service}</h3><p>{action.purpose} · desafio {action.challenge}</p></div><strong>{action.status === "active" ? "Ainda ativa" : "Encerrada"}</strong></article>)}</div> : <div className="briefing-callout"><span aria-hidden="true">i</span><p>Você não iniciou nenhuma entrada ou alteração neste período.</p></div>}

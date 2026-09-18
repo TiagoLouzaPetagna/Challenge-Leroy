@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, MessageSquareText } from "lucide-react";
 
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { useDragReorder } from "@/features/activities/useDragReorder";
@@ -607,7 +608,7 @@ export function ConversationReconstructionMission({
         <div className="conversation-reconstruction-workspace">
           {stage === 0 ? (
             <div className="conversation-opening">
-              <div className="conversation-opening__heading">
+              <div className="conversation-opening__heading conversation-opening__heading--visual">
                 <span className="section-kicker">Antes de começar</span>
                 <h2 ref={stageTitleRef} tabIndex={-1}>
                   O que mudou nesta conversa?
@@ -615,7 +616,12 @@ export function ConversationReconstructionMission({
                 <p>
                   Organize as mensagens e encontre o pedido que mudou o rumo da conversa.
                 </p>
-
+                <div className="conversation-opening__scene" aria-hidden="true">
+                  <MessageSquareText size={28} />
+                  <span><i />Conversa comum</span>
+                  <span><i />Pedido inesperado</span>
+                  <strong>Encontre a virada</strong>
+                </div>
               </div>
               <aside className="conversation-assigned-case">
                 <span>Caso atribuído</span>
@@ -669,6 +675,7 @@ export function ConversationReconstructionMission({
                       if (!message) return null;
                       return (
                         <li key={message.id} data-artifact-id={message.id} {...dragMessage(message.id)}>
+                          <GripVertical className="conversation-drag-handle" size={19} aria-hidden="true" />
                           <div className="conversation-position" aria-label={`Posição ${index + 1}`}>
                             {index + 1}
                           </div>
@@ -685,7 +692,7 @@ export function ConversationReconstructionMission({
                               onClick={() => moveMessage(message.id, index - 1)}
                               aria-label={`Mover mensagem de ${message.timeLabel} para cima`}
                             >
-                              ↑
+                              <ArrowUp size={17} aria-hidden="true" />
                             </button>
                             <button
                               type="button"
@@ -693,7 +700,7 @@ export function ConversationReconstructionMission({
                               onClick={() => moveMessage(message.id, index + 1)}
                               aria-label={`Mover mensagem de ${message.timeLabel} para baixo`}
                             >
-                              ↓
+                              <ArrowDown size={17} aria-hidden="true" />
                             </button>
                             <label>
                               <span className="sr-only">Posição da mensagem de {message.timeLabel}</span>
@@ -773,7 +780,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(0)}>
-                  ← Voltar ao contexto do caso
+                  <ArrowLeft size={16} aria-hidden="true" /> Voltar ao contexto do caso
                 </button>
                 <button
                   type="button"
@@ -842,7 +849,7 @@ export function ConversationReconstructionMission({
               </fieldset>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(1)}>
-                  ← Rever reconstrução
+                  <ArrowLeft size={16} aria-hidden="true" /> Rever reconstrução
                 </button>
                 <button
                   type="button"
@@ -871,7 +878,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(2)}>
-                  ← Rever hipótese inicial
+                  <ArrowLeft size={16} aria-hidden="true" /> Rever hipótese inicial
                 </button>
                 <button type="button" className="primary-button dark" onClick={() => goTo(4)}>
                   Revisar com a nova informação
@@ -916,7 +923,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(3)}>
-                  ← Rever nova informação
+                  <ArrowLeft size={16} aria-hidden="true" /> Rever nova informação
                 </button>
                 <button type="button" className="primary-button dark" onClick={() => goTo(5)}>
                   Montar resposta final
@@ -1000,7 +1007,7 @@ export function ConversationReconstructionMission({
               )}
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(4)}>
-                  ← Voltar à revisão
+                  <ArrowLeft size={16} aria-hidden="true" /> Voltar à revisão
                 </button>
                 <button
                   type="button"
@@ -1044,7 +1051,7 @@ export function ConversationReconstructionMission({
               <ActivityError message={error} />
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(5)}>
-                  ← Rever resposta final
+                  <ArrowLeft size={16} aria-hidden="true" /> Rever resposta final
                 </button>
                 <button
                   type="button"

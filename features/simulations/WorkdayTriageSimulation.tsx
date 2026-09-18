@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowLeft, ArrowRight, Inbox } from "lucide-react";
 
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
@@ -316,7 +317,7 @@ export function WorkdayTriageSimulation({
 
               <div className="mission-navigation workday-opening-actions">
                 <button type="button" className="primary-button learning-button" onClick={() => goToStage(1)}>
-                  Começar a triagem <span aria-hidden="true">→</span>
+                  Começar a triagem <ArrowRight size={17} aria-hidden="true" />
                 </button>
                 <button type="button" className="text-button" onClick={onBackToHub}>
                   Voltar às Simulações
@@ -404,7 +405,7 @@ export function WorkdayTriageSimulation({
 
             <article className="workday-v2-reader">
               <div className="workday-v2-mail-toolbar">
-                <span>Caixa de entrada</span>
+                <span><Inbox size={16} aria-hidden="true" /> Caixa de entrada</span>
                 <strong>E-mail {selectedItemIndex + 1} de {content.items.length}</strong>
               </div>
               <header>
@@ -477,7 +478,7 @@ export function WorkdayTriageSimulation({
                   disabled={selectedItemIndex === 0}
                   onClick={() => setSelectedItemId(content.items[selectedItemIndex - 1].id)}
                 >
-                  ← E-mail anterior
+                  <ArrowLeft size={16} aria-hidden="true" /> E-mail anterior
                 </button>
                 <p>
                   <strong>{selectedItemIndex + 1} de {content.items.length}</strong>
@@ -489,7 +490,7 @@ export function WorkdayTriageSimulation({
                   disabled={selectedItemIndex === content.items.length - 1}
                   onClick={() => setSelectedItemId(content.items[selectedItemIndex + 1].id)}
                 >
-                  Próximo e-mail →
+                  Próximo e-mail <ArrowRight size={16} aria-hidden="true" />
                 </button>
               </nav>
             </article>
@@ -524,7 +525,7 @@ export function WorkdayTriageSimulation({
               ))}
             </div>
             <div className="mission-navigation">
-              <button type="button" className="text-button" onClick={() => goToStage(1)}>← Voltar à triagem</button>
+              <button type="button" className="text-button" onClick={() => goToStage(1)}><ArrowLeft size={16} aria-hidden="true" /> Voltar à triagem</button>
               <button type="button" className="primary-button dark" onClick={() => goToStage(3)}>Aplicar em outro canal</button>
             </div>
           </div>
@@ -555,7 +556,7 @@ export function WorkdayTriageSimulation({
             </fieldset>
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <div className="mission-navigation">
-              <button type="button" className="text-button" onClick={() => goToStage(2)}>← Voltar à revisão</button>
+              <button type="button" className="text-button" onClick={() => goToStage(2)}><ArrowLeft size={16} aria-hidden="true" /> Voltar à revisão</button>
               <button type="button" className="primary-button dark" disabled={!transferActionId || !transferEvidenceId || isSubmitting} onClick={finish}>
                 {isSubmitting ? "Avaliando…" : "Concluir Simulação"}
               </button>

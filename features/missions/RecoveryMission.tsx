@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowLeft, ArrowUp, GripVertical } from "lucide-react";
 
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
@@ -572,11 +573,12 @@ export function RecoveryMission({
                   if (!fact) return null;
                   return (
                     <li key={fact.id} {...dragFact(fact.id)}>
+                      <GripVertical className="recovery-drag-handle" size={19} aria-hidden="true" />
                       <span className="recovery-timeline-builder__position">{index + 1}</span>
                       <div><span>{fact.timeLabel}</span><strong>{fact.title}</strong><p>{fact.detail}</p></div>
                       <div className="recovery-timeline-builder__buttons">
-                        <button type="button" disabled={index === 0} onClick={() => moveTimelineFact(index, -1)} aria-label={`Mover ${fact.title} para cima`}>↑</button>
-                        <button type="button" disabled={index === timelineFactIds.length - 1} onClick={() => moveTimelineFact(index, 1)} aria-label={`Mover ${fact.title} para baixo`}>↓</button>
+                        <button type="button" disabled={index === 0} onClick={() => moveTimelineFact(index, -1)} aria-label={`Mover ${fact.title} para cima`}><ArrowUp size={17} aria-hidden="true" /></button>
+                        <button type="button" disabled={index === timelineFactIds.length - 1} onClick={() => moveTimelineFact(index, 1)} aria-label={`Mover ${fact.title} para baixo`}><ArrowDown size={17} aria-hidden="true" /></button>
                       </div>
                     </li>
                   );
@@ -593,7 +595,7 @@ export function RecoveryMission({
                 ))}
               </fieldset>
               <div className="mission-navigation">
-                <button type="button" className="text-button" onClick={() => goToStage(0)}>← Rever contexto</button>
+                <button type="button" className="text-button" onClick={() => goToStage(0)}><ArrowLeft size={16} aria-hidden="true" /> Rever contexto</button>
                 <button type="button" className="primary-button dark" disabled={!exposureStageId} onClick={() => goToStage(2)}>Organizar as ações</button>
               </div>
             </div>
@@ -644,8 +646,8 @@ export function RecoveryMission({
                             <span>{index + 1}</span>
                             <strong>{actionById.get(actionId)?.title}</strong>
                             <div>
-                              <button type="button" disabled={index === 0} onClick={() => moveGroupAction(group.id, index, -1)} aria-label={`Mover ${actionById.get(actionId)?.title} para cima`}>↑</button>
-                              <button type="button" disabled={index === groupOrder[group.id].length - 1} onClick={() => moveGroupAction(group.id, index, 1)} aria-label={`Mover ${actionById.get(actionId)?.title} para baixo`}>↓</button>
+                              <button type="button" disabled={index === 0} onClick={() => moveGroupAction(group.id, index, -1)} aria-label={`Mover ${actionById.get(actionId)?.title} para cima`}><ArrowUp size={17} aria-hidden="true" /></button>
+                              <button type="button" disabled={index === groupOrder[group.id].length - 1} onClick={() => moveGroupAction(group.id, index, 1)} aria-label={`Mover ${actionById.get(actionId)?.title} para baixo`}><ArrowDown size={17} aria-hidden="true" /></button>
                             </div>
                           </li>
                         ))}
