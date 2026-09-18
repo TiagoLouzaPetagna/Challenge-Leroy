@@ -1,0 +1,59 @@
+.house-3d-shell {
+  position: fixed;
+  z-index: 1;
+  inset: 64px 0 0;
+  overflow: hidden;
+  background: #e5eddf;
+}
+
+.house-3d-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #e5eddf;
+}
+
+.house-3d-status {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border: 1px solid rgb(23 63 53 / 12%);
+  border-radius: 12px;
+  color: var(--learn-forest, #173f35);
+  background: rgb(255 253 247 / 96%);
+  box-shadow: 0 14px 36px rgb(13 46 39 / 12%);
+  font-size: 12px;
+  font-weight: 750;
+  transform: translate(-50%, -50%);
+}
+
+.house-3d-status span {
+  width: 9px;
+  height: 9px;
+  border: 2px solid #b8ef3a;
+  border-top-color: #173f35;
+  border-radius: 50%;
+  animation: house-3d-loading .8s linear infinite;
+}
+
+.house-3d-status--error {
+  color: #873e33;
+  border-color: #e2b7ae;
+  background: #fff5ef;
+}
+
+@keyframes house-3d-loading { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  .house-3d-shell { inset-block-start: 58px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .house-3d-status span { animation: none; }
+}

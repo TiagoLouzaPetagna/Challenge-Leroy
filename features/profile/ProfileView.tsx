@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import type { LearnerPreferences } from "@/lib/domain/types";
-import { Mascot } from "@/features/ui/LearningUI";
+import { UserAvatar } from "@/features/avatar/UserAvatar";
 
 import styles from "./ProfileView.module.css";
 
@@ -99,6 +99,7 @@ type ProfileViewProps = {
   onOpenMission: () => void;
   onOpenReview: () => void;
   onOpenArcade: () => void;
+  onOpenAvatar: () => void;
   onOpenActivity: (href: string) => void;
   tutorialCompleted: boolean;
   onOpenTutorial: (opener: HTMLButtonElement) => void;
@@ -161,6 +162,7 @@ export function ProfileView({
   onOpenMission,
   onOpenReview,
   onOpenArcade,
+  onOpenAvatar,
   onOpenActivity,
   tutorialCompleted,
   onOpenTutorial,
@@ -336,12 +338,17 @@ export function ProfileView({
                 <path d="m21 35 7 7 15-17" />
               </svg>
             </span>
-            <Mascot
-              pose="profile"
-              size="large"
-              className={styles.profileMascot}
-              alt="Leroyzin acompanha sua trajetória de evolução"
-            />
+            <div className={styles.avatarCard}>
+              <span>Meu personagem</span>
+              <UserAvatar
+                fallback={model.learnerName.slice(0, 2).toUpperCase()}
+                label={`Avatar de ${model.learnerName}`}
+                size="profile"
+              />
+              <button type="button" onClick={onOpenAvatar}>
+                Personalizar avatar
+              </button>
+            </div>
           </div>
         </header>
 

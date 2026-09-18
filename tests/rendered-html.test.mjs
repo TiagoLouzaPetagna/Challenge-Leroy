@@ -284,65 +284,49 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
   }
 });
 
-test("define um Master Avatar pixel art com grade e camadas estáveis", async () => {
-  const [master, geometry] = await Promise.all([
-    readFile(new URL("features/avatar/MasterAvatar.tsx", projectRoot), "utf8"),
-    readFile(new URL("features/avatar/avatar-master.ts", projectRoot), "utf8"),
-  ]);
+test("integra o criador de avatar ao perfil e preserva o catálogo pixel art", async () => {
+  const [creatorPage, creatorApp, creatorHtml, catalog, profile, chrome, avatar] =
+    await Promise.all([
+      readFile(new URL("app/avatar-lab/page.tsx", projectRoot), "utf8"),
+      readFile(new URL("public/avatar-creator/app.js", projectRoot), "utf8"),
+      readFile(new URL("public/avatar-creator/index.html", projectRoot), "utf8"),
+      readFile(new URL("public/avatar-creator/catalogo.json", projectRoot), "utf8"),
+      readFile(new URL("features/profile/ProfileView.tsx", projectRoot), "utf8"),
+      readFile(new URL("features/ui/PortalChrome.tsx", projectRoot), "utf8"),
+      readFile(new URL("features/avatar/UserAvatar.tsx", projectRoot), "utf8"),
+    ]);
 
-  assert.match(geometry, /width: 64/);
-  assert.match(geometry, /height: 96/);
-  assert.match(geometry, /MASTER_AVATAR_ANCHORS/);
-  assert.match(geometry, /\/avatar\/base\/body-base\.png/);
-  assert.match(geometry, /\/avatar\/bottoms\/base-underwear\.png/);
-  assert.match(geometry, /\/avatar\/face\/face-01\.png/);
-  assert.match(master, /data-avatar-master="true"/);
-  assert.match(master, /data-pixel-grid/);
+  const avatarCatalog = JSON.parse(catalog);
+  const optionCount = Object.values(avatarCatalog.options).reduce(
+    (total, options) => total + options.length,
+    0,
+  );
+  assert.equal(avatarCatalog.width, 48);
+  assert.equal(avatarCatalog.height, 64);
+  assert.equal(optionCount, 99);
 
-  const pngAssets = [
-    "public/avatar/base/body-base.png",
-    "public/avatar/bottoms/base-underwear.png",
-    "public/avatar/face/face-01.png",
-    "public/avatar/master/master.png",
-  ];
-  for (const asset of pngAssets) {
-    const png = await readFile(new URL(asset, projectRoot));
-    assert.equal(png.readUInt32BE(16), 64, `${asset} deve ter 64 px de largura`);
-    assert.equal(png.readUInt32BE(20), 96, `${asset} deve ter 96 px de altura`);
-    assert.equal(png[25], 6, `${asset} deve usar PNG RGBA com transparência`);
-  }
-
-  const layers = [
-    "hair-back",
-    "body",
-    "lower-clothing",
-    "shoes",
-    "upper-clothing",
-    "face",
-    "hair-front",
-    "glasses",
-    "head-accessory",
-    "special-accessory",
-  ];
-  let previousIndex = -1;
-  for (const layer of layers) {
-    const currentIndex = geometry.indexOf(`"${layer}"`);
-    assert.ok(currentIndex > previousIndex, `${layer} deve manter a ordem do master`);
-    previousIndex = currentIndex;
-  }
+  assert.match(creatorPage, /src="\/avatar-creator\/\?embedded=1"/);
+  assert.match(creatorPage, /casa-digital:avatar-saved/);
+  assert.match(creatorApp, /casa-digital:avatar:v1/);
+  assert.match(creatorApp, /imageDataUrl/);
+  assert.match(creatorApp, /localStorage\.setItem/);
+  assert.match(creatorHtml, /Usar este avatar/);
+  assert.match(creatorHtml, /Prévia em movimento/);
+  assert.match(profile, /Personalizar avatar/);
+  assert.match(profile, /size="profile"/);
+  assert.match(chrome, /<UserAvatar/);
+  assert.match(avatar, /AVATAR_UPDATED_EVENT/);
 
   const profileResponse = await render("/perfil");
   const profileHtml = await profileResponse.text();
-  assert.doesNotMatch(profileHtml, /data-avatar-master="true"/);
+  assert.match(profileHtml, /Personalizar avatar/);
+  assert.match(profileHtml, /Avatar de/);
 
   const labResponse = await render("/avatar-lab");
   const labHtml = await labResponse.text();
-  assert.match(labHtml, /Master Avatar aprovado/);
-  assert.match(labHtml, /master-approved-v1\/body-base\.png/);
-  assert.match(labHtml, /underwear-default\.png/);
-  assert.match(labHtml, /face-eyes-rounded\.png/);
-  assert.match(labHtml, /face-eyes-almond-upturned\.png/);
-  assert.match(labHtml, /Teste de contorno/);
+  assert.match(labHtml, /Criador de personagem/);
+  assert.match(labHtml, /\/avatar-creator\/\?embedded=1/);
+  assert.match(labHtml, /Voltar ao perfil/);
 });
 
 test("simplifica a missão em seis etapas preservando o contrato e a identidade visual", async () => {

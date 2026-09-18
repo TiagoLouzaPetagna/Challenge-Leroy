@@ -2598,6 +2598,7 @@ export default function Home() {
               onOpenMission={() => navigate("missoes")}
               onOpenReview={() => router.push(nextStep.href)}
               onOpenArcade={() => navigate("arcade")}
+              onOpenAvatar={() => router.push("/avatar-lab")}
               onOpenActivity={(href) => router.push(href)}
               tutorialCompleted={tutorial.status === "completed"}
               onOpenTutorial={openTutorial}

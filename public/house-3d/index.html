@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143e38">
+  <title>Casa Ateliê — meu cantinho em 3D</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23143e38'/%3E%3Cpath d='M7 15 16 7l9 8v10H7Z' fill='%23d5ed91'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+  <main id="studio" aria-busy="true">
+    <canvas id="scene" tabindex="0" aria-label="Sala 3D. Arraste um objeto para mover; arraste o espaço para girar. Setas ajustam a posição, R gira, Delete guarda e Escape cancela."></canvas>
+    <header class="topbar">
+      <div class="brand"><span class="brand-symbol" data-icon="house"></span><div><span class="eyebrow">CASA ATELIÊ</span><h1>Meu cantinho<span class="title-dot">.</span></h1></div></div>
+      <div class="top-actions"><span id="save-state" role="status">Abrindo sua casa…</span><button id="save-recovery" class="button secondary" hidden>Salvar esta versão</button><button id="build" aria-label="Construir" class="button secondary" aria-pressed="false" aria-controls="build-panel" disabled><span data-icon="expand"></span><span>Construir</span></button><button id="mode" class="button primary" disabled><span id="mode-icon" data-icon="check"></span><span id="mode-label">Concluir</span></button></div>
+    </header>
+    <nav class="room-nav" aria-label="Ambientes da casa"><button id="all-rooms" aria-pressed="true" title="Enquadrar toda a casa"><span data-icon="house"></span><span>Casa</span></button><div id="room-tabs"></div></nav>
+    <div id="loading" role="status">Preparando seu cantinho…</div>
+
+    <aside class="tools edit-only" aria-label="Ferramentas de edição">
+      <button id="undo" class="icon-button" aria-label="Desfazer" title="Desfazer (Ctrl+Z)" disabled data-icon="undo"></button>
+      <button id="redo" class="icon-button" aria-label="Refazer" title="Refazer (Ctrl+Shift+Z)" disabled data-icon="redo"></button>
+      <span class="divider"></span>
+      <button id="move" class="icon-button" aria-label="Mover objetos" title="Mover objetos" aria-pressed="true" disabled data-icon="move"></button>
+      <button id="grid" class="icon-button" aria-label="Mostrar grade" title="Grade e encaixe de 20 cm (G)" aria-pressed="false" disabled data-icon="grid"></button>
+    </aside>
+    <div class="camera-controls">
+      <button id="walls" class="wall-toggle" aria-label="Paredes automáticas" title="Paredes automáticas · clique para alternar" disabled><span data-icon="wall"></span><span id="wall-mode-label">Auto</span></button>
+      <div class="zoom-panel" aria-label="Câmera"><button id="zoom-out" class="icon-button" aria-label="Diminuir zoom" disabled data-icon="minus"></button><output id="zoom-value">100%</output><button id="zoom-in" class="icon-button" aria-label="Aumentar zoom" disabled data-icon="plus"></button><span class="divider"></span><button id="reset" class="icon-button" aria-label="Centralizar a casa" title="Centralizar a casa" disabled data-icon="focus"></button></div>
+    </div>
+    <section class="collection edit-only" id="collection" aria-label="Minha coleção">
+      <div class="collection-header"><div><span class="eyebrow">CADA COISA, UM LUGAR</span><h2>Minha coleção <span id="collection-count">9</span></h2></div><div class="categories" aria-label="Categorias da coleção"><button data-category="all" aria-pressed="true">Tudo</button><button data-category="furniture" aria-pressed="false">Móveis</button><button data-category="decoration" aria-pressed="false">Objetos</button><button data-category="achievement" aria-pressed="false">Conquistas</button></div><button id="close-collection" class="icon-button" aria-label="Recolher coleção" data-icon="down"></button></div>
+
+      <div id="collection-content"><div class="items" id="items"></div><div class="collection-footer"><span>Arraste para decorar · clique para escolher</span><span id="placed-count"></span></div></div>
+      <div id="return-target" hidden><span data-icon="box"></span>Solte aqui para guardar</div>
+    </section>
+    <button class="collection-toggle edit-only" id="collapse" aria-expanded="true" aria-controls="collection"><span class="box-badge" data-icon="box"></span><span id="collapse-label">Minha coleção</span><span class="toggle-chevron" data-icon="down"></span></button>
+      <section id="selected-tools" class="selected-tools edit-only" aria-label="Objeto selecionado" hidden>
+        <div class="selected-info"><strong id="selected-name"></strong><small id="selected-state"></small></div>
+        <div class="object-actions"><button id="focus" aria-label="Focar objeto" title="Ver o objeto de perto" disabled><span data-icon="focus"></span><span>Focar</span></button><button id="rotate" aria-label="Girar objeto" title="Girar 45 graus (R)" disabled><span data-icon="rotate"></span><span>Girar</span></button><button id="remove" aria-label="Guardar objeto" title="Devolver à coleção (Delete)" disabled><span data-icon="box"></span><span>Guardar</span></button><button id="cancel" hidden>Cancelar</button></div>
+        <div id="wall-height" class="wall-height" hidden><output id="wall-height-value"></output><button id="lower" class="icon-button" aria-label="Baixar item 8 centímetros" title="Baixar 8 cm" data-icon="down"></button><button id="raise" class="icon-button" aria-label="Subir item 8 centímetros" title="Subir 8 cm" data-icon="up"></button></div>
+      </section>
+    <div id="placement-label" hidden></div>
+    <section id="build-panel" aria-label="Construção da casa" hidden>
+      <div class="build-heading"><div><span class="eyebrow">DO SEU JEITO</span><h2>Construir a casa</h2></div><button id="close-build" class="icon-button" aria-label="Voltar a decorar" data-icon="close"></button></div>
+      <label class="field-label" for="room-select">Ambiente selecionado</label><div class="room-select-row"><select id="room-select" aria-label="Ambiente" disabled><option>Sala</option></select><button id="room-focus" class="icon-button" aria-label="Focar ambiente" title="Focar este ambiente" disabled data-icon="focus"></button></div>
+      <form id="room-name-form"><label class="field-label" for="room-name">Nome do ambiente <output id="room-area"></output></label><div class="room-name-row"><input id="room-name" maxlength="40" aria-label="Nome do ambiente" required><button id="room-rename" type="submit" aria-label="Salvar nome do ambiente" title="Salvar nome" class="icon-button" data-icon="check"></button></div></form>
+      <label class="field-label" for="room-theme">Tema do ambiente selecionado</label><div class="room-select-row"><select id="room-theme"></select></div>
+      <label class="field-label" for="new-room-theme">Tema do novo ambiente</label><div class="room-select-row"><select id="new-room-theme"></select></div>
+      <div class="build-actions" aria-label="Ferramentas de construção">
+        <button id="floor-select" aria-pressed="true"><span data-icon="cursor"></span><span>Selecionar</span></button>
+        <button id="floor-new" aria-pressed="false"><span data-icon="house"></span><span>Novo ambiente</span></button>
+        <button id="floor-add" aria-pressed="false"><span data-icon="plus"></span><span>Adicionar piso</span></button>
+        <button id="floor-erase" aria-pressed="false"><span data-icon="minus"></span><span>Remover piso</span></button>
+        <button id="floor-passage" aria-pressed="false"><span data-icon="door"></span><span>Abrir / fechar passagem</span></button>
+      </div>
+      <p id="build-status" role="status">Clique no piso para selecionar um ambiente.</p>
+      <div class="build-summary"><output id="floor-count"></output><span id="floor-limit"></span><span>Shift + arrastar gira a câmera · Esc cancela</span></div>
+    </section>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <footer><p id="hint">Arraste o espaço para explorar</p></footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
+
+
+

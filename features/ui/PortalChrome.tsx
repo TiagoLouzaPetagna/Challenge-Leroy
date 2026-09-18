@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { UserAvatar } from "@/features/avatar/UserAvatar";
 import type { PortalViewKey } from "@/lib/activities/types";
 
 import { PortalIcon, type PortalIconName } from "./PortalIcons";
@@ -224,16 +225,11 @@ export function PortalTopbar({
           </strong>
           <span>{managementMode ? "Conta administradora" : levelLabel}</span>
         </div>
-        <div
+        <UserAvatar
+          fallback={initials}
+          label={`Avatar de ${learnerName}`}
           className="avatar"
-          aria-label={
-            managementMode
-              ? "Conta administradora autenticada"
-              : "Conta de funcionário autenticada"
-          }
-        >
-          {initials}
-        </div>
+        />
         {onLogout ? (
           <button type="button" className="topbar-logout" onClick={onLogout}>
             Sair

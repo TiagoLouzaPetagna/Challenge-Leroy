@@ -1,81 +1,121 @@
-type EyeVariant = {
-  description: string;
-  face: string;
-  label: string;
-};
+"use client";
 
-const BASE_PATH = "/avatar/review/master-approved-v1";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
-const EYE_VARIANTS: EyeVariant[] = [
-  {
-    label: "Olhos arredondados",
-    description: "Formato compacto, simétrico e mais aberto.",
-    face: `${BASE_PATH}/face-eyes-rounded.png`,
-  },
-  {
-    label: "Olhos amendoados",
-    description: "Formato horizontal com os cantos levemente ascendentes.",
-    face: `${BASE_PATH}/face-eyes-almond-upturned.png`,
-  },
-];
+import {
+  AVATAR_STORAGE_KEY,
+  AVATAR_UPDATED_EVENT,
+  type SavedAvatar,
+} from "@/features/avatar/avatar-storage";
+import { BrandMark } from "@/features/ui/PortalChrome";
+import { PortalIcon } from "@/features/ui/PortalIcons";
 
-function ApprovedAvatar({ face, title }: { face: string; title: string }) {
-  const layers = [
-    `${BASE_PATH}/body-base.png`,
-    `${BASE_PATH}/underwear-default.png`,
-    face,
-  ];
+import styles from "./AvatarCreatorPage.module.css";
+
+type CreatorState = "loading" | "ready" | "saved" | "error";
+
+export default function AvatarCreatorPage() {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [creatorState, setCreatorState] = useState<CreatorState>("loading");
+
+  useEffect(() => {
+    const receiveMessage = (event: MessageEvent) => {
+      if (
+        event.origin !== window.location.origin ||
+        event.source !== iframeRef.current?.contentWindow
+      ) {
+        return;
+      }
+
+      if (event.data?.type === "casa-digital:avatar-ready") {
+        setCreatorState("ready");
+        return;
+      }
+
+      if (event.data?.type === "casa-digital:avatar-error") {
+        setCreatorState("error");
+        return;
+      }
+
+      if (event.data?.type === "casa-digital:avatar-saved") {
+        const avatar = event.data.payload as SavedAvatar;
+        if (
+          avatar?.version !== 1 ||
+          typeof avatar.imageDataUrl !== "string" ||
+          !avatar.imageDataUrl.startsWith("data:image/png;base64,")
+        ) {
+          return;
+        }
+
+        window.localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(avatar));
+        window.dispatchEvent(new Event(AVATAR_UPDATED_EVENT));
+        setCreatorState("saved");
+      }
+    };
+
+    window.addEventListener("message", receiveMessage);
+    return () => window.removeEventListener("message", receiveMessage);
+  }, []);
+
+  const statusLabel =
+    creatorState === "loading"
+      ? "Carregando peças"
+      : creatorState === "saved"
+        ? "Salvo no perfil"
+        : creatorState === "error"
+          ? "Editor indisponível"
+          : "Editor pronto";
 
   return (
-    <span className="approved-avatar" role="img" aria-label={title}>
-      {layers.map((source) => (
-        // Os PNGs preservam a mesma tela de 1024 x 1536 e são sobrepostos sem reposicionamento.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img alt="" aria-hidden="true" draggable={false} key={source} src={source} />
-      ))}
-    </span>
-  );
-}
-
-export default function AvatarMasterLabPage() {
-  return (
-    <main className="avatar-review-page">
-      <header className="avatar-review-header">
-        <div>
-          <span className="section-kicker">Laboratório visual local</span>
-          <h1>Master Avatar aprovado</h1>
-          <p>
-            O avatar antigo foi removido deste teste. As duas opções abaixo usam
-            o mesmo corpo e a mesma roupa-base; somente a camada dos olhos muda.
-          </p>
+    <main className={styles.page}>
+      <header className={styles.topbar}>
+        <div className={styles.brand}>
+          <BrandMark />
+          <div>
+            <strong>Casa Digital</strong>
+            <span>Meu personagem</span>
+          </div>
         </div>
-        <a className="secondary-button" href="/perfil">
-          Voltar ao perfil
-        </a>
+
+        <div className={styles.actions}>
+          <span
+            className={`${styles.status} ${creatorState === "error" ? styles.error : ""}`.trim()}
+            role="status"
+          >
+            <i aria-hidden="true" />
+            {statusLabel}
+          </span>
+          <Link className={styles.backLink} href="/perfil">
+            <PortalIcon name="arrow-left" size={17} />
+            Voltar ao perfil
+          </Link>
+        </div>
       </header>
 
-      <section className="avatar-review-grid" aria-label="Comparação dos olhos do avatar">
-        {EYE_VARIANTS.map((variant) => (
-          <article className="avatar-review-card" key={variant.face}>
-            <div className="avatar-review-stage">
-              <ApprovedAvatar face={variant.face} title={variant.label} />
-            </div>
-            <div className="avatar-review-copy">
-              <span>Master em camadas</span>
-              <h2>{variant.label}</h2>
-              <p>{variant.description}</p>
-            </div>
-          </article>
-        ))}
+      <section className={styles.editor} aria-label="Criador de personagem">
+        {creatorState === "loading" ? (
+          <div className={styles.loading} role="status">
+            <span aria-hidden="true" />
+            Preparando seu guarda-roupa…
+          </div>
+        ) : null}
+        {creatorState === "error" ? (
+          <div className={styles.errorCard} role="alert">
+            <strong>Não foi possível abrir o criador.</strong>
+            <p>Recarregue a página para tentar novamente.</p>
+          </div>
+        ) : null}
+        <iframe
+          ref={iframeRef}
+          src="/avatar-creator/?embedded=1"
+          title="Criador do meu personagem"
+          className={styles.frame}
+          onLoad={() => {
+            if (creatorState === "error") setCreatorState("loading");
+          }}
+        />
       </section>
-
-      <aside className="avatar-review-note">
-        <strong>Teste de contorno</strong>
-        <p>
-          Os personagens estão em escala exata de 25% sobre fundo verde-escuro.
-          Assim, qualquer halo claro ou falha entre as camadas fica visível.
-        </p>
-      </aside>
     </main>
   );
 }

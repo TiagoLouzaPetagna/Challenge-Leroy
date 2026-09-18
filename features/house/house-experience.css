@@ -2010,7 +2010,18 @@
   .house-page .house-focus-back span:last-child,
   .house-page .house-points,
   .house-page .house-mode-badge,
-  .house-page .house-action:not(.house-action--primary) {
+  .house-page .house-action:not(.house-action--primary):not(.house-action--build) {
+    display: none;
+  }
+
+  .house-page .house-action--build {
+    display: inline-grid;
+    width: 38px;
+    padding: 0;
+    place-items: center;
+  }
+
+  .house-page .house-action--build span {
     display: none;
   }
 
@@ -2107,6 +2118,16 @@
 
 .house-page .house-action--quiet {
   border-color: transparent;
+}
+
+.house-page .house-action--build {
+  border-color: #c9d8c9;
+  background: #edf4df;
+}
+
+.house-page .house-action--build:hover {
+  border-color: #86a987;
+  background: #e2efd0;
 }
 
 .house-page .house-action--primary {
