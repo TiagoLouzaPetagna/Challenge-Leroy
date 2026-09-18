@@ -7266,7 +7266,8 @@ registros da aba Pessoas no Painel de gestão ainda não se transformam
 automaticamente em credenciais de acesso.
 
 As credenciais são verificadas no servidor. O banco D1 guarda somente salt e
-hash PBKDF2-SHA-256, com 210 mil iterações; senha em texto puro não é persistida.
+hash PBKDF2-SHA-256, com 100 mil iterações compatíveis com o runtime do Worker;
+senha em texto puro não é persistida.
 Uma autenticação válida cria um token aleatório de 256 bits. O navegador recebe
 o token em cookie `HttpOnly`, `SameSite=Lax`, com `Secure` em HTTPS e validade de
 12 horas; o banco guarda somente o SHA-256 do token. Logout remove a sessão do

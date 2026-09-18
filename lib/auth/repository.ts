@@ -104,8 +104,8 @@ const SEED_ACCOUNTS = [
     sectorName: "Administração",
     passwordSalt: "f4adb627c2d31eedf35bb44e6f78fdf3",
     passwordHash:
-      "42298bbfe23c0f41aa4e38072a10ca644e698825f470f075e0dc09135441f838",
-    passwordIterations: 210_000,
+      "bbc29f7c42f558055551288fd864dbeae3217d9450d338170111a73e343f9b1f",
+    passwordIterations: 100_000,
   },
   {
     id: "account:lucas-learner",
@@ -116,8 +116,8 @@ const SEED_ACCOUNTS = [
     sectorName: "Casa & Decoração",
     passwordSalt: "3151b07852555901cf35d48e3e9a4a37",
     passwordHash:
-      "7b86c15a34732ea04f39bdd7eaa8eddf7762306c1becbe2aee92e33a27e78359",
-    passwordIterations: 210_000,
+      "45994c8d8333396012eaaa9d44a63b14537b484a25dc1e3702172f2192d1ad98",
+    passwordIterations: 100_000,
   },
   {
     id: "account:ana-learner",
@@ -128,8 +128,8 @@ const SEED_ACCOUNTS = [
     sectorName: "Tecnologia",
     passwordSalt: "824f683a215ec021c2938c3aa8c7a4ce",
     passwordHash:
-      "9386a60731d40c663f575690a304c7f38308e5748bc183a576457d65f5d9f3c2",
-    passwordIterations: 210_000,
+      "f64a8123062a39c51421439c40dfeb2d6016c30b8500172c280ac4b1b0013569",
+    passwordIterations: 100_000,
   },
 ] as const;
 

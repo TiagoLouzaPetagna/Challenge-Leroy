@@ -1,4 +1,4 @@
-const PASSWORD_ITERATIONS = 210_000;
+const PASSWORD_ITERATIONS = 100_000;
 
 function hexToBytes(value: string): Uint8Array<ArrayBuffer> {
   if (!/^[0-9a-f]+$/i.test(value) || value.length % 2 !== 0) {

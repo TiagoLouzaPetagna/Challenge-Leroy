@@ -5142,9 +5142,9 @@ test("vincula identidade e progresso à conta autenticada sem troca por rota", a
       await derivePasswordHash(
         "AdminCasa#2026",
         "f4adb627c2d31eedf35bb44e6f78fdf3",
-        210_000,
+        100_000,
       ),
-      "42298bbfe23c0f41aa4e38072a10ca644e698825f470f075e0dc09135441f838",
+      "bbc29f7c42f558055551288fd864dbeae3217d9450d338170111a73e343f9b1f",
     );
     assert.equal(safeReturnPath("//example.com"), "/");
     assert.equal(safeReturnPath("/gestao?tab=pessoas"), "/gestao?tab=pessoas");

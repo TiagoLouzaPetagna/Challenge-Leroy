@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "fortifica",
+	"account_id": "5b93d61d5c78dbaf95dcaaaa53f0511a",
+	"compatibility_date": "2026-09-18",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"main": "./worker/index.ts",
+	"workers_dev": true,
+	"preview_urls": true,
+	"assets": {
+		"directory": "./public",
+		"not_found_handling": "none",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "fortifica-db",
+			"database_id": "ff996560-f15c-47db-b609-63b706f76b89",
+			"migrations_dir": "drizzle"
+		}
+	]
+}
