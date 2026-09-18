@@ -1,0 +1,247 @@
+.topbar {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px clamp(20px, 4vw, 42px);
+  border-bottom: 1px solid var(--brand-border);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.menuButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 2px solid var(--brand-forest);
+  border-radius: 14px;
+  color: var(--brand-forest);
+  background: var(--brand-white);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.menuButton:hover {
+  background: var(--brand-lime-pale);
+}
+
+.brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  border: 0;
+  border-radius: 10px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.brand strong {
+  overflow: hidden;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brandMark {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+}
+
+.progress strong {
+  color: var(--brand-forest);
+  font-size: 13px;
+}
+
+.progress span {
+  color: var(--brand-muted);
+  font-size: 11px;
+}
+
+.avatar {
+  display: grid;
+  width: 40px;
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--brand-white);
+  background: var(--brand-forest);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.panelBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  border: 0;
+  background: rgba(23, 63, 53, 0.16);
+  cursor: default;
+}
+
+.panel {
+  position: fixed;
+  z-index: 95;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: min(420px, 92vw);
+  flex-direction: column;
+  padding: 22px 18px;
+  overflow-y: auto;
+  border-right: 3px solid var(--brand-forest);
+  background: var(--brand-white);
+  box-shadow: var(--shadow-soft);
+}
+
+.panelHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panelHeading strong {
+  color: var(--brand-forest);
+  font-size: 22px;
+}
+
+.closeButton {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  color: var(--brand-forest);
+  background: var(--brand-white);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.panelNav {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navItem {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 9px;
+  border: 3px solid transparent;
+  border-radius: 16px;
+  color: var(--brand-forest);
+  background: transparent;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease-out, background 160ms ease-out;
+}
+
+.navItem:hover {
+  transform: translateX(3px);
+  background: var(--brand-lime-pale);
+}
+
+.navItemActive {
+  border-color: var(--brand-forest);
+  color: var(--brand-forest);
+  background: var(--brand-lime);
+}
+
+.tile {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid var(--brand-forest);
+  border-radius: 12px;
+  color: var(--brand-forest);
+  background: var(--tile-bg, var(--brand-lime-light));
+}
+
+.panelFooter {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  padding: 22px 10px 4px;
+  color: var(--brand-muted);
+  font-size: 12px;
+}
+
+.panelFooter button {
+  justify-self: start;
+  padding: 8px 12px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  color: var(--brand-forest);
+  background: var(--brand-white);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.panelFooter button:hover,
+.closeButton:hover {
+  background: var(--brand-lime-pale);
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    min-height: 68px;
+    gap: 10px;
+    padding-inline: 14px;
+  }
+
+  .menuButton {
+    padding: 9px 12px;
+  }
+
+  .brand strong,
+  .progress span {
+    display: none;
+  }
+
+  .progress strong {
+    font-size: 11px;
+  }
+
+  .panel {
+    width: min(360px, 100vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navItem {
+    transition: none;
+  }
+}

@@ -1,0 +1,186 @@
+/* Trilha de Missões remodelada: aplica somente o layout transferido
+   aos oito passos existentes no Challenge. */
+
+.trailSection {
+  display: grid;
+  gap: 4px;
+}
+
+.trailSection h2 {
+  margin: 0;
+  font-family: var(--learn-display);
+  font-size: 32px;
+  color: var(--learn-forest);
+}
+
+.trailExplanation {
+  margin: 0 0 24px;
+  color: var(--learn-muted);
+  font-size: 14px;
+}
+
+.trail {
+  position: relative;
+  display: grid;
+  gap: 60px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trailItem {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+}
+
+.trailItem:nth-child(even) {
+  margin-inline-start: 120px;
+}
+
+.trailNode {
+  display: grid;
+  width: 110px;
+  height: 110px;
+  place-items: center;
+  border: 5px solid var(--learn-line);
+  border-radius: 50%;
+  background: var(--learn-paper);
+  color: var(--learn-muted);
+  font-family: var(--learn-display);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.isCompleted .trailNode {
+  border-color: var(--learn-forest);
+  background: var(--learn-lime-pale);
+  color: var(--learn-forest);
+}
+
+.isCurrent .trailNode {
+  border-color: var(--learn-forest);
+  background: var(--learn-lime);
+  color: var(--learn-forest-deep);
+  box-shadow: 0 0 0 8px rgb(184 239 58 / 35%);
+  animation: hub-node-pulse 2.4s ease-in-out infinite;
+}
+
+.isPlanned .trailNode {
+  border-style: dashed;
+}
+
+.trailCopy {
+  display: grid;
+  gap: 5px;
+}
+
+.trailCopy strong {
+  font-family: var(--learn-display);
+  font-size: 24px;
+  color: var(--learn-ink);
+}
+
+.trailHere {
+  color: var(--learn-forest);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.chip {
+  justify-self: start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ecf0e8;
+  color: var(--learn-muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.trailPrerequisites {
+  margin: 0;
+  color: var(--learn-muted);
+  font-size: 13px;
+}
+
+.trailItem > button {
+  min-width: 150px;
+}
+
+@keyframes hub-node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 8px rgb(184 239 58 / 35%);
+  }
+
+  50% {
+    box-shadow: 0 0 0 14px rgb(184 239 58 / 20%);
+  }
+}
+
+@media (max-width: 900px) {
+  .trailItem,
+  .trailItem:nth-child(even) {
+    grid-template-columns: 90px minmax(0, 1fr);
+    margin-inline-start: 0;
+  }
+
+  .trailItem > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .trailNode {
+    width: 90px;
+    height: 90px;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 620px) {
+  .trail {
+    gap: 40px;
+  }
+
+  .trailItem,
+  .trailItem:nth-child(even) {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .trailNode {
+    width: 72px;
+    height: 72px;
+    border-width: 4px;
+    font-size: 20px;
+  }
+
+  .trailCopy strong {
+    font-size: 20px;
+  }
+
+  .trailItem > button {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isCurrent .trailNode {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .trailNode {
+    border-color: CanvasText;
+  }
+
+  .isCompleted .trailNode,
+  .isCurrent .trailNode {
+    border-color: Highlight;
+  }
+}
