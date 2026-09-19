@@ -280,10 +280,18 @@
 }
 
 .primaryButton {
-  border: 1px solid #173f35;
-  color: white;
-  background: #173f35;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 14px;
+  color: var(--learn-forest-deep);
+  background: var(--learn-lime);
+  box-shadow: var(--shadow-button);
+  transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease), filter var(--motion-fast) var(--motion-ease);
 }
+
+.primaryButton:hover:not(:disabled) { filter: saturate(1.08) brightness(1.02); transform: translateY(-1px); }
+.primaryButton:active:not(:disabled) { box-shadow: 0 1px 0 #5f920d; transform: translateY(4px); }
 
 .primaryButton:disabled {
   cursor: wait;
@@ -593,4 +601,25 @@
   .rowActions {
     justify-content: flex-start;
   }
+}
+
+/* A conta permanece acessível na base do banner de gestão. */
+.adminCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  padding: 0;
+  color: #fffdf2;
+  background: transparent;
+}
+.adminCard > span { color: #c3ed85; }
+.adminCard > strong { margin: 0; font-size: 1.4rem; }
+.adminCard p { margin: 0; color: #d1e3d7; font-size: .85rem; }
+.adminCard button { margin-left: auto; border-color: #ffffff59; color: #fffdf2; }
+@media (max-width: 700px) {
+  .adminCard { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .adminCard button { margin-left: 0; }
 }

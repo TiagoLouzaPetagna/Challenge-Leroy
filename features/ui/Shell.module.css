@@ -187,7 +187,7 @@
   border: 2px solid var(--brand-forest);
   border-radius: 12px;
   color: var(--brand-forest);
-  background: var(--tile-bg, var(--brand-lime-light));
+  background: var(--brand-lime-light);
 }
 
 .panelFooter {

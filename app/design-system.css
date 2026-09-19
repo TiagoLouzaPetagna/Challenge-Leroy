@@ -251,7 +251,7 @@ button { color: inherit; }
 .learning-button:hover, .primary-button:hover { filter: saturate(1.08) brightness(1.02); transform: translateY(-1px); }
 .learning-button:active, .primary-button:active { box-shadow: 0 1px 0 #5f920d; transform: translateY(4px); }
 .learning-button:disabled, .primary-button:disabled { opacity: .48; cursor: not-allowed; box-shadow: none; transform: none; }
-.primary-button.dark { color: #fff; background: var(--learn-forest); box-shadow: 0 5px 0 var(--learn-forest-deep); }
+.primary-button.dark { color: var(--learn-forest-deep); background: var(--learn-lime); box-shadow: var(--shadow-button); }
 .text-button {
   padding: 7px 2px;
   border: 0;
@@ -265,7 +265,7 @@ button { color: inherit; }
 .text-button:hover { text-decoration: underline; }
 
 .leroyzin { position: relative; display: block; pointer-events: none; user-select: none; }
-.leroyzin img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.leroyzin img, .leroyzin video { display: block; width: 100%; height: 100%; object-fit: contain; }
 .leroyzin--small { width: 86px; height: 86px; }
 .leroyzin--medium { width: 190px; height: 190px; }
 .leroyzin--large { width: min(32vw, 330px); height: min(32vw, 330px); }
@@ -1164,11 +1164,11 @@ button { color: inherit; }
 .home-trail-panel { padding: 42px clamp(32px, 4vw, 58px); border-radius: var(--radius-lg); background: var(--learn-paper); }
 .home-trail-count { color: var(--learn-muted); font-size: 13px; font-weight: 800; }
 .home-trail-wrap { position: relative; margin-top: 34px; }
-.home-trail-path { position: absolute; top: 0; left: 0; z-index: 0; width: 230px; height: 100%; }
+.home-trail-path { position: absolute; top: 0; left: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
 .home-trail-path path { fill: none; stroke: var(--learn-line); stroke-width: 9; stroke-linecap: round; stroke-dasharray: 1 17; }
-.home-trail { position: relative; z-index: 1; display: grid; grid-auto-rows: 160px; gap: 30px; margin: 0; padding: 0; list-style: none; }
-.home-trail__item { position: relative; display: grid; grid-template-columns: 110px minmax(0, 560px); align-items: center; gap: 20px; }
-.home-trail__item:nth-child(even) { margin-inline-start: 120px; }
+.home-trail { position: relative; z-index: 1; display: grid; grid-auto-rows: minmax(160px, auto); gap: 60px; margin: 0; padding: 0; list-style: none; }
+.home-trail__item { position: relative; display: grid; grid-template-columns: 110px minmax(0, 560px); align-items: center; gap: 20px; width: min(100%, max(55%, 460px)); }
+.home-trail__item:nth-child(even) { justify-self: end; }
 .home-trail__node {
   display: grid;
   width: 110px;
@@ -1205,6 +1205,15 @@ button { color: inherit; }
 .home-trail__prerequisites { margin: 0; color: var(--learn-muted); font-size: 13px; }
 .home-trail__copy > button { margin-top: 6px; }
 .home-trail__copy > .learning-button { min-height: 50px; padding: 0 22px; }
+
+@media (min-width: 761px) {
+  .home-trail__item:nth-child(even) { grid-template-columns: minmax(0, 560px) 110px; }
+  .home-trail__item:nth-child(even) .home-trail__node { grid-column: 2; grid-row: 1; }
+  .home-trail__item:nth-child(even) .home-trail__copy { grid-column: 1; grid-row: 1; justify-items: end; text-align: right; }
+  .home-trail__item:nth-child(even) .home-trail__details { justify-content: flex-end; }
+  .home-trail__item:nth-child(even) .home-trail__chip { justify-self: end; }
+  .home-trail__item:nth-child(even) .home-trail__here { right: 0; left: auto; }
+}
 
 /* Praticar do seu jeito — cinco blocos de cor cheia, sem hierarquia entre si. */
 .home-modes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 24px; }
@@ -1292,9 +1301,9 @@ button { color: inherit; }
   .home-trail { grid-auto-rows: auto; gap: 30px; }
   .home-trail::before { position: absolute; top: 36px; bottom: 36px; left: 33px; z-index: 0; width: 8px; border-left: 8px dotted var(--learn-line); content: ""; }
   .home-trail__item,
-  .home-trail__item:nth-child(even) { z-index: 1; grid-template-columns: 72px minmax(0, 1fr); min-height: 110px; margin-inline-start: 0; gap: 14px; }
+  .home-trail__item:nth-child(even) { z-index: 1; grid-template-columns: 72px minmax(0, 1fr); width: 100%; min-height: 110px; gap: 14px; }
   .home-trail__node { width: 72px; height: 72px; font-size: 22px; }
-  .home-trail__here { top: -14px; left: 0; }
+  .home-trail__here { top: -30px; left: 0; }
   .home-trail__item strong { font-size: 19px; }
   .home-modes { grid-template-columns: 1fr; }
   .home-shield { grid-template-columns: 1fr; text-align: center; }

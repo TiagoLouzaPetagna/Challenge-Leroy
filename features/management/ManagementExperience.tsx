@@ -1,5 +1,7 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { useMemo, useState, type FormEvent } from "react";
 
 import { useAppState } from "@/app/providers";
@@ -231,16 +233,7 @@ export function ManagementExperience() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero} aria-labelledby="management-title">
-        <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}>Gestão administrativa · acesso por conta</span>
-          <h1 id="management-title">Gestão do programa</h1>
-          <p>
-            Um primeiro bastidor para organizar pessoas de teste por setor e
-            consultar o conteúdo já modelado. A identidade e a permissão vêm da
-            conta autenticada; convites e cadastro público continuam fora deste recorte.
-          </p>
-        </div>
+      <SectionBanner variant="management" labelledBy="management-title" footer={
         <aside className={styles.adminCard}>
           <span>Conta administradora</span>
           <strong>{account?.name ?? state.demo.administrator.name}</strong>
@@ -252,7 +245,11 @@ export function ManagementExperience() {
             Sair da conta
           </button>
         </aside>
-      </header>
+      }>
+        <span>Painel de gestão</span>
+        <h1 id="management-title">Conecte pessoas.<br />Cultive segurança.</h1>
+        <p>Organize pessoas por setor, acompanhe o programa e consulte os conteúdos que ajudam a construir uma cultura de proteção.</p>
+      </SectionBanner>
 
       <nav className={styles.tabs} aria-label="Seções da gestão administrativa">
         {MANAGEMENT_TABS.map((tab) => (

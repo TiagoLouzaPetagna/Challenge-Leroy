@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  type CSSProperties,
   type KeyboardEvent,
   type RefObject,
 } from "react";
@@ -16,15 +15,14 @@ const PORTAL_NAV_ITEMS: ReadonlyArray<{
   key: PortalViewKey;
   label: string;
   icon: PortalIconName;
-  tileColor?: string;
 }> = [
   { key: "inicio", label: "Visão geral", icon: "home" },
-  { key: "missoes", label: "Missões", icon: "missions", tileColor: "var(--brand-lime)" },
-  { key: "laboratorio", label: "PhishLab", icon: "laboratory", tileColor: "var(--brand-blue)" },
-  { key: "simulacoes", label: "Simulações", icon: "simulations", tileColor: "var(--brand-coral)" },
-  { key: "radar", label: "Radar", icon: "radar", tileColor: "#cde8f5" },
-  { key: "equipes", label: "Equipes", icon: "teams", tileColor: "var(--brand-yellow)" },
-  { key: "arcade", label: "Arcade", icon: "arcade", tileColor: "#ddd2f2" },
+  { key: "missoes", label: "Missões", icon: "missions" },
+  { key: "laboratorio", label: "PhishLab", icon: "laboratory" },
+  { key: "simulacoes", label: "Simulações", icon: "simulations" },
+  { key: "radar", label: "Radar", icon: "radar" },
+  { key: "equipes", label: "Equipes", icon: "teams" },
+  { key: "arcade", label: "Arcade", icon: "arcade" },
   { key: "perfil", label: "Meu perfil", icon: "profile" },
   { key: "gestao", label: "Painel de gestão", icon: "settings" },
 ];
@@ -251,11 +249,6 @@ export function PortalMenuPanel({
                     <span
                       className={styles.tile}
                       aria-hidden="true"
-                      style={
-                        item.tileColor
-                          ? ({ "--tile-bg": item.tileColor } as CSSProperties)
-                          : undefined
-                      }
                     >
                       <PortalIcon name={item.icon} size={20} />
                     </span>

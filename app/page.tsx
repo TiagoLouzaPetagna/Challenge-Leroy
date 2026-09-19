@@ -1,5 +1,7 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import {
   useEffect,
   useMemo,
@@ -131,9 +133,7 @@ import {
   type PortalIconName,
 } from "@/features/ui/PortalIcons";
 import {
-  IllustratedMessage,
   LearningButton,
-  Mascot,
 } from "@/features/ui/LearningUI";
 import { ActivityRouteState } from "@/features/activities/ActivityRouteState";
 import { ActivityShell } from "@/features/activities/ActivityShell";
@@ -538,16 +538,13 @@ const homeModules: Array<{
   },
 ];
 
-function buildTrailPath(stepCount: number): string {
-  const rowHeight = 190;
-  const nodeCenterY = 80;
-  const nodeCenters = [55, 175];
-  return Array.from({ length: stepCount - 1 }, (_, index) => {
-    const startX = nodeCenters[index % 2];
-    const endX = nodeCenters[(index + 1) % 2];
-    const startY = nodeCenterY + index * rowHeight;
-    const endY = startY + rowHeight;
-    return `${index === 0 ? `M${startX} ${startY}` : ""} C${startX} ${startY + 90}, ${endX} ${endY - 90}, ${endX} ${endY}`;
+function buildTrailPath(nodeCenters: Array<{ x: number; y: number; radius: number }>): string {
+  return nodeCenters.slice(1).map((end, index) => {
+    const start = nodeCenters[index];
+    const startY = start.y + start.radius + 8;
+    const endY = end.y - end.radius - 8;
+    const curveDepth = Math.min(200, Math.abs(end.x - start.x) * 0.24);
+    return `M${start.x} ${startY} C${start.x} ${startY + curveDepth}, ${end.x} ${endY - curveDepth}, ${end.x} ${endY}`;
   }).join("");
 }
 
@@ -696,7 +693,34 @@ function HomeView({
   const currentStepId =
     learningPath.steps.find((step) => step.status === "in_progress")?.id ??
     learningPath.steps.find((step) => step.status === "available")?.id;
-  const trailPath = buildTrailPath(learningPath.steps.length);
+  const trailRef = useRef<HTMLOListElement>(null);
+  const trailPathRef = useRef<SVGPathElement>(null);
+
+  useEffect(() => {
+    const trail = trailRef.current;
+    const path = trailPathRef.current;
+    if (!trail || !path) return;
+
+    // Follow the actual node positions as the panel and text reflow.
+    const updatePath = () => {
+      const bounds = trail.getBoundingClientRect();
+      const centers = Array.from(trail.querySelectorAll(".home-trail__node"), (node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          x: rect.left - bounds.left + rect.width / 2,
+          y: rect.top - bounds.top + rect.height / 2,
+          radius: rect.height / 2,
+        };
+      });
+      path.setAttribute("d", buildTrailPath(centers));
+    };
+
+    const observer = new ResizeObserver(updatePath);
+    observer.observe(trail);
+    for (const item of trail.children) observer.observe(item);
+    updatePath();
+    return () => observer.disconnect();
+  }, [isHydrated, learningPath.steps]);
   const hasSectorData = eligibleParticipants > 0;
   const sectorGoalLine =
     sectorMetrics.score >= sectorTargetScore
@@ -734,14 +758,14 @@ function HomeView({
         </button>
       </header>
 
-      <section className="home-learning-hero" data-tour="next-step" aria-labelledby="home-next-title">
-        <div className="home-learning-hero__copy">
+      <SectionBanner variant="home" tour="next-step" labelledBy="home-next-title">
+        <div>
           <span className="home-learning-hero__meta">
             {recommendationMeta.areaLabel} · {recommendationMeta.estimatedMinutes} min
           </span>
-          <h1 id="home-next-title">Tem algo estranho<br />nesta mensagem.</h1>
+          <h1 id="home-next-title">Sua próxima escolha<br />faz a diferença.</h1>
           <p className="home-learning-hero__title">{nextStep.title}</p>
-          <p>Leia o aviso, descubra o que ele pede e escolha um caminho seguro.</p>
+          <p>Um novo passo para reconhecer riscos e agir com mais confiança no dia a dia.</p>
           <div className="home-learning-hero__actions">
             <LearningButton onClick={onOpenRecommendation}>
               {nextStep.actionLabel}
@@ -759,10 +783,7 @@ function HomeView({
           </div>
           <small>{recommendationMeta.basePoints} pontos · {recommendationMeta.statusLabel}</small>
         </div>
-        <IllustratedMessage>
-          <Mascot pose="thinking" size="medium" />
-        </IllustratedMessage>
-      </section>
+      </SectionBanner>
 
       {/* Seu caminho — home.md §7. A trilha é o herói: 8 nós completos, sem janela. */}
       <section className="home-trail-panel" aria-labelledby="home-trail-title">
@@ -775,10 +796,10 @@ function HomeView({
           ) : null}
         </div>
         <div className="home-trail-wrap">
-          <svg className="home-trail-path" aria-hidden="true" viewBox={`0 0 230 ${learningPath.steps.length * 190 - 30}`} preserveAspectRatio="xMinYMin meet">
-            <path d={trailPath} />
+          <svg className="home-trail-path" aria-hidden="true">
+            <path ref={trailPathRef} />
           </svg>
-          <ol className="home-trail">
+          <ol className="home-trail" ref={trailRef}>
             {!isHydrated
               ? learningPath.steps.map((step) => (
                   <li

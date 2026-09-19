@@ -804,10 +804,10 @@
   align-self: end;
   padding: 12px 21px;
   border: 0;
-  border-radius: 13px;
-  color: #fff;
-  background: var(--learn-forest, #173f35);
-  box-shadow: 0 4px 0 #0c2d25;
+  border-radius: 14px;
+  color: var(--learn-forest-deep, #0d2e27);
+  background: var(--learn-lime, #b8ef3a);
+  box-shadow: var(--shadow-button, 0 5px 0 #5f920d);
   font-weight: 850;
   cursor: pointer;
   transition: filter var(--motion-fast, 160ms) ease, transform var(--motion-fast, 160ms) ease, box-shadow var(--motion-fast, 160ms) ease;
@@ -819,13 +819,13 @@
 }
 
 .stationButton:hover {
-  filter: brightness(1.12);
+  filter: saturate(1.08) brightness(1.02);
   transform: translateY(-1px);
 }
 
 .stationButton:active {
-  box-shadow: 0 1px 0 #0c2d25;
-  transform: translateY(3px);
+  box-shadow: 0 1px 0 #5f920d;
+  transform: translateY(4px);
 }
 
 .productionNotice {

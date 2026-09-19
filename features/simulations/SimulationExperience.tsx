@@ -1,5 +1,7 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { useMemo, useState, type CSSProperties } from "react";
 
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
@@ -169,12 +171,11 @@ export function SimulationsHub({
   return (
     <div className="page-stack simulation-page">
       <div className={styles.hub}>
-        <div className={styles.introRegion}>
-          <header className={styles.editorialHeader}>
-            <h1>Escolha seu cenário.</h1>
-            <p>Treine decisões seguras em situações próximas da rotina.</p>
-          </header>
-        </div>
+        <SectionBanner variant="simulations" labelledBy="simulations-title">
+          <span>Simulações · Prática segura</span>
+          <h1 id="simulations-title">Na dúvida,<br />treine sua escolha.</h1>
+          <p>Mensagens, pedidos e imprevistos da rotina. Escolha seu cenário e pratique decisões seguras, no seu ritmo.</p>
+        </SectionBanner>
 
         <section className={styles.availableSection} aria-labelledby="available-simulation-title">
         <div className={styles.sectionIntro}>

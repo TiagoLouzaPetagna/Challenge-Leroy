@@ -1,5 +1,7 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { ProgressJourney } from "@/features/ui/LearningUI";
 import styles from "./MissionsLower.module.css";
 
@@ -129,20 +131,7 @@ export function MissionsHub({
 
   return (
     <div className="missions-hub" aria-labelledby="missions-hub-title">
-      <header className="missions-hub__hero missions-hub__hero--compact">
-        <div className="missions-hub__hero-copy">
-          <p className="missions-hub__eyebrow">Jornada de aprendizagem</p>
-          <h1 id="missions-hub-title">Confiança<br />sob pressão</h1>
-          <p className="missions-hub__intro">
-            Oito encontros para transformar impulso em decisão segura.
-          </p>
-        </div>
-        <div className="missions-hub__hero-art" aria-hidden="true">
-          <span className="missions-hub__hill missions-hub__hill--one" />
-          <span className="missions-hub__hill missions-hub__hill--two" />
-          <span className="missions-hub__flag">✓</span>
-          <span className="missions-hub__traveler" />
-        </div>
+      <SectionBanner variant="missions" labelledBy="missions-hub-title" footer={
         <div className="missions-hub__progress">
           <ProgressJourney
             current={learningPath.progressValue}
@@ -151,7 +140,11 @@ export function MissionsHub({
           />
           <p>{progress.pointsLabel} · {progress.levelLabel}</p>
         </div>
-      </header>
+      }>
+        <span>Jornada de aprendizagem</span>
+        <h1 id="missions-hub-title">Confiança<br />a cada passo.</h1>
+        <p>Oito encontros para transformar impulso em decisão segura. Siga a trilha e construa novos hábitos de proteção.</p>
+      </SectionBanner>
 
       <section className={styles.trailSection} aria-labelledby="all-missions-title">
         <h2 id="all-missions-title">Todas as Missões</h2>

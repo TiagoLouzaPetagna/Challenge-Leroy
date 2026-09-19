@@ -526,12 +526,12 @@ a:focus-visible {
 }
 
 .primary-button.dark {
-  background: var(--brand-forest);
-  color: var(--brand-white);
+  background: var(--brand-lime);
+  color: #17330d;
 }
 
 .primary-button.dark:hover {
-  background: var(--brand-forest-soft);
+  background: var(--learn-lime, var(--brand-lime));
 }
 
 .primary-button:disabled {

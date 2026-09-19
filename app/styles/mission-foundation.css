@@ -584,19 +584,19 @@
   min-height: 48px;
   align-items: center;
   justify-content: center;
-  padding: 12px 20px;
-  border: 2px solid var(--learn-forest-deep);
-  border-radius: 12px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 14px;
   color: var(--learn-forest-deep);
   background: var(--learn-lime);
-  box-shadow: 0 3px 0 var(--learn-forest-deep);
+  box-shadow: var(--shadow-button);
   font: inherit;
   font-weight: 850;
   cursor: pointer;
   transition: transform 160ms ease-out, filter 160ms ease-out, box-shadow 160ms ease-out;
 }
 .activity-completion-button:hover { filter: saturate(1.08) brightness(1.02); transform: translateY(-1px); }
-.activity-completion-button:active { box-shadow: 0 1px 0 var(--learn-forest-deep); transform: translateY(2px); }
+.activity-completion-button:active { box-shadow: 0 1px 0 #5f920d; transform: translateY(4px); }
 .activity-completion-button:focus-visible { outline: 3px solid var(--learn-focus); outline-offset: 3px; }
 @media (max-width: 640px) {
   .activity-completion-actions { display: grid; }

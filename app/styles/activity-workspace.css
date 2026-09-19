@@ -19,10 +19,11 @@
 .activity-workspace :is(.conversation-case-context,.identity-context-grid) { gap: 24px; }
 .activity-workspace :is(.briefing-callout,.identity-learning-callout) { background: #f1f4e9; border: 0; border-left: 3px solid #8fa574; border-radius: 0; box-shadow: none; padding: 16px 18px; }
 .activity-workspace :is(.mission-actions,.mission-navigation,.identity-nav) { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; border-top: 1px solid var(--activity-line); padding: 20px 0 0; margin-top: 26px; background: transparent; box-shadow: none; }
-.activity-workspace :is(.primary-button,.secondary-button) { min-height: 46px; padding: 12px 18px; border-radius: 7px; font-size: 15px; line-height: 1.4; box-shadow: none; }
-.activity-workspace .primary-button { background: #173f35; color: #fffefa; border: 1px solid #173f35; }
+.activity-workspace :is(.primary-button,.secondary-button) { min-height: 48px; padding: 12px 24px; border-radius: 14px; font-size: 15px; line-height: 1.4; }
+.activity-workspace .primary-button { background: var(--learn-lime); color: var(--learn-forest-deep); border: 0; box-shadow: var(--shadow-button); }
+.activity-workspace .primary-button:active { box-shadow: 0 1px 0 #5f920d; transform: translateY(4px); }
 .activity-workspace .primary-button:disabled { background: #e6eae2; color: #65736a; border-color: #cdd5c8; opacity: 1; }
-.activity-workspace .secondary-button { border: 1px solid #b8c6b0; background: #fffefa; color: #173f35; }
+.activity-workspace .secondary-button { border: 1px solid #b8c6b0; background: #fffefa; color: #173f35; box-shadow: none; }
 .activity-workspace :is(button,summary,select,input):focus-visible { outline: 3px solid #26786c; outline-offset: 3px; }
 .activity-workspace :is(.choice-card,.identity-field-card,.identity-calibration-grid article,.conversation-evidence-board article,.mfa-request-list article,.recovery-timeline-builder li) { border: 1px solid #c8d1c1; border-radius: 8px; background: #fffefa; box-shadow: none; }
 .activity-workspace .choice-card { padding: 14px 16px; cursor: pointer; }

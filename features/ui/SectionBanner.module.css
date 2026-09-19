@@ -1,0 +1,89 @@
+.banner {
+  --banner-accent: #b9ed32;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px 24px;
+  overflow: hidden;
+  padding: clamp(28px, 4.2vw, 64px);
+  border: 1px solid #d5e1d5;
+  border-radius: 40px;
+  color: #173f35;
+  background: linear-gradient(115deg, #f7f4e7 0 55%, #deeee0 55%);
+  box-shadow: 0 24px 64px rgb(23 63 53 / 9%);
+}
+.copy { position: relative; z-index: 2; min-width: 0; }
+.copy h1 {
+  margin: 14px 0 24px;
+  color: inherit;
+  font-family: var(--learn-display);
+  font-size: clamp(42px, 4.8vw, 74px);
+  font-weight: 600;
+  line-height: .98;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.copy > p { max-width: 46ch; margin: 0; font-size: 17px; line-height: 1.7; color: #466159; }
+.copy > span:first-child { font-size: 12px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.scene { position: relative; min-width: 0; height: clamp(330px, 32vw, 450px); }
+.orbit { position: absolute; width: 88%; aspect-ratio: 1; right: -8%; top: 0; border: 1px solid rgb(23 63 53 / 18%); border-radius: 50%; }
+.orbit::before { content: ""; position: absolute; inset: 12%; border-radius: inherit; background: var(--banner-accent); opacity: .35; }
+.orbit::after { content: ""; position: absolute; inset: 26%; border: 1px dashed rgb(23 63 53 / 24%); border-radius: inherit; }
+.board { position: absolute; inset: 10px 15% auto 0; height: 210px; padding: 23px; border: 1px solid rgb(23 63 53 / 13%); border-radius: 24px; background: #fffdf2; box-shadow: 8px 10px 0 rgb(23 63 53 / 8%); transform: rotate(-6deg); }
+.boardLabel { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 800; color: #173f35; }
+.mascot { position: absolute; z-index: 2; width: 92%; height: 94%; bottom: 0; right: -3%; object-fit: contain; filter: drop-shadow(0 18px 14px rgb(23 63 53 / 12%)); }
+.seal { position: absolute; z-index: 3; bottom: 50px; left: 0; display: grid; place-items: center; width: 62px; height: 62px; border: 5px solid #fffdf2; border-radius: 20px; background: var(--banner-accent); color: #173f35; transform: rotate(-10deg); box-shadow: 0 9px 20px rgb(23 63 53 / 10%); }
+.seal svg { width: 30px; height: 30px; }
+.caption { position: absolute; z-index: 4; bottom: -10px; right: 0; max-width: 100%; padding: 11px 18px; border: 1px solid #dce4d9; border-radius: 999px; color: #173f35; background: #fffdf2; font-size: 12px; font-weight: 800; text-align: center; }
+.footer { position: relative; z-index: 4; grid-column: 1 / -1; min-width: 0; margin-top: 10px; }
+.footer :global(.missions-hub__progress) { position: static; display: grid; margin: 0; }
+.lab { --banner-accent: #a5dcd4; background: linear-gradient(115deg, #f6f4e6 0 55%, #daf0ea 55%); }
+.lab .board { border-radius: 28px 28px 48px 12px; background: #edf8f4; background-image: linear-gradient(#287d7010 1px, transparent 1px), linear-gradient(90deg, #287d7010 1px, transparent 1px); background-size: 22px 22px; }
+.simulations { --banner-accent: #f6b8a8; background: linear-gradient(115deg, #f8f4e9 0 55%, #fbe1d8 55%); }
+.simulations .board { transform: rotate(5deg); border-radius: 12px 28px 28px 12px; border-left: 8px solid #ecb0a0; }
+.missions { background: linear-gradient(115deg, #ecf2d5 0 55%, #d4e6b8 55%); }
+.missions .board { background: #fffdf2; border-radius: 28px 12px 36px 12px; }
+.management { --banner-accent: #b9ed32; color: #fffdf2; border-color: #285a47; background: radial-gradient(circle at 90% 20%, #345e38 0 14%, transparent 14.2%), linear-gradient(115deg, #10372e, #205541); }
+.management .copy > p { color: #d1e3d7; }
+.management .copy > span { color: #c3ed85; }
+.management .orbit { border-color: #ffffff26; }
+.management .orbit::after { border-color: #ffffff38; }
+.management .footer { border-top: 1px solid #ffffff26; padding-top: 22px; }
+@media (max-width: 900px) {
+  .banner { gap: 20px; padding: 32px; }
+  .scene { height: 330px; }
+  .board { padding: 16px; inset-inline-end: 6%; }
+  .boardLabel { font-size: 10px; }
+  .caption { font-size: 10px; }
+}
+@media (max-width: 700px) {
+  .banner { grid-template-columns: minmax(0, 1fr); padding: 28px 24px; border-radius: 28px; background-size: auto; }
+  .copy h1 { font-size: clamp(38px, 9vw, 54px); }
+  .copy > p { font-size: 15px; }
+  .scene { width: min(100%, 390px); height: 310px; margin: 8px auto 10px; }
+  .footer :global(.missions-hub__progress) { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; }
+}
+.home .copy > div > p:not(:global(.home-learning-hero__title)) { max-width: 46ch; margin: 8px 0 0; color: #466159; font-size: 17px; line-height: 1.7; }
+.home .copy small { display: block; margin-top: 18px; color: #526960; }
+.home :global(.home-learning-hero__actions) { flex-wrap: wrap; }
+
+.drawing { display: block; width: 100%; height: 130px; margin-top: 14px; color: #2b6656; }
+.detail { position: absolute; z-index: 3; right: -2%; top: 4px; display: grid; place-items: center; width: 52px; height: 58px; color: #315f51; background: #fffdf2; border: 1px solid #d5e1d5; border-radius: 20px 20px 20px 5px; transform: rotate(10deg); box-shadow: 4px 5px 0 rgb(23 63 53 / 6%); }
+.detail svg { width: 27px; height: 27px; }
+.home .board { clip-path: polygon(0 5%, 31% 0, 66% 6%, 100% 0, 100% 95%, 66% 100%, 31% 94%, 0 100%); border-radius: 8px; }
+.home .orbit { border-radius: 45% 55% 35% 65%; transform: rotate(-12deg); }
+.lab .orbit { border-radius: 38% 62% 55% 45%; }
+.lab .orbit::after { inset: 16%; border-style: dotted; border-width: 3px; }
+.lab .detail { background: #d8f0ea; }
+.simulations .orbit { width: 83%; border-radius: 35% 35% 45% 20%; transform: rotate(9deg); }
+.simulations .orbit::after { border-radius: 18px; inset: 19%; }
+.simulations .detail { background: #ffe2d8; }
+.missions .orbit { border-style: dashed; }
+.management .board { border-radius: 24px 24px 24px 4px; }
+.management .orbit { border-radius: 28%; transform: rotate(-12deg); }
+@media (max-width: 700px) {
+  .detail { width: 42px; height: 46px; right: 0; }
+  .detail svg { width: 23px; height: 23px; }
+}

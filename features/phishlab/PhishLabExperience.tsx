@@ -1,5 +1,7 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { useState, type CSSProperties } from "react";
 
 import styles from "./PhishLabHub.module.css";
@@ -192,14 +194,11 @@ export function PhishLabHub({
 }: PhishLabHubProps) {
   return (
     <div className="page-stack lab-page">
-      <header className={styles.labHeader}>
-        <div className={styles.headerMain}>
-          <div className={styles.headerCopy}>
-            <h1>PhishLab</h1>
-            <p>Observe evidências, teste uma hipótese e leve a técnica para o próximo caso.</p>
-          </div>
-        </div>
-      </header>
+      <SectionBanner variant="lab" labelledBy="phishlab-title">
+        <span>PhishLab · Laboratório de investigação</span>
+        <h1 id="phishlab-title">Toda mensagem<br />deixa pistas.</h1>
+        <p>Observe evidências, teste uma hipótese e descubra o que existe por trás de um remetente ou de um link.</p>
+      </SectionBanner>
 
       {senderResult || domainResult ? (
         <div className={styles.lastResults} aria-label="Resultados do PhishLab">
