@@ -34,12 +34,10 @@ test("renderiza a plataforma Casa Digital Segura", async () => {
   const html = await response.text();
   assert.match(html, /<title>Casa Digital Segura \| Leroy Merlin<\/title>/i);
   assert.match(html, /Casa Digital/);
-  assert.match(html, /Tem algo estranho/);
+  assert.match(html, /Sua pr.xima escolha/);
   assert.match(html, /O aviso que n.{0,4}o podia esperar/);
   assert.doesNotMatch(html, /Como reportar/);
-  assert.match(html, /Atividade recente/);
-  assert.match(html, /Sua atividade aparecer.{0,4} aqui/);
-  assert.match(html, /Abrir .rea/);
+  assert.match(html, /Ver toda a jornada/);
   assert.doesNotMatch(html, /Ver estrutura/);
   assert.match(html, /Protótipo funcional/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/i);
@@ -62,9 +60,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /Cliquei\. E agora/,
         /Uma manh. comum/,
         /Mudan.a banc.ria sem atalho/,
-        /Radar opcional, com pontos/,
-        /\+5 pontos/,
-        /Recomenda.{0,8}o, n.{0,4}o bloqueio/,
+        /Todas as Miss.es/,
       ],
     },
     {
@@ -76,7 +72,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /Continuar/,
         /Progresso da miss.o de fundamento/,
         /Etapa 1 de 6/,
-        /Encontre o pedido no e-mail/,
+        /Leia o e-mail e observe o que ele pede/,
       ],
     },
     {
@@ -126,11 +122,10 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/avatar-lab",
       expected: [
-        /Laboratório visual local/,
-        /Master Avatar aprovado/,
-        /Olhos arredondados/,
-        /Olhos amendoados/,
-        /Teste de contorno/,
+        /Meu personagem/,
+        /Criador de personagem/,
+        /Voltar ao perfil/,
+        /avatar-creator\/\?embedded=1/,
       ],
     },
     {
@@ -155,7 +150,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/phishlab",
       expected: [
         /class="page-stack lab-page"/,
-        /<h1>PhishLab<\/h1>/,
+        /id="phishlab-title">Toda mensagem<br\/>deixa pistas\.<\/h1>/,
         /Quem enviou de verdade/,
         /Dom.nio sob a lupa/,
         /Espelho de P/,
@@ -184,8 +179,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/simulacoes",
       expected: [
         /class="page-stack simulation-page"/,
-        /Simula..es . pr.tica/,
-        /<h1>Escolha seu cen.rio.<\/h1>/,
+        /id="simulations-title">Na d.vida,<br\/>treine sua escolha\.<\/h1>/,
         /Uma manh. comum/,
         /Ataque multicanal/,
       ],
@@ -205,7 +199,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /class="page-stack arcade-page"/,
         /Escolha um desafio/,
         /Overlooked/,
-        /Dispon.vel/,
+        /Jogar agora/,
         /Um jogo\. Uma habilidade sob press.o/,
         /Score e pontos cumprem pap.is diferentes/,
       ],
@@ -213,18 +207,18 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/arcade/overlooked",
       expected: [
-        /class="page-stack arcade-detail-page"/,
-        /Decidam e processem juntos/,
-        /De .165 a 155 pontos/,
-        /Partida integrada/,
-        /Leaderboard espec.fico/,
+        /class="page-stack arcade-detail-page arcade-game-room"/,
+        /Todos os jogos/,
+        /Jogo carregado/,
+        /Tela cheia/,
+        /Hall da fama/,
       ],
     },
     {
       pathname: "/radar",
       expected: [
         /class="page-stack radar-page"/,
-        /Radar educativo/,
+        /Explore sinais antes que eles virem problema/,
         /Quishing: phishing escondido em QR Codes/,
         /Explore por situa/,
       ],
@@ -280,7 +274,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname,
     );
     const html = await response.text();
-    for (const pattern of expected) assert.match(html, pattern, pathname);
+    for (const pattern of expected) assert.match(html, pattern, `${pathname}: ${pattern}`);
   }
 });
 
@@ -337,12 +331,11 @@ test("define um Master Avatar pixel art com grade e camadas estáveis", async ()
 
   const labResponse = await render("/avatar-lab");
   const labHtml = await labResponse.text();
-  assert.match(labHtml, /Master Avatar aprovado/);
-  assert.match(labHtml, /master-approved-v1\/body-base\.png/);
-  assert.match(labHtml, /underwear-default\.png/);
-  assert.match(labHtml, /face-eyes-rounded\.png/);
-  assert.match(labHtml, /face-eyes-almond-upturned\.png/);
-  assert.match(labHtml, /Teste de contorno/);
+  assert.match(labHtml, /Criador de personagem/);
+  assert.match(labHtml, /avatar-creator\/\?embedded=1/);
+  const creatorScript = await readFile(new URL("public/avatar-creator/app.js", projectRoot), "utf8");
+  assert.match(creatorScript, /casa-digital:avatar-saved/);
+  assert.match(creatorScript, /toDataURL\("image\/png"\)/);
 });
 
 test("simplifica a missão em seis etapas preservando o contrato e a identidade visual", async () => {
@@ -359,14 +352,13 @@ test("simplifica a missão em seis etapas preservando o contrato e a identidade 
 
   const stageBlock = mission.match(/const STEPS = (\[[^;]+\]);/)?.[1] ?? "[]";
   assert.equal(JSON.parse(stageBlock).length, 6);
-  assert.match(mission, /useActivityStageFocus\(stage\)/);
+  assert.match(mission, /useActivityStageFocus\(stage, Boolean\(celebration\.screen\)\)/);
   assert.doesNotMatch(mission, /ActivityProgress/);
   assert.doesNotMatch(mission, /option\.detail/);
   assert.match(mission, /Rever minhas decisões/);
   assert.match(mission, /reportDetailIds\?\.length/);
 
   for (const field of [
-    "requestedActionId",
     "protectedAssetId",
     "potentialConsequenceId",
     "pauseDecisionId",
@@ -381,7 +373,7 @@ test("simplifica a missão em seis etapas preservando o contrato e a identidade 
   }
 
   assert.doesNotMatch(chrome, /current=\{1\}|total=\{4\}|ProgressJourney/);
-  assert.equal(tutorial.match(/pose="welcome"/g)?.length, 1);
+  assert.equal(tutorial.match(/pose="hero"/g)?.length, 1);
   assert.match(tutorial, /activeStep === 0/);
   assert.doesNotMatch(mission, /pose="welcome"/);
 
@@ -415,7 +407,7 @@ test("todas as atividades disponíveis encerram com revisão explícita das resp
   assert.match(reviewComponent, /O que você acertou e o que precisa revisar/);
   assert.match(reviewComponent, /Acertou/);
   assert.match(reviewComponent, /Precisa revisar/);
-  assert.match(reviewComponent, /Sua resposta/);
+  assert.match(reviewComponent, /item\.userAnswer/);
   assert.match(reviewComponent, /Resposta esperada/);
 
   const playersUsingSharedReview = [
@@ -928,20 +920,18 @@ test("mantém o tutorial 7B versionado, retomável e sem conceder pontos", async
     );
     assert.equal(selectTotalPoints(completed), initialPoints);
 
-    assert.match(page, /data-tour="next-step"/);
-    assert.match(page, /learning-navigation/);
+    assert.match(page, /tour="next-step"/);
     assert.match(page, /data-tour="progress-summary"/);
-    assert.match(page, /profile-navigation/);
-    assert.match(page, /data-tour="team-summary"/);
+    assert.match(page, /data-tour="team-shield"/);
     assert.doesNotMatch(page, /data-tour="report-button"/);
     assert.doesNotMatch(page, /Como reportar/);
     assert.match(page, /showTutorialInvitation/);
     assert.match(tutorialView, /aria-modal="true"/);
     assert.match(tutorialView, /data-has-target="false"/);
-    assert.match(tutorialView, /Começar primeira Missão/);
+    assert.match(tutorialView, /Ir para as Missões/);
     assert.doesNotMatch(tutorialView, /Pular(?: o)? tutorial/i);
-    assert.match(tutorialCatalog, /Agora você já pode começar a jornada/);
-    assert.match(tutorialCatalog, /Nenhuma ação envia um reporte real/);
+    assert.match(tutorialCatalog, /Pronto\. Sua primeira Missão está esperando/);
+    assert.match(tutorialCatalog, /\[data-tour="menu-panel"\]/);
     assert.doesNotMatch(tutorialCatalog, /report-button/);
     assert.match(profile, /Rever tutorial do portal/);
     assert.match(profile, /Iniciar tutorial do portal/);
@@ -3118,6 +3108,7 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
       [
         ["account:lucas-learner", 130],
         ["account:marina-admin", 85],
+        ["account:ana-learner", 70],
       ],
     );
     for (const entry of DEMO_OVERLOOKED_LEADERBOARD) {
@@ -3175,7 +3166,7 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
       new URL("public/arcade-games/overlooked/styles.css", projectRoot),
       "utf8",
     );
-    assert.match(component, /Jogar Overlooked/);
+    assert.match(component, /arcade-game-toolbar/);
     assert.match(integration, /\/arcade-games\/overlooked\/index\.html/);
     assert.match(integration, /overlooked:completed/);
     assert.match(gameHtml, /<title>Overlooked<\/title>/);

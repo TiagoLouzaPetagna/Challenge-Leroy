@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "@fontsource-variable/fraunces/wght.css";
 import "@fontsource-variable/manrope/wght.css";
+import "@fontsource/silkscreen/400.css";
+import "@fontsource/silkscreen/700.css";
 import { AppProvider } from "./providers";
 import "./globals.css";
 import "./design-system.css";

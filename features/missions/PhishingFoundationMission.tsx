@@ -73,7 +73,7 @@ export function PhishingFoundationMission({ existingResult, existingCasePackageI
     catch { setError("Não foi possível salvar. Suas decisões estão preservadas; tente novamente."); }
     finally { setBusy(false); }
   }
-  function restart() { setAnswer({ ...BASE, reportDetailIds: [] }); setResult(null); setRouteViewed(false); setTransferRoute(undefined); setTested(false); setShowDebrief(false); celebration.reset(); move(0); }
+  function restart() { setAnswer({ ...BASE, reportDetailIds: [] }); setResult(null); setRouteViewed(false); setTransferRoute(undefined); setTested(false); celebration.reset(); move(0); }
   const reviewItems = result ? [
     { label: "Pedido e risco", earned: result.requestImpactPoints, total: 20, tip: "Se você informar sua senha na página indicada pelo e-mail, outra pessoa poderá acessar sua conta." },
     { label: "Pausa e análise", earned: result.pauseEvaluationPoints, total: 15, tip: "Antes de clicar, pense no que o e-mail pede e no que pode acontecer. Um visual profissional ou um prazo curto não tornam o pedido confiável." },

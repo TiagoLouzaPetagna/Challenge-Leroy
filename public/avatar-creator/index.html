@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Monte seu personagem para a Casa Digital Segura.">
+  <title>Meu personagem — Casa Digital Segura</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="motion.css">
+</head>
+<body>
+  <header class="standalone-header">
+    <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">CD</span><span>Casa Digital</span></a>
+    <span class="meta">CRIADOR DE PERSONAGEM</span>
+  </header>
+
+  <main class="creator-layout">
+    <aside class="portrait-panel" aria-label="Prévia e ações do personagem">
+      <div class="panel-heading">
+        <div>
+          <span class="eyebrow">Seu personagem</span>
+          <h1>Veja cada escolha ganhar vida.</h1>
+        </div>
+        <span class="badge">48 × 64</span>
+      </div>
+
+      <div class="stage">
+        <span class="stage-arch" aria-hidden="true"></span>
+        <span class="stage-shelf stage-shelf-one" aria-hidden="true"></span>
+        <span class="stage-shelf stage-shelf-two" aria-hidden="true"></span>
+        <canvas id="avatar" width="48" height="64" role="img" aria-label="Prévia do avatar selecionado">Seu avatar</canvas>
+        <span class="stage-floor" aria-hidden="true"></span>
+        <span class="stage-label">Prévia em movimento</span>
+      </div>
+
+      <button id="save" class="save-avatar" type="button" disabled>Usar este avatar</button>
+      <button id="surprise" class="surprise" type="button" disabled>Surpreenda-me</button>
+
+      <section class="motion-card" aria-labelledby="motion-title">
+        <div class="motion-card-heading">
+          <div>
+            <span class="eyebrow">Dê vida</span>
+            <strong id="motion-title">Teste uma ação</strong>
+          </div>
+          <label class="motion-switch"><input id="animate" type="checkbox"><span>Movimento</span></label>
+        </div>
+        <div class="reaction-controls">
+          <label class="sr-only" for="reaction">Escolha uma reação</label>
+          <select id="reaction">
+            <option value="laugh">Rir</option>
+            <option value="surprise">Surpresa</option>
+            <option value="sleep">Dormir</option>
+            <option value="celebrate">Comemorar</option>
+          </select>
+          <button id="react" type="button" disabled>Reagir</button>
+          <button id="wave" type="button" disabled>Acenar</button>
+        </div>
+        <label class="cosmetic-toggle"><input id="cosmetics" type="checkbox"> Animar acessório</label>
+        <p id="cosmetic-status" class="motion-hint"></p>
+      </section>
+
+      <details class="export-tools">
+        <summary>Baixar arquivos do avatar</summary>
+        <div class="download-row">
+          <button id="download" type="button" disabled>Baixar PNG</button>
+          <select id="scale" aria-label="Tamanho do PNG">
+            <option value="1">48 × 64</option>
+            <option value="4">192 × 256</option>
+            <option value="8">384 × 512</option>
+          </select>
+        </div>
+        <button id="sheet" class="quiet" type="button" disabled>Baixar animação</button>
+      </details>
+      <p id="status" role="status" aria-live="polite">Carregando suas peças…</p>
+    </aside>
+
+    <section class="wardrobe" aria-label="Personalizar avatar">
+      <div class="wardrobe-heading">
+        <div>
+          <span class="eyebrow">Guarda-roupa</span>
+          <h2>Monte do seu jeito.</h2>
+          <p>Escolha uma categoria e toque nas peças para experimentar.</p>
+        </div>
+        <span id="count" class="count"></span>
+      </div>
+      <div id="tabs" class="tabs" role="tablist" aria-label="Categorias"></div>
+      <div id="items" role="tabpanel"></div>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

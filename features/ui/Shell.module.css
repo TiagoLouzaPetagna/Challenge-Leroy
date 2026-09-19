@@ -77,17 +77,19 @@
 
 .avatar {
   display: grid;
-  width: 40px;
+  width: 46px;
   flex: 0 0 auto;
-  aspect-ratio: 1;
+  height: 46px;
   place-items: center;
   border: 0;
-  border-radius: 50%;
-  color: var(--brand-white);
-  background: var(--brand-forest);
-  font-size: 12px;
-  font-weight: 800;
+  border-radius: 12px;
+  background: transparent;
   cursor: pointer;
+}
+
+.avatar:focus-visible {
+  outline: 3px solid var(--learn-focus);
+  outline-offset: 3px;
 }
 
 .panelBackdrop {

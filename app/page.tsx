@@ -2636,11 +2636,10 @@ export default function Home() {
             )
           ) : activeView === "arcade" ? (
             arcadeGame ? (
-              <ArcadeGameDetail
-                game={arcadeGame}
-                onBackToArcade={() => router.push("/arcade")}
-                onOpenMissions={() => navigate("missoes")}
-              />
+            <ArcadeGameDetail
+              game={arcadeGame}
+              onBackToArcade={() => router.push("/arcade")}
+            />
             ) : (
               <ArcadeHub
                 onOpenGame={(slug) => router.push(`/arcade/${slug}`)}
@@ -2667,6 +2666,7 @@ export default function Home() {
               onOpenMission={() => navigate("missoes")}
               onOpenReview={() => router.push(nextStep.href)}
               onOpenArcade={() => navigate("arcade")}
+              onOpenAvatar={() => router.push("/avatar-lab")}
               onOpenActivity={(href) => router.push(href)}
               tutorialCompleted={tutorial.status === "completed"}
               onOpenTutorial={openTutorial}

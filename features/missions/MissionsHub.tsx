@@ -114,10 +114,12 @@ export type MissionsHubProps = {
   onOpenReview?: () => void;
 };
 
-const trailStatusClassNames: Partial<Record<LearningPathStepStatus, string>> = {
-  completed: styles.isCompleted,
-  in_progress: styles.isCurrent,
-  planned: styles.isPlanned,
+const learningPathStatusClassNames: Record<LearningPathStepStatus, string> = {
+  available: "is-available",
+  in_progress: "is-in-progress",
+  completed: "is-completed",
+  locked: "is-locked",
+  planned: "is-planned",
 };
 
 export function MissionsHub({
@@ -146,56 +148,63 @@ export function MissionsHub({
         <p>Oito encontros para transformar impulso em decisão segura. Siga a trilha e construa novos hábitos de proteção.</p>
       </SectionBanner>
 
-      <section className={styles.trailSection} aria-labelledby="all-missions-title">
+      <section className={`${styles.trailSection} missions-hub__section missions-hub__curriculum`} aria-labelledby="all-missions-title">
         <h2 id="all-missions-title">Todas as Missões</h2>
         <p className={styles.trailExplanation}>
           Os números são as etapas do seu caminho. Entre elas vêm PhishLabs e Simulações.
         </p>
 
-        <ol className={styles.trail} aria-label={`Jornada ${learningPath.title}`}>
+        <ol
+          className="missions-hub__curriculum-list missions-hub__blueprint-path"
+          aria-label={`Jornada ${learningPath.title}`}
+        >
           {learningPath.steps.map((step) => {
             const isCurrent = step.id === currentLearningPathStepId;
-            const statusClass = isCurrent
-              ? styles.isCurrent
-              : trailStatusClassNames[step.status];
 
             return (
               <li
-                className={[styles.trailItem, statusClass]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={`missions-hub__curriculum-step ${learningPathStatusClassNames[step.status]}${isCurrent ? " is-current" : ""}`}
                 key={step.id}
-                aria-current={isCurrent ? "step" : undefined}
               >
-                <span className={styles.trailNode} aria-hidden="true">
-                  {step.status === "completed" ? "✓" : step.sequenceLabel}
-                </span>
-
-                <div className={styles.trailCopy}>
-                  {isCurrent ? (
-                    <span className={styles.trailHere}>Sua próxima Missão</span>
-                  ) : null}
-                  <strong id={`learning-path-${step.sequenceLabel}-title`}>
-                    {step.title}
-                  </strong>
-                  {step.status === "planned" ? (
-                    <span className={styles.chip}>Em produção</span>
-                  ) : null}
-                  {step.status === "locked" ? (
-                    <p className={styles.trailPrerequisites}>{step.statusLabel}</p>
-                  ) : null}
-                </div>
-
-                {!step.isActionDisabled ? (
-                  <button
-                    type="button"
-                    className={isCurrent ? "learning-button" : "text-button"}
-                    onClick={() => onOpenLearningPathStep(step.href)}
-                    aria-label={`${step.actionLabel}: ${step.title}`}
-                  >
-                    {step.actionLabel} <span aria-hidden="true">→</span>
-                  </button>
-                ) : null}
+                <article
+                  aria-current={isCurrent ? "step" : undefined}
+                  aria-labelledby={`learning-path-${step.sequenceLabel}-title`}
+                >
+                  <span className="missions-hub__curriculum-sequence" aria-hidden="true">
+                    {step.sequenceLabel}
+                  </span>
+                  <div className="missions-hub__curriculum-copy">
+                    <div className="missions-hub__curriculum-topline">
+                      <span className="missions-hub__category">{step.areaLabel}</span>
+                      <span className={`missions-hub__status${isCurrent ? " missions-hub__status--current" : ""}`}>
+                        {isCurrent ? "Atual" : step.statusLabel}
+                      </span>
+                    </div>
+                    <h3 id={`learning-path-${step.sequenceLabel}-title`}>{step.title}</h3>
+                    {isCurrent ? <p>{step.summary}</p> : null}
+                    {isCurrent && step.relatedRadarLabel ? <small>{step.relatedRadarLabel}</small> : null}
+                  </div>
+                  <div className="missions-hub__curriculum-action">
+                    <span>{step.metaLabel}</span>
+                    {step.isActionDisabled ? (
+                      <span
+                        className="missions-hub__unavailable-action"
+                        aria-label={`${step.statusLabel}: ${step.title}`}
+                      >
+                        {step.actionLabel}
+                      </span>
+                    ) : (
+                      <button
+                        className="missions-hub__primary-action"
+                        onClick={() => onOpenLearningPathStep(step.href)}
+                        type="button"
+                        aria-label={`${step.actionLabel}: ${step.title}`}
+                      >
+                        {step.actionLabel}
+                      </button>
+                    )}
+                  </div>
+                </article>
               </li>
             );
           })}

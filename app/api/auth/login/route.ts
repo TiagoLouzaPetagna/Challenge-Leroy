@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const derivedHash = await derivePasswordHash(
       password,
       account?.passwordSalt ?? DUMMY_SALT,
-      account?.passwordIterations ?? 210_000,
+      account?.passwordIterations ?? 100_000,
     );
     const passwordMatches = constantTimeEqual(
       derivedHash,
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
         },
       },
     );
-  } catch {
+  } catch (error) {
+    console.error("[auth/login] Login request failed", error);
     return Response.json(
       { error: "O serviço de acesso não está disponível neste momento." },
       { status: 503, headers: { "Cache-Control": "no-store" } },

@@ -6,16 +6,21 @@ import { useRouter } from "next/navigation";
 import { useAppState } from "@/app/providers";
 import { PortalIcon } from "@/features/ui/PortalIcons";
 import { selectTotalPoints } from "@/lib/state/selectors";
-import { HouseExperience, type HouseMode } from "./HouseExperience";
+import {
+  House3DExperience,
+  type House3DMode,
+} from "./House3DExperience";
+import "./house-experience.css";
 
 export function HousePage() {
   const router = useRouter();
   const { state, isHydrated } = useAppState();
-  const [mode, setMode] = useState<HouseMode>("view");
+  const [mode, setMode] = useState<House3DMode>("view");
 
   const learnerName = state.demo.learner.name;
   const points = selectTotalPoints(state);
   const isVisitorPreview = mode === "visitor";
+  const isBuilding = mode === "build";
 
   return (
     <div className={`house-page house-page--${mode}`}>
@@ -38,6 +43,8 @@ export function HousePage() {
           <strong>
             {isVisitorPreview
               ? `Casa de ${learnerName}`
+              : isBuilding
+                ? "Construindo minha casa"
               : mode === "edit"
                 ? "Editando minha casa"
                 : "Minha casa"}
@@ -46,14 +53,43 @@ export function HousePage() {
 
         <div className="house-focus-actions">
           {mode === "edit" ? (
-            <button
-              type="button"
-              className="house-action house-action--primary house-action--complete"
-              onClick={() => setMode("view")}
-            >
-              <PortalIcon name="check" size={16} />
-              Concluir edição
-            </button>
+            <>
+              <button
+                type="button"
+                className="house-action house-action--quiet house-action--build"
+                onClick={() => setMode("build")}
+              >
+                <PortalIcon name="settings" size={16} />
+                <span>Construir cômodos</span>
+              </button>
+              <button
+                type="button"
+                className="house-action house-action--primary house-action--complete"
+                onClick={() => setMode("view")}
+              >
+                <PortalIcon name="check" size={16} />
+                Concluir edição
+              </button>
+            </>
+          ) : isBuilding ? (
+            <>
+              <button
+                type="button"
+                className="house-action house-action--quiet house-action--decorate"
+                onClick={() => setMode("edit")}
+              >
+                <PortalIcon name="arrow-left" size={16} />
+                Voltar a decorar
+              </button>
+              <button
+                type="button"
+                className="house-action house-action--primary house-action--complete"
+                onClick={() => setMode("view")}
+              >
+                <PortalIcon name="check" size={16} />
+                Concluir edição
+              </button>
+            </>
           ) : mode === "visitor" ? (
             <button
               type="button"
@@ -91,7 +127,10 @@ export function HousePage() {
       </header>
 
       <div id="house-room" tabIndex={-1}>
-        <HouseExperience mode={mode} />
+        <House3DExperience
+          mode={mode}
+          onModeChange={(nextMode) => setMode(nextMode)}
+        />
       </div>
     </div>
   );

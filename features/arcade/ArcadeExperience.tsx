@@ -5,10 +5,6 @@ import { useMemo, useState } from "react";
 import { Mascot } from "@/features/ui/LearningUI";
 import {
   ARCADE_GAMES,
-  OVERLOOKED_CASE_BALANCE,
-  OVERLOOKED_RANKS,
-  OVERLOOKED_SCORING,
-  OVERLOOKED_SECONDARY_MISSIONS,
   type ArcadeGame,
   type ArcadeGameStatus,
 } from "@/lib/content/arcade-catalog";
@@ -296,89 +292,23 @@ function ArcadeGamePoster({ game, onOpen }: { game: ArcadeGame; onOpen: () => vo
 type ArcadeGameDetailProps = {
   game: ArcadeGame;
   onBackToArcade: () => void;
-  onOpenMissions: () => void;
 };
 
-export function ArcadeGameDetail({ game, onBackToArcade, onOpenMissions }: ArcadeGameDetailProps) {
+export function ArcadeGameDetail({ game, onBackToArcade }: ArcadeGameDetailProps) {
   return (
-    <div className="page-stack arcade-detail-page">
-      <button type="button" className="text-button arcade-back-button" onClick={onBackToArcade}>← Voltar para o Arcade</button>
-
-      <section className="arcade-detail-hero">
+    <div className="page-stack arcade-detail-page arcade-game-room">
+      <header className="arcade-game-toolbar">
+        <button type="button" className="arcade-game-toolbar__back" onClick={onBackToArcade}>
+          <span aria-hidden="true">←</span> Todos os jogos
+        </button>
         <div>
-          <span className="arcade-game-status inverse">{game.statusLabel}</span>
-          <h1>{game.title}</h1>
-          <p>{game.summary}</p>
-          <div className="arcade-detail-tags">
-            <span>{game.difficulty}</span><span>{game.duration}</span><span>{game.scoreScale}</span>
-          </div>
-          <div className="arcade-detail-actions">
-            <a className="primary-button" href="#overlooked-player">Jogar Overlooked</a>
-            <button type="button" className="text-button light" onClick={onOpenMissions}>Ver Missões secundárias</button>
-          </div>
+          <strong>{game.title}</strong>
+          <span>{game.difficulty} · {game.duration}</span>
         </div>
-        <div className="arcade-detail-emblem" aria-hidden="true"><span>{game.shortTitle}</span><strong>{game.caseCount}</strong><small>mensagens</small></div>
-      </section>
-
-      <section className="arcade-detail-intro">
-        <div><span className="section-kicker">Objetivo</span><h2>Segurança é trabalho em equipe</h2><p>{game.purpose}</p></div>
-        <div className="arcade-case-balance">
-          {OVERLOOKED_CASE_BALANCE.map((item) => (
-            <article key={item.label}><span>{item.marker}</span><strong>{item.count}</strong><p>{item.label}</p></article>
-          ))}
-        </div>
-      </section>
-
-      <section className="arcade-detail-grid">
-        <article className="arcade-rules-panel">
-          <span className="section-kicker">Como funciona</span>
-          <h2>Decidam e processem juntos</h2>
-          <ol>
-            <li><span>01</span><div><strong>Leiam a caixa de entrada</strong><p>Observem remetente, domínio, contexto e urgência antes de decidir.</p></div></li>
-            <li><span>02</span><div><strong>Aceitem ou reportem</strong><p>Use A para aceitar uma solicitação e R para reportar phishing.</p></div></li>
-            <li><span>03</span><div><strong>Concluam o fluxo</strong><p>Os dois jogadores movimentam documentos entre as estações do escritório.</p></div></li>
-          </ol>
-        </article>
-
-        <article className="arcade-scoring-panel">
-          <span className="section-kicker">Pontuação própria</span>
-          <h2>De −165 a 155 pontos</h2>
-          <ul>
-            {OVERLOOKED_SCORING.map((item) => (
-              <li key={item.label}><span>{item.label}</span><strong>{item.points > 0 ? "+" : ""}{item.points}</strong></li>
-            ))}
-          </ul>
-          <p>A pontuação é recalculada no servidor a partir das decisões, nunca aceita pronta do navegador.</p>
-        </article>
-      </section>
+        <span className="arcade-game-toolbar__status"><i aria-hidden="true" /> Online</span>
+      </header>
 
       <OverlookedIntegration />
-
-      <section className="arcade-detail-bottom-grid">
-        <article className="arcade-secondary-panel">
-          <span className="section-kicker">Missões secundárias futuras</span>
-          <h2>Objetivos separados do leaderboard</h2>
-          <ul>{OVERLOOKED_SECONDARY_MISSIONS.map((mission) => <li key={mission}>{mission}</li>)}</ul>
-          <button type="button" className="text-button" onClick={onOpenMissions}>Abrir Missões</button>
-        </article>
-        <article className="arcade-readiness-panel">
-          <span className="section-kicker">Situação da integração</span>
-          <h2>O que já funciona</h2>
-          <ul>
-            <li className="done"><span>✓</span>Jogo incorporado ao site</li>
-            <li className="done"><span>✓</span>Sessão vinculada à conta</li>
-            <li className="done"><span>✓</span>Pontuação recalculada no servidor</li>
-            <li className="done"><span>✓</span>Leaderboard por melhor resultado</li>
-            <li><span>—</span>Recompensas gerais do Arcade</li>
-          </ul>
-          <p>As recompensas gerais continuam desacopladas para não alterar o progresso de aprendizagem nesta etapa.</p>
-        </article>
-      </section>
-
-      <section className="arcade-rank-bands">
-        <div><span className="section-kicker">Faixas alcançáveis</span><h2>Títulos ajustados à pontuação real</h2></div>
-        <ol>{OVERLOOKED_RANKS.map((rank) => <li key={rank.label}><strong>{rank.minimum}+</strong><span>{rank.label}</span></li>)}</ol>
-      </section>
     </div>
   );
 }

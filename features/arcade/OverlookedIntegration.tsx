@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Maximize2, Trophy } from "lucide-react";
 
 import type {
   OverlookedLeaderboardResponse,
   OverlookedValidatedResult,
 } from "@/lib/arcade/overlooked";
-import { OVERLOOKED_TIE_BREAKS } from "@/lib/content/arcade-catalog";
+import { ArcadeLeaderboardPodium } from "./ArcadeLeaderboardPodium";
 
 const GAME_SOURCE = "fortifica:overlooked-game";
 const PLATFORM_SOURCE = "fortifica:arcade-platform";
@@ -40,7 +41,6 @@ export function OverlookedIntegration() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const activeRunRef = useRef<string | null>(null);
   const completingRunRef = useRef<string | null>(null);
-  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [leaderboard, setLeaderboard] =
     useState<OverlookedLeaderboardResponse | null>(null);
@@ -52,6 +52,10 @@ export function OverlookedIntegration() {
       { source: PLATFORM_SOURCE, version: BRIDGE_VERSION, type, ...payload },
       window.location.origin,
     );
+  }, []);
+
+  const openFullscreen = useCallback(() => {
+    void iframeRef.current?.requestFullscreen?.();
   }, []);
 
   const refreshLeaderboard = useCallback(async () => {
@@ -188,54 +192,33 @@ export function OverlookedIntegration() {
   return (
     <>
       <section id="overlooked-player" className="arcade-player-panel">
-        <div className="arcade-player-heading">
-          <div>
-            <span className="section-kicker">Partida integrada</span>
-            <h2>Dois jogadores, um teclado, cinco minutos</h2>
-            <p>
-              A partida pede tela cheia ao iniciar. Para entrar no ranking, chegue
-              ao fim do cronômetro e classifique pelo menos oito mensagens.
-            </p>
-          </div>
-          {isPlayerOpen ? (
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => setIsPlayerOpen(false)}
-            >
-              Fechar jogo
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="primary-button dark"
-              onClick={() => setIsPlayerOpen(true)}
-            >
-              Abrir Overlooked
-            </button>
-          )}
-        </div>
-
-        {isPlayerOpen ? (
-          <div className="arcade-player-frame-shell">
-            <iframe
-              ref={iframeRef}
-              className="arcade-player-frame"
-              src="/arcade-games/overlooked/index.html"
-              title="Jogo Overlooked"
-              allow="fullscreen"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-          <div className="arcade-player-standby">
-            <span aria-hidden="true">OV</span>
-            <div>
-              <strong>Pronto para jogar</strong>
-              <p>Abra o jogo para consultar os controles e iniciar uma sessão válida.</p>
+        <div className="arcade-player-frame-shell">
+          <div className="arcade-player-topbar">
+            <div className="arcade-player-title">
+              <span aria-hidden="true">OV</span>
+              <div>
+                <strong>Overlooked</strong>
+                <small>2 jogadores · mesmo teclado</small>
+              </div>
             </div>
+            <button type="button" onClick={openFullscreen}>
+              <Maximize2 size={17} strokeWidth={2.2} aria-hidden="true" />
+              Tela cheia
+            </button>
           </div>
-        )}
+          <iframe
+            ref={iframeRef}
+            className="arcade-player-frame"
+            src="/arcade-games/overlooked/index.html"
+            title="Jogo Overlooked"
+            allow="fullscreen"
+            allowFullScreen
+          />
+          <div className="arcade-player-bottombar" aria-hidden="true">
+            <span><i /> Jogo carregado</span>
+            <span>Casa Digital Arcade</span>
+          </div>
+        </div>
 
         {lastResult ? (
           <div className="arcade-last-result" role="status">
@@ -246,68 +229,37 @@ export function OverlookedIntegration() {
         ) : null}
       </section>
 
-      <section className="arcade-ranking-section">
+      <section id="arcade-ranking" className="arcade-ranking-section">
         <div className="arcade-section-heading">
           <div>
-            <span className="section-kicker">Leaderboard específico</span>
-            <h2>Melhores resultados no Overlooked</h2>
+            <span className="section-kicker"><Trophy size={14} strokeWidth={2.3} aria-hidden="true" /> Hall da fama</span>
+            <h2>Quem domina o escritório?</h2>
+            <p className="arcade-ranking-intro">Clique em um personagem para visitar sua casa.</p>
           </div>
-          <span className="arcade-preview-label arcade-preview-label--live">Ativo</span>
+          {leaderboard?.currentBest ? (
+            <span className="arcade-current-score">
+              Sua melhor: <strong>{leaderboard.currentBest.score} pts</strong>
+            </span>
+          ) : null}
         </div>
-        <div className="arcade-ranking-layout">
-          <div>
-            {rankingError ? (
-              <div className="arcade-ranking-empty" role="status">
-                <strong>Ranking temporariamente indisponível</strong>
-                <p>{rankingError}</p>
-                <button type="button" className="text-button" onClick={() => void refreshLeaderboard()}>
-                  Tentar novamente
-                </button>
-              </div>
-            ) : leaderboard?.entries.length ? (
-              <ol className="arcade-ranking-list">
-                {leaderboard.entries.map((entry) => (
-                  <li key={`${entry.position}:${entry.displayName}`} className={entry.isCurrent ? "is-current" : ""}>
-                    <span>{entry.position}</span>
-                    <div>
-                      <strong>{entry.displayName}{entry.isCurrent ? " · você" : ""}</strong>
-                      <small>{entry.sectorName}</small>
-                    </div>
-                    <div>
-                      <b>{entry.score} pts</b>
-                      <small>{entry.phishingReported} phishings · {entry.mistakes} erros</small>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div className="arcade-ranking-empty">
-                <strong>A primeira posição está aberta</strong>
-                <p>O ranking começa somente com partidas reais e validadas.</p>
-              </div>
-            )}
-          </div>
-          <article className="arcade-tiebreak-panel">
-            <span className="section-kicker">Ordem de desempate</span>
-            <ol>
-              {OVERLOOKED_TIE_BREAKS.map((item, index) => (
-                <li key={item}><span>{index + 1}</span>{item}</li>
-              ))}
-            </ol>
-            {leaderboard?.currentBest ? (
-              <p className="arcade-current-best">
-                Sua melhor marca: <strong>{leaderboard.currentBest.score} pontos</strong>,
-                posição {leaderboard.currentBest.position}.
-              </p>
-            ) : null}
-          </article>
+        <div className="arcade-ranking-stage">
+          {rankingError ? (
+            <div className="arcade-ranking-empty" role="status">
+              <strong>Ranking temporariamente indisponível</strong>
+              <p>{rankingError}</p>
+              <button type="button" className="text-button" onClick={() => void refreshLeaderboard()}>
+                Tentar novamente
+              </button>
+            </div>
+          ) : leaderboard?.entries.length ? (
+            <ArcadeLeaderboardPodium entries={leaderboard.entries} />
+          ) : (
+            <div className="arcade-ranking-empty">
+              <strong>A primeira posição está aberta</strong>
+              <p>Conclua uma partida para inaugurar o pódio.</p>
+            </div>
+          )}
         </div>
-        <p className="arcade-preview-note">
-          Este ranking usa somente a pontuação bruta do Overlooked e não altera o
-          ranking geral de aprendizagem. Os dois resultados iniciais usam as contas
-          de teste do site; novas participações respeitam a preferência definida em
-          Meu perfil.
-        </p>
       </section>
     </>
   );

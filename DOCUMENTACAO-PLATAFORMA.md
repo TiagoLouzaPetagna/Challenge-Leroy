@@ -7261,12 +7261,13 @@ administradora entra separadamente com uma conta de papel `administrator`.
 A rota `/login` solicita matrícula e senha de uma conta previamente cadastrada.
 Não existe cadastro público, escolha de papel no cliente ou botão para elevar a
 sessão. A rota histórica `/cadastro` fica adiada e redireciona para o perfil.
-As duas contas iniciais servem exclusivamente à validação do fluxo; novos
+As contas iniciais servem exclusivamente à validação do fluxo; novos
 registros da aba Pessoas no Painel de gestão ainda não se transformam
 automaticamente em credenciais de acesso.
 
 As credenciais são verificadas no servidor. O banco D1 guarda somente salt e
-hash PBKDF2-SHA-256, com 210 mil iterações; senha em texto puro não é persistida.
+hash PBKDF2-SHA-256, com 100 mil iterações compatíveis com o runtime do Worker;
+senha em texto puro não é persistida.
 Uma autenticação válida cria um token aleatório de 256 bits. O navegador recebe
 o token em cookie `HttpOnly`, `SameSite=Lax`, com `Secure` em HTTPS e validade de
 12 horas; o banco guarda somente o SHA-256 do token. Logout remove a sessão do
@@ -7655,3 +7656,50 @@ ou integração com o Painel de gestão. A passagem para protótipo depende de
 aprovação do caso, definição do processo real, domínio controlado, retenção,
 governança e backend autoritativo. O Arcade, o Radar e as atividades existentes
 não foram alterados.
+
+## 54. Composição local das versões principal e mudanças
+
+Em 2026-09-19, a cópia separada `mudanças-windows` recebeu uma composição local,
+sem commit e sem alterar a pasta principal. A navegação superior e o menu em
+painel da versão `mudanças` continuam sendo o shell do portal. Na aba Missões,
+permanecem o banner e a apresentação geral dessa versão, mas as oito entradas da
+trilha voltam ao formato do principal: cartões em sequência com área, estado,
+resumo do passo atual, metadados e ação própria. A troca não altera a ordem, o
+desbloqueio, as regras de pontuação nem os pacotes das atividades.
+
+Em Meu perfil, o personagem volta a ser o avatar personalizável do principal.
+O mesmo avatar também aparece no topo da navegação. A rota `/avatar-lab` volta
+a abrir o criador; a imagem escolhida continua armazenada localmente no
+navegador e não é uma credencial nem um registro corporativo de identidade. As
+demais áreas, textos e preferências do perfil da versão `mudanças` permanecem.
+
+A aba Casa retoma a experiência 3D do principal, incluindo os modos de
+visualização, decoração, construção e visita a uma casa pública de demonstração.
+Os modelos, texturas, scripts e a rota `/casa/[profileId]` acompanham essa
+versão. No Arcade, o catálogo geral de `mudanças` é preservado; somente a página
+do Overlooked volta à sala de jogo do principal, com player em destaque, controle
+de tela cheia, pódio visual e acesso às casas de demonstração a partir do
+ranking. A sessão e a pontuação do jogo continuam verificadas no servidor nos
+limites descritos na seção 50.
+
+A infraestrutura local e de publicação segue o principal: configuração de
+Cloudflare Workers e D1, migração de PBKDF2 compatível com o Worker, dependências,
+scripts de build e publicação, além das contas fictícias usadas nos testes.
+O `wrangler.jsonc` mantém a data de compatibilidade do principal (`2026-09-18`).
+Como o binário local instalado do Workers aceita datas somente até `2026-05-22`,
+o `vite.config.ts` desta cópia substitui essa data apenas durante `vinext dev`;
+o build e a configuração de publicação continuam com a data original.
+Na integração, o conjunto de IDs fictícios do ranking recebeu tipagem explícita
+para aceitar uma conta consultada como texto. Também foi removida uma chamada a
+um estado inexistente ao reiniciar a missão de fundamento; reiniciar agora limpa
+apenas os estados realmente usados. Os testes de renderização foram atualizados
+para verificar os textos, rotas, avatar, sala do jogo e três contas fictícias
+desta composição, sem mudar as regras de aprendizagem ou pontuação.
+Esta composição não torna a avaliação pedagógica autoritativa: progresso,
+pontuação geral, recompensas e agregados ainda precisam da validação
+transacional exigida antes de uso real. A validação da composição deve abranger
+build, login, navegação, trilha, perfil/avatar, casa, partida e ranking do
+Overlooked. O build e os 36 testes de renderização passaram, e as rotas de
+desktop e os recursos locais responderam por HTTP na porta 3001. Login, interações
+visuais completas da Casa e da partida, e avaliação pedagógica autoritativa não
+foram validados nesta etapa. Nenhuma alteração é enviada ao GitHub por esta etapa.

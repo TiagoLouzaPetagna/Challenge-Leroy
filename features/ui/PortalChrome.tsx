@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import type { PortalViewKey } from "@/lib/activities/types";
+import { UserAvatar } from "@/features/avatar/UserAvatar";
 
 import { PortalIcon, type PortalIconName } from "./PortalIcons";
 import styles from "./Shell.module.css";
@@ -132,7 +133,7 @@ export function PortalTopbar({
         onClick={onAvatarClick}
         aria-label={`Ver perfil de ${learnerName}`}
       >
-        {initials}
+        <UserAvatar fallback={initials} label={`Avatar de ${learnerName}`} />
       </button>
     </header>
   );
