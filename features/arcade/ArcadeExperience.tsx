@@ -20,12 +20,6 @@ const FILTER_LABELS: Record<ArcadeFilter, string> = {
   development: "Em desenvolvimento",
 };
 
-const STATUS_HELP: Record<ArcadeGameStatus, string> = {
-  available: "A partida está conectada e pode registrar resultados válidos.",
-  ready: "A proposta está definida, mas o jogo externo ainda não foi conectado.",
-  development: "O jogo continua sendo construído em um projeto separado.",
-};
-
 type ArcadeHubProps = {
   onOpenGame: (slug: string) => void;
   onBackToOverview: () => void;
@@ -61,7 +55,7 @@ function ArcadeHeroArtwork() {
   );
 }
 
-export function ArcadeHub({ onOpenGame, onBackToOverview }: ArcadeHubProps) {
+export function ArcadeHub({ onOpenGame }: ArcadeHubProps) {
   const [filter, setFilter] = useState<ArcadeFilter>("all");
   const filteredGames = useMemo(
     () =>
@@ -70,46 +64,25 @@ export function ArcadeHub({ onOpenGame, onBackToOverview }: ArcadeHubProps) {
         : ARCADE_GAMES.filter((game) => game.status === filter),
     [filter],
   );
-  const availableCount = ARCADE_GAMES.filter(
-    (game) => game.status === "available",
-  ).length;
-  const readyCount = ARCADE_GAMES.filter((game) => game.status === "ready").length;
-  const developmentCount = ARCADE_GAMES.filter(
-    (game) => game.status === "development",
-  ).length;
   const featuredGame = ARCADE_GAMES[0];
 
   return (
     <div className="page-stack arcade-page">
       <div className={styles.hub}>
         <section className={styles.introRegion} aria-labelledby="arcade-hero-title">
-          <div className={styles.heroTopline}>
-            <button type="button" className={styles.backButton} onClick={onBackToOverview}>
-              <span aria-hidden="true">←</span> Visão geral
-            </button>
-            <span className={styles.heroMode}>Prática rápida · regras claras</span>
-          </div>
 
           <header className={styles.editorialHeader}>
             <div className={styles.heroCopy}>
-              <span className={styles.kicker}>Arcade · prática em jogo</span>
               <h1 id="arcade-hero-title">Escolha um desafio.</h1>
-              <p>Teste sua leitura de risco em rodadas curtas. Cada jogo tem suas regras — e só fica disponível depois de uma integração validada.</p>
 
               {featuredGame ? (
                 <div className={styles.heroActions}>
                   <button type="button" onClick={() => onOpenGame(featuredGame.slug)}>
                     {featuredGame.status === "available" ? "Jogar agora" : "Ver especificação"} <span aria-hidden="true">→</span>
                   </button>
-                  <span><i />{featuredGame.statusLabel}</span>
                 </div>
               ) : null}
 
-              <p className={styles.catalogStatus} aria-label="Estados do catálogo">
-                <span><strong>{availableCount}</strong> partidas ativas</span>
-                <span><strong>{readyCount}</strong> pronto para integrar</span>
-                <span><strong>{developmentCount}</strong> em desenvolvimento</span>
-              </p>
             </div>
 
             <ArcadeHeroArtwork />
@@ -119,7 +92,6 @@ export function ArcadeHub({ onOpenGame, onBackToOverview }: ArcadeHubProps) {
         <section className={styles.catalogSection} aria-labelledby="arcade-catalog-title">
           <div className={styles.sectionHeading}>
             <div>
-              <span className={styles.kicker}>Em destaque</span>
               <h2 id="arcade-catalog-title">Um jogo. Uma habilidade sob pressão.</h2>
             </div>
 
@@ -272,12 +244,6 @@ function DetectorPosterArtwork() {
 }
 
 function ArcadeGamePoster({ game, onOpen }: { game: ArcadeGame; onOpen: () => void }) {
-  const integrationLabel =
-    game.status === "available"
-      ? "Conectada"
-      : game.status === "ready"
-        ? "Aguardando conexão"
-        : "Em construção";
   const detailLabel =
     game.status === "ready" ? "Ver especificação" : "Ver detalhes";
 
@@ -288,18 +254,11 @@ function ArcadeGamePoster({ game, onOpen }: { game: ArcadeGame; onOpen: () => vo
       aria-labelledby={`${game.id}-title`}
     >
       <div className={styles.posterCopy}>
-        <div className={styles.posterTopline}>
-          <span className={styles.gameStatus} data-status={game.status}>
-            <i aria-hidden="true" /> {game.statusLabel}
-          </span>
-          <span>{game.caseCount} casos</span>
-        </div>
 
         <span className={styles.gameFormat}>Reconhecimento rápido</span>
         <h3 id={`${game.id}-title`}>{game.title}</h3>
         <p>{game.summary}</p>
 
-        <p className={styles.gameHook}>Classifique a mensagem. Identifique o sinal.</p>
 
         <dl className={styles.gameMeta}>
           <div><dt>Dificuldade</dt><dd>{game.difficulty}</dd></div>
@@ -315,10 +274,6 @@ function ArcadeGamePoster({ game, onOpen }: { game: ArcadeGame; onOpen: () => vo
           >
             {detailLabel} <span aria-hidden="true">→</span>
           </button>
-          <p>
-            <strong>{integrationLabel}</strong>
-            <span>{STATUS_HELP[game.status]}</span>
-          </p>
         </div>
       </div>
 

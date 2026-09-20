@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AtSign, Mail, Search, ShieldQuestion } from "lucide-react";
 
 import { FieldMatcher } from "@/features/activities/primitives/FieldMatcher";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import {
   IDENTITY_CLAIM_ASSESSMENT_OPTIONS,
   IDENTITY_MAP_MECHANIC_ID,
@@ -22,6 +23,7 @@ import {
   type IdentityRelationId,
   type IdentityVerificationRouteId,
 } from "@/lib/content/activities/true-sender/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { calculatePerformanceBonus, POINT_RULES } from "@/lib/domain/rules";
 import type {
   LinkVerdict,
@@ -51,6 +53,8 @@ type SenderInspectorLabProps = {
   onBackToHub: () => void;
   onOpenDomainLab: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 function scrollToTop() {
@@ -108,7 +112,13 @@ export function SenderInspectorLab({
   onBackToHub,
   onOpenDomainLab,
   onOpenProfile,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: SenderInspectorLabProps) {
+  const celebration = usePostSubmitCelebration(
+    "Quem enviou de verdade?",
+    "var(--learn-teal)",
+  );
   const initialPackageIndex = Math.max(
     0,
     TRUE_SENDER_V2_PACKAGES.findIndex(
@@ -144,7 +154,7 @@ export function SenderInspectorLab({
   const [rewardGrantedInAttempt, setRewardGrantedInAttempt] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const stageTitleRef = useActivityStageFocus(stage);
+  const stageTitleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
 
   useEffect(() => {
     if (stage !== 7 || !displayResult) return;
@@ -291,6 +301,7 @@ export function SenderInspectorLab({
     setIsSubmitting(false);
     setError("");
     setStage(0);
+    celebration.reset();
     scrollToTop();
   };
 
@@ -310,6 +321,7 @@ export function SenderInspectorLab({
     setIsSubmitting(true);
     setError("");
     const grantsFirstReward = !rewardAlreadyClaimed;
+    const beforeIds = getUnlockedAchievementIds();
     const answer: TrueSenderV2Answer = {
       activityId: TRUE_SENDER_V2_ACTIVITY_ID,
       activityVersion: TRUE_SENDER_V2_ACTIVITY_VERSION,
@@ -332,6 +344,7 @@ export function SenderInspectorLab({
       setDisplayResult(result);
       setRewardGrantedInAttempt(grantsFirstReward);
       goToStage(7);
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setError(
         "Não foi possível registrar o laboratório. Suas respostas continuam na tela para uma nova tentativa.",
@@ -346,6 +359,8 @@ export function SenderInspectorLab({
         POINT_RULES.phishLab * calculatePerformanceBonus(displayResult.score),
       )
     : 0;
+
+  if (celebration.screen) return celebration.screen;
 
   return (
     <ActivityShell
@@ -376,25 +391,13 @@ export function SenderInspectorLab({
 
         {stage === 0 ? (
           <section className="identity-stage identity-opening">
-            <div className="identity-opening__lead">
-              <header>
-                <span className="section-kicker">Antes de começar</span>
-                <h2 ref={stageTitleRef} tabIndex={-1}>Observe quem está pedindo</h2>
-                <p>
-                  Um nome conhecido pode aparecer em um e-mail suspeito. Examine os campos para descobrir o que a mensagem realmente comprova.
-                </p>
-              </header>
-              <div className="identity-opening__scene" aria-label="Prévia de uma investigação de remetente">
-                <div className="identity-scene__mail">
-                  <span><Mail size={18} aria-hidden="true" /> Mensagem recebida</span>
-                  <strong>Solicitação urgente</strong>
-                  <small>De: nome conhecido &lt;conta@exemplo.com&gt;</small>
-                </div>
-                <div className="identity-scene__lens" aria-hidden="true"><Search size={32} /></div>
-                <div className="identity-scene__clue identity-scene__clue--account"><AtSign size={17} /> Conta usada</div>
-                <div className="identity-scene__clue identity-scene__clue--person"><ShieldQuestion size={17} /> Pessoa ainda não confirmada</div>
-              </div>
-            </div>
+            <header>
+              <span className="section-kicker">Antes de começar</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>Observe quem está pedindo</h2>
+              <p>
+                Um nome conhecido pode aparecer em um e-mail suspeito. Examine os campos da mensagem para entender quem enviou e para onde iria sua resposta.
+              </p>
+            </header>
             <div className="identity-context-grid">
               
               <article><span>O que aconteceu</span><p>{content.situation}</p></article>
@@ -627,7 +630,6 @@ export function SenderInspectorLab({
               <article><span>Comprovado ou não</span><strong>{displayResult.evidencePoints}/30</strong><p>{displayResult.correctClaimAssessments}/{displayResult.totalClaimAssessments} classificações corretas.</p></article>
               <article><span>Conclusão e rota</span><strong>{displayResult.conclusionPoints}/25</strong><p>Decisão proporcional e confirmação independente.</p></article>
               <article><span>Transferência</span><strong>{displayResult.transferPoints}/25</strong><p>Aplicação do mesmo processo em outro contexto.</p></article>
-              <article className="identity-reward-card"><span>Pontos gerais</span><strong>{rewardGrantedInAttempt ? `+${displayResult.potentialReward}` : `${claimedPoints} registrados`}</strong><p>Base {POINT_RULES.phishLab} + bônus de {bonusPoints}. Repetições não duplicam a recompensa.</p></article>
             </div>
             {displayResult.criticalFailureIds.length > 0 ? (
               <div className="identity-critical-review">
@@ -640,37 +642,15 @@ export function SenderInspectorLab({
               </div>
             ) : null}
             <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details>
-            <div className="identity-nav">
-              <button type="button" className="primary-button dark" onClick={() => goToStage(8)}>Ver o que aprendeu</button>
-              <button type="button" className="text-button" onClick={onOpenProfile}>Ver no Meu perfil</button>
-            </div>
+            <ActivityNextStep area="PhishLab" title="Domínio sob a lupa" onOpen={onOpenDomainLab} />
+            <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={() => resetAnswers(packageIndex)}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToHub}>Voltar ao PhishLab</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div>
           </section>
         ) : null}
 
-        {stage === 8 && displayResult ? (
-          <section className="identity-stage identity-debrief">
-            <header>
-              <span className="section-kicker">O que levar para o trabalho</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>{contentPackage.debrief.title}</h2>
-              <p>{contentPackage.debrief.body}</p>
-            </header>
-            <div className="identity-debrief-grid">
-              <article><span>Fato</span><p>O From mostra a conta apresentada como origem; o Reply-To mostra o destino da resposta.</p></article>
-              <article><span>Hipótese</span><p>Personificação ou conta comprometida podem explicar o caso, mas exigem confirmação.</p></article>
-              <article><span>Limite</span><p>A tela comum não prova toda falsificação técnica nem a pessoa que controla a conta.</p></article>
-              <article><span>Resposta segura</span><p>Use uma rota conhecida fora da mensagem e nunca compartilhe senha ou código.</p></article>
-            </div>
-            <aside className="identity-next-panel">
-              <div><span>Próxima prática</span><strong>Domínio sob a lupa</strong><p>Agora você vai separar as partes de um endereço e localizar a origem real.</p></div>
-              <button type="button" className="primary-button light" onClick={onOpenDomainLab}>Abrir próximo PhishLab</button>
-            </aside>
-            <div className="identity-nav wrap">
-              <button type="button" className="text-button" onClick={() => resetAnswers((packageIndex + 1) % TRUE_SENDER_V2_PACKAGES.length)}>Praticar com outro caso</button>
-              <button type="button" className="text-button" onClick={() => resetAnswers(packageIndex)}>Refazer este caso</button>
-              <button type="button" className="text-button" onClick={onBackToHub}>Voltar às estações</button>
-            </div>
-          </section>
-        ) : null}
       </section>
     </ActivityShell>
   );

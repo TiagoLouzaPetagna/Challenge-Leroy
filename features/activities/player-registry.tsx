@@ -10,6 +10,7 @@ import { SenderInspectorLab } from "@/features/phishlab/SenderInspectorLab";
 import { RadarArticle } from "@/features/radar/RadarExperience";
 import { WorkdaySimulation } from "@/features/simulations/SimulationExperience";
 import { TeamChallenge } from "@/features/teams/TeamsExperience";
+import { SectorProtocolActivity } from "@/features/teams/SectorProtocolActivity";
 import type { ActivityPlayerKey } from "@/lib/activities/types";
 
 export const ACTIVITY_PLAYER_REGISTRY = {
@@ -21,6 +22,7 @@ export const ACTIVITY_PLAYER_REGISTRY = {
   "link-analyzer": DomainUnderMagnifierLab,
   "workday-simulation": WorkdaySimulation,
   "secure-inbox-team-challenge": TeamChallenge,
+  "team-protocol": SectorProtocolActivity,
   "bank-change-team-challenge": BankChangeChallenge,
   "radar-article": RadarArticle,
 } as const;

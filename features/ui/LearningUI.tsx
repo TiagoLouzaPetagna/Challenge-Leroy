@@ -6,9 +6,9 @@ import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 const mascotPoseFiles = {
   alert: "alert.png",
   approved: "approved.png",
-  arcade: "arcade.png",
+  arcade: "arcade.webm",
   calm: "calm.png",
-  celebration: "celebration.png",
+  celebration: "celebration.webm",
   checklist: "checklist.png",
   cool: "cool.png",
   encourage: "encourage.png",
@@ -17,7 +17,7 @@ const mascotPoseFiles = {
   hero: "hero.png",
   idea: "Idea.png",
   investigating: "investigating.png",
-  labs: "labs.png",
+  labs: "labs.webm",
   profile: "profile.png",
   protection: "protection.png",
   radar: "radar.png",
@@ -45,21 +45,31 @@ export function Mascot({
   size?: "small" | "medium" | "large";
   className?: string;
 }) {
+  const mascotFile = mascotPoseFiles[pose];
+  const isAnimated = mascotFile.endsWith(".webm");
+
   return (
     <span
       className={`leroyzin leroyzin--${size} ${className}`.trim()}
       aria-hidden={alt ? undefined : "true"}
+      aria-label={alt && isAnimated ? alt : undefined}
+      role={alt && isAnimated ? "img" : undefined}
     >
-      {/* PNG oficial: não transformar, redesenhar ou substituir por SVG. */}
-      <Image
-        src={`/mascot/leroyzin/${mascotPoseFiles[pose]}`}
-        alt={alt}
-        draggable={false}
-        fill
-        unoptimized
-        priority={pose === "welcome"}
-        sizes={size === "large" ? "330px" : size === "medium" ? "190px" : "86px"}
-      />
+      {isAnimated ? (
+        <video autoPlay loop muted playsInline preload="auto" aria-hidden="true">
+          <source src={`/mascot/leroyzin/${mascotFile}`} type="video/webm" />
+        </video>
+      ) : (
+        <Image
+          src={`/mascot/leroyzin/${mascotFile}`}
+          alt={alt}
+          draggable={false}
+          fill
+          unoptimized
+          priority={pose === "welcome"}
+          sizes={size === "large" ? "330px" : size === "medium" ? "190px" : "86px"}
+        />
+      )}
     </span>
   );
 }

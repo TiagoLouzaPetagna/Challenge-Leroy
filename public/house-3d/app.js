@@ -5,7 +5,7 @@ import {FLOOR_TROPHY,createFloorTrophy} from './floor-trophy.js';
 import {createMimic} from './mimic.js';
 import {CATALOG,byId} from './catalog.js';
 import {createNeutralFurniture,createImportedAnimation} from './neutral-furniture.js';
-import {CELL,FLOOR_Y,STORAGE_KEY,History,clone,footprint,baseY,localPoint,pointOnSurface,mountedWall,groupIds,withoutItem,withItem,validateScene,readSave,encodeSave} from './editor-state.js';
+import {CELL,FLOOR_Y,STORAGE_KEY,History,clone,footprint,baseY,localPoint,pointOnSurface,mountedWall,groupIds,withoutItem,withItem,validateScene,readSave,decodeSave,encodeSave} from './editor-state.js';
 import {WALL_HEIGHT,WALL_GAP,WINDOW,wallPose,wallAlong,wallPlane,resolveWall,wallsForCells,wallsForScene} from './wall-model.js';
 import {upgradeRooms,renameRoom,setRoomTheme,partitionEdges,roomAt} from './room-plan.js';
 import {planBounds,brushCells,PLAN_LIMITS} from './floor-plan.js';
@@ -23,8 +23,25 @@ import {configureModels,readModelSave} from './model-versions.js';
 const embedParams=new URLSearchParams(location.search);
 const embedded=embedParams.get('embedded')==='1';
 const visitorProfile=embedParams.get('visitor');
+const publishedVisitor=embedParams.get('published')==='1';
 const requestedTheme=embedParams.get('theme');
 const visitorTheme=['crafted','cyberpunk','industrial'].includes(requestedTheme)?requestedTheme:null;
+const LEGACY_DEFAULT_ITEMS=[
+  ['table',2.75,1.899999976158142,0],
+  ['armchair',2.6500000953674316,.550000011920929,0],
+  ['cabinet',.4000000059604645,.800000011920929,Math.PI/2],
+  ['bookcase',4.75,-2,0],
+  ['grave',.30286594810536793,4.036024973315255,Math.PI/2],
+];
+function isUntouchedLegacyDefault(scene,cells){
+  if(!scene||!Array.isArray(scene.cells)||!Array.isArray(scene.items)||scene.items.length!==LEGACY_DEFAULT_ITEMS.length)return false;
+  if(scene.cells.length!==cells.length||scene.cells.some((cell,i)=>cell[0]!==cells[i][0]||cell[1]!==cells[i][1]))return false;
+  if(scene.rooms&&(scene.rooms.length!==1||scene.rooms[0].name!=='Sala'||(scene.rooms[0].theme&&scene.rooms[0].theme!=='crafted')||scene.openings?.length))return false;
+  return LEGACY_DEFAULT_ITEMS.every(([id,x,z,angle])=>{
+    const item=scene.items.find(item=>item.id===id);
+    return item&&!item.parent&&Math.abs(item.x-x)<1e-5&&Math.abs(item.z-z)<1e-5&&Math.abs(item.angle-angle)<1e-5;
+  });
+}
 let requestedHostMode=['edit','view','build'].includes(embedParams.get('mode'))?embedParams.get('mode'):null;
 document.documentElement.classList.toggle('embedded',embedded);
 const $=id=>document.getElementById(id), canvas=$('scene');
@@ -270,6 +287,19 @@ function notifyHost(type,extra={}) {
 }
 window.addEventListener('message',event=>{
   if(!embedded||event.origin!==location.origin||event.source!==window.parent)return;
+  if(event.data?.type==='casa-digital:export-scene'){
+    if(!ready||visitorProfile){notifyHost('casa-atelie:export-error',{requestId:event.data.requestId});return;}
+    try{
+      cancelGesture(false);persist();
+      if(saveBlocked){notifyHost('casa-atelie:export-error',{requestId:event.data.requestId});return;}
+      renderer.render(scene,camera);
+      const preview=document.createElement('canvas');preview.width=480;preview.height=270;
+      preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);
+      const thumbnailUrl=preview.toDataURL('image/webp',.64);
+      notifyHost('casa-atelie:export-scene',{requestId:event.data.requestId,sceneJson:encodeSave(history.scene,viewState()),thumbnailUrl,theme:['crafted','cyberpunk','industrial'].includes(history.scene.rooms?.[0]?.theme)?history.scene.rooms[0].theme:'crafted'});
+    }catch{notifyHost('casa-atelie:export-error',{requestId:event.data.requestId});}
+    return;
+  }
   if(event.data?.type!=='casa-digital:set-mode'||!['edit','view','build'].includes(event.data.mode))return;
   requestedHostMode=event.data.mode;
   if(ready)setMode(requestedHostMode);
@@ -652,13 +682,25 @@ try {
   for(const name of ['Piso','PisoMadeira','Paredes','Janela']){const node=room.scene.getObjectByName(name);if(node)node.visible=false;}
   walls=structure.walls;scene.add(structure.floor,walls,structure.guides,structure.context);
   let saved;
-  if(visitorProfile){saved={status:'empty'};saveBlocked=true;saveState='blocked';}
+  if(visitorProfile){
+    saveBlocked=true;saveState='blocked';
+    if(publishedVisitor){
+      const response=await fetch(`/api/houses/${encodeURIComponent(visitorProfile)}`,{cache:'no-store'});
+      if(!response.ok)throw Error('Casa publicada indisponível.');
+      const publication=await response.json();
+      saved={status:'loaded',...decodeSave(publication.sceneJson,manifest.cells)};
+    }else saved={status:'empty'};
+  }
   else {
     try{storage=window.localStorage;}catch{}
     if(storage){saved=readModelSave(storage,manifest.cells,modernModels);lastRaw=storage.getItem(STORAGE_KEY);}
     else saved={status:'unavailable'};
   }
   if(saved.modelsAdapted&&lastRaw)storage.setItem(STORAGE_KEY+(saved.furnitureAdapted?':before-furniture-scale-135':':before-model-change'),lastRaw);
+  if(storage&&saved.status==='loaded'&&isUntouchedLegacyDefault(saved.scene,manifest.cells)){
+    try{storage.setItem(`${STORAGE_KEY}:before-square-default`,lastRaw);saved={status:'empty'};}
+    catch{/* Keep the saved house if a backup cannot be written. */}
+  }
   const loadedScene=saved.status==='loaded'?saved.scene:validateScene(seed,manifest.cells);
   const themedScene=upgradeRooms({...loadedScene,cells:loadedScene.cells??manifest.cells});
   history=new History({...themedScene,rooms:themedScene.rooms.map(r=>({...r,theme:r.theme??finishMode}))});

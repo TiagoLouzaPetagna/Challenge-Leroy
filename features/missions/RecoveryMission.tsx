@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowUp, GripVertical } from "lucide-react";
 
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { useDragReorder } from "@/features/activities/useDragReorder";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import {
   findRecoveryBuilderV2Package,
@@ -21,6 +22,7 @@ import {
   type RecoveryOfficialRouteId,
   type RecoveryReportBlockId,
 } from "@/lib/content/activities/recovery-builder/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import {
   calculatePerformanceBonus,
   POINT_RULES,
@@ -44,6 +46,8 @@ type RecoveryMissionProps = {
   onBackToMissions: () => void;
   onOpenSimulation: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 const steps = [
@@ -132,7 +136,10 @@ export function RecoveryMission({
   onBackToMissions,
   onOpenSimulation,
   onOpenProfile,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: RecoveryMissionProps) {
+  const celebration = usePostSubmitCelebration("Cliquei. E agora?", "var(--learn-lime)");
   const initialPackageId =
     existingSubmission?.casePackageId ??
     existingCasePackageId ??
@@ -309,12 +316,14 @@ export function RecoveryMission({
     const answer = buildAnswer();
     setIsSubmitting(true);
     setSubmissionError("");
+    const beforeIds = getUnlockedAchievementIds();
     try {
       const result = await onComplete(answer);
       setSubmittedAnswer(answer);
       setDisplayResult(result);
       setRewardGrantedInAttempt(!rewardAlreadyClaimed);
       goToStage(7);
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setSubmissionError(
         "Não foi possível registrar a tentativa. Revise o plano e tente novamente.",
@@ -341,6 +350,7 @@ export function RecoveryMission({
     setSubmittedAnswer(null);
     setRewardGrantedInAttempt(false);
     setSubmissionError("");
+    celebration.reset();
     setStage(0);
   };
 
@@ -508,6 +518,8 @@ export function RecoveryMission({
     return items;
   }, [actionById, allowlists, builderResult, content, submittedAnswer, timelineById]);
 
+  if (celebration.screen) return celebration.screen;
+
   return (
     <div className="activity-workspace page-stack mission-page recovery-mission-page recovery-builder-page">
       <section className="mission-shell">
@@ -573,12 +585,11 @@ export function RecoveryMission({
                   if (!fact) return null;
                   return (
                     <li key={fact.id} {...dragFact(fact.id)}>
-                      <GripVertical className="recovery-drag-handle" size={19} aria-hidden="true" />
                       <span className="recovery-timeline-builder__position">{index + 1}</span>
                       <div><span>{fact.timeLabel}</span><strong>{fact.title}</strong><p>{fact.detail}</p></div>
                       <div className="recovery-timeline-builder__buttons">
-                        <button type="button" disabled={index === 0} onClick={() => moveTimelineFact(index, -1)} aria-label={`Mover ${fact.title} para cima`}><ArrowUp size={17} aria-hidden="true" /></button>
-                        <button type="button" disabled={index === timelineFactIds.length - 1} onClick={() => moveTimelineFact(index, 1)} aria-label={`Mover ${fact.title} para baixo`}><ArrowDown size={17} aria-hidden="true" /></button>
+                        <button type="button" disabled={index === 0} onClick={() => moveTimelineFact(index, -1)} aria-label={`Mover ${fact.title} para cima`}>↑</button>
+                        <button type="button" disabled={index === timelineFactIds.length - 1} onClick={() => moveTimelineFact(index, 1)} aria-label={`Mover ${fact.title} para baixo`}>↓</button>
                       </div>
                     </li>
                   );
@@ -595,7 +606,7 @@ export function RecoveryMission({
                 ))}
               </fieldset>
               <div className="mission-navigation">
-                <button type="button" className="text-button" onClick={() => goToStage(0)}><ArrowLeft size={16} aria-hidden="true" /> Rever contexto</button>
+                <button type="button" className="text-button" onClick={() => goToStage(0)}>← Rever contexto</button>
                 <button type="button" className="primary-button dark" disabled={!exposureStageId} onClick={() => goToStage(2)}>Organizar as ações</button>
               </div>
             </div>
@@ -646,8 +657,8 @@ export function RecoveryMission({
                             <span>{index + 1}</span>
                             <strong>{actionById.get(actionId)?.title}</strong>
                             <div>
-                              <button type="button" disabled={index === 0} onClick={() => moveGroupAction(group.id, index, -1)} aria-label={`Mover ${actionById.get(actionId)?.title} para cima`}><ArrowUp size={17} aria-hidden="true" /></button>
-                              <button type="button" disabled={index === groupOrder[group.id].length - 1} onClick={() => moveGroupAction(group.id, index, 1)} aria-label={`Mover ${actionById.get(actionId)?.title} para baixo`}><ArrowDown size={17} aria-hidden="true" /></button>
+                              <button type="button" disabled={index === 0} onClick={() => moveGroupAction(group.id, index, -1)} aria-label={`Mover ${actionById.get(actionId)?.title} para cima`}>↑</button>
+                              <button type="button" disabled={index === groupOrder[group.id].length - 1} onClick={() => moveGroupAction(group.id, index, 1)} aria-label={`Mover ${actionById.get(actionId)?.title} para baixo`}>↓</button>
                             </div>
                           </li>
                         ))}
@@ -758,9 +769,11 @@ export function RecoveryMission({
                 <div className="result-score"><span>Resultado anterior</span><strong>{legacyResult.score}</strong><small>de 100</small></div>
                 <div><span className="section-kicker">Tentativa preservada</span><h2 tabIndex={-1} ref={stageTitleRef}>Sua conclusão da versão anterior continua registrada</h2><p>O novo montador usa outro contrato e não reinterpreta suas respostas antigas.</p></div>
               </div>
-              <div className="result-actions">
-                <button type="button" className="primary-button dark" onClick={() => resetForPackage(RECOVERY_BUILDER_CANONICAL_PACKAGE_ID)}>Praticar a nova versão</button>
-                <button type="button" className="text-button" onClick={onBackToMissions}>Voltar ao percurso</button>
+              <ActivityNextStep area="Simulações" title="Uma manhã comum" onOpen={onOpenSimulation} />
+              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={() => resetForPackage(RECOVERY_BUILDER_CANONICAL_PACKAGE_ID)}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToMissions}>Voltar às missões</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
               </div>
             </div>
           ) : null}
@@ -775,28 +788,17 @@ export function RecoveryMission({
                 <article><span>Fatos e exposição</span><strong>{builderResult.exposurePoints}/20</strong><p>Ordem dos fatos e último estágio comprovado.</p></article>
                 <article><span>Organização das ações</span><strong>{builderResult.classificationPoints + builderResult.precedencePoints + builderResult.proportionalityPoints}/60</strong><p>{builderResult.correctPlacements}/{builderResult.totalPlacements} ações no grupo correto.</p></article>
                 <article><span>Reporte e transferência</span><strong>{builderResult.reportPoints}/20</strong><p>{builderResult.safeReportBlocks} blocos seguros selecionados.</p></article>
-                <article className="reward-result-card"><span>Pontos gerais</span><strong>{rewardGrantedInAttempt ? `+${builderResult.potentialReward}` : `${claimedPoints} registrados`}</strong><p>Base {POINT_RULES.mainMission} + bônus de {bonusPercentage}% ({bonusPoints} pontos).</p></article>
               </div>
               <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details>
-              <div className="mission-navigation"><button type="button" className="primary-button dark" onClick={() => goToStage(8)}>Ver resumo final</button></div>
+              <ActivityNextStep area="Simulações" title="Uma manhã comum" onOpen={onOpenSimulation} />
+              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={() => resetForPackage(contentPackage.casePackageId)}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToMissions}>Voltar às missões</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div>
             </div>
           ) : null}
 
-          {stage === 8 && builderResult ? (
-            <div className="recovery-builder-stage recovery-builder-debrief">
-              <span className="section-kicker">Resumo final</span>
-              <h2 tabIndex={-1} ref={stageTitleRef}>{contentPackage.debrief.title}</h2>
-              <p>{contentPackage.debrief.body}</p>
-              <div className="recovery-consequence-card"><strong>Leve para o trabalho real</strong><p>Interrompa a interação, registre o último fato comprovado, preserve o contexto e peça orientação pelo procedimento oficial da organização. Reportar cedo não exige ter certeza de que houve comprometimento.</p></div>
-              <div className="adaptive-next-panel"><div><span className="section-kicker inverse">Próxima atividade da jornada</span><h2>Uma manhã comum</h2><p>Use investigação, decisão e reporte em uma fila com situações legítimas, maliciosas e inconclusivas.</p></div><button type="button" className="primary-button light" onClick={onOpenSimulation}>Abrir Simulação</button></div>
-              <div className="result-actions">
-                <button type="button" className="text-button" onClick={onOpenProfile}>Ver no Meu perfil</button>
-                <button type="button" className="text-button" onClick={() => resetForPackage(contentPackage.casePackageId)}>Refazer este caso</button>
-                <button type="button" className="text-button" onClick={practiceAnotherCase}>Praticar outro caso</button>
-                <button type="button" className="text-button" onClick={onBackToMissions}>Voltar ao percurso</button>
-              </div>
-            </div>
-          ) : null}
         </div>
       </section>
 

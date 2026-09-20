@@ -1,253 +1,350 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
+import { ChevronDown } from "lucide-react";
 
-import { UserAvatar } from "@/features/avatar/UserAvatar";
 import type { PortalViewKey } from "@/lib/activities/types";
+import { UserAvatar } from "@/features/avatar/UserAvatar";
 
 import { PortalIcon, type PortalIconName } from "./PortalIcons";
-
-type PortalNavGroup =
-  | "aprender"
-  | "praticar"
-  | "explorar"
-  | "conta"
-  | "projeto";
+import styles from "./Shell.module.css";
 
 const PORTAL_NAV_ITEMS: ReadonlyArray<{
   key: PortalViewKey;
   label: string;
   icon: PortalIconName;
-  group: PortalNavGroup;
 }> = [
-  { key: "inicio", label: "Visão geral", icon: "home", group: "aprender" },
-  { key: "missoes", label: "Missões", icon: "missions", group: "aprender" },
-  {
-    key: "simulacoes",
-    label: "Simulações",
-    icon: "simulations",
-    group: "praticar",
-  },
-  {
-    key: "laboratorio",
-    label: "PhishLab",
-    icon: "laboratory",
-    group: "praticar",
-  },
-  { key: "arcade", label: "Arcade", icon: "arcade", group: "praticar" },
-  { key: "radar", label: "Radar", icon: "radar", group: "explorar" },
-  { key: "equipes", label: "Equipes", icon: "teams", group: "explorar" },
-  { key: "perfil", label: "Meu perfil", icon: "profile", group: "conta" },
-  {
-    key: "gestao",
-    label: "Painel de gestão",
-    icon: "settings",
-    group: "projeto",
-  },
+  { key: "inicio", label: "Visão geral", icon: "home" },
+  { key: "missoes", label: "Jornada", icon: "missions" },
+  { key: "radar", label: "Radar", icon: "radar" },
+  { key: "equipes", label: "Equipes", icon: "teams" },
+  { key: "arcade", label: "Arcade", icon: "arcade" },
+  { key: "perfil", label: "Meu perfil", icon: "profile" },
+  { key: "gestao", label: "Painel de gestão", icon: "settings" },
 ];
 
-const PORTAL_NAV_GROUPS: ReadonlyArray<{
-  id: PortalNavGroup;
+const JOURNEY_NAV_ITEMS: ReadonlyArray<{
+  key: PortalViewKey;
   label: string;
+  icon: PortalIconName;
 }> = [
-  { id: "aprender", label: "Aprender" },
-  { id: "praticar", label: "Praticar" },
-  { id: "explorar", label: "Explorar e colaborar" },
-  { id: "conta", label: "Conta" },
-  { id: "projeto", label: "Projeto" },
+  { key: "laboratorio", label: "PhishLab", icon: "laboratory" },
+  { key: "simulacoes", label: "Simulações", icon: "simulations" },
 ];
 
 export function BrandMark() {
   return (
-    <span className="portal-brand-mark" aria-hidden="true">
-      {/* This is a reusable brand asset rather than an interface icon drawn in JSX. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brand-mark.svg" width="36" height="36" alt="" />
+    <span className={styles.brandMark} aria-hidden="true">
+      <svg
+        width="36"
+        height="36"
+        viewBox="0 0 48 48"
+        fill="none"
+        focusable="false"
+      >
+        <path
+          d="M8 24 24 9l16 15"
+          stroke="var(--brand-ink)"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 22v17h24V22"
+          fill="var(--brand-lime)"
+          stroke="var(--brand-ink)"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+        <rect
+          x="20"
+          y="27"
+          width="8"
+          height="12"
+          fill="var(--brand-white)"
+          stroke="var(--brand-ink)"
+          strokeWidth="2.5"
+        />
+      </svg>
     </span>
   );
 }
 
-export function PortalSidebar({
-  activeView,
-  onNavigate,
-  canAccessManagement = false,
-  "data-learning-tour": learningTourTarget = "learning-navigation",
-  "data-profile-tour": profileTourTarget = "profile-navigation",
-}: {
-  activeView: PortalViewKey;
-  onNavigate: (view: PortalViewKey) => void;
-  canAccessManagement?: boolean;
-  "data-learning-tour"?: string;
-  "data-profile-tour"?: string;
-}) {
-  const selectedView = activeView === "missao" ? "missoes" : activeView;
-  const visibleItems = PORTAL_NAV_ITEMS.filter(
-    (item) => item.key !== "gestao" || canAccessManagement,
-  );
-  const visibleGroups = PORTAL_NAV_GROUPS.filter((group) =>
-    visibleItems.some((item) => item.group === group.id),
-  );
-  const selectedItem =
-    visibleItems.find((item) => item.key === selectedView) ?? visibleItems[0];
-  const navigationRef = useRef<HTMLElement>(null);
-  const activeItemRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const navigation = navigationRef.current;
-    const activeItem = activeItemRef.current;
-    if (!navigation || !activeItem || !window.matchMedia("(max-width: 900px)").matches) {
-      return;
-    }
-
-    const navigationRect = navigation.getBoundingClientRect();
-    const activeItemRect = activeItem.getBoundingClientRect();
-    const centeredLeft =
-      navigation.scrollLeft +
-      activeItemRect.left -
-      navigationRect.left -
-      (navigation.clientWidth - activeItemRect.width) / 2;
-
-    navigation.scrollTo({ left: Math.max(0, centeredLeft), behavior: "auto" });
-  }, [selectedView]);
-
-  return (
-    <aside className="sidebar portal-sidebar">
-      <div className="brand-lockup portal-brand-lockup">
-        <BrandMark />
-        <div>
-          <strong>Casa Digital</strong>
-          <span>aprenda a se proteger</span>
-        </div>
-      </div>
-
-      <div className="prototype-tag">Protótipo funcional</div>
-
-      <details className="portal-mobile-menu">
-        <summary>
-          <span className="portal-mobile-menu__current">
-            <PortalIcon name={selectedItem.icon} size={19} />
-            <span>{selectedItem.label}</span>
-          </span>
-          <span className="portal-mobile-menu__toggle" aria-hidden="true">
-            <PortalIcon name="menu" size={20} />
-          </span>
-        </summary>
-        <div className="portal-mobile-menu__panel">
-          {visibleItems.map((item) => (
-            <button
-              type="button"
-              key={item.key}
-              className={selectedView === item.key ? "active" : ""}
-              onClick={(event) => {
-                event.currentTarget.closest("details")?.removeAttribute("open");
-                onNavigate(item.key);
-              }}
-              aria-current={selectedView === item.key ? "page" : undefined}
-            >
-              <PortalIcon name={item.icon} size={19} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </details>
-
-      <nav ref={navigationRef} aria-label="Navegação principal">
-        {visibleGroups.map((group) => (
-          <div
-            className="nav-group portal-nav-group"
-            key={group.id}
-            data-tour={group.id === "aprender" ? learningTourTarget : undefined}
-          >
-            <p>{group.label}</p>
-            {visibleItems.filter((item) => item.group === group.id).map(
-              (item) => (
-                <button
-                  type="button"
-                  key={item.key}
-                  ref={selectedView === item.key ? activeItemRef : undefined}
-                  className={
-                    selectedView === item.key ? "nav-item active" : "nav-item"
-                  }
-                  onClick={() => onNavigate(item.key)}
-                  aria-current={selectedView === item.key ? "page" : undefined}
-                  data-tour={
-                    item.key === "perfil" ? profileTourTarget : undefined
-                  }
-                >
-                  <span className="nav-icon" aria-hidden="true">
-                    <PortalIcon name={item.icon} size={18} />
-                  </span>
-                  <span>{item.label}</span>
-                </button>
-              ),
-            )}
-          </div>
-        ))}
-      </nav>
-
-      <div className="sidebar-note">
-        <span className="sidebar-note-kicker">Conceito para Leroy Merlin</span>
-        <strong>Aprender também protege.</strong>
-      </div>
-    </aside>
-  );
-}
-
 export function PortalTopbar({
+  menuOpen,
+  onToggleMenu,
+  menuButtonRef,
+  onAvatarClick,
+  onBrandClick,
   learnerName,
   points,
   levelLabel,
   isHydrated,
-  mode = "learning",
-  onLogout,
+  inert: isInert = false,
   "data-tour": progressTourTarget = "progress-summary",
 }: {
+  menuOpen: boolean;
+  onToggleMenu: () => void;
+  menuButtonRef: RefObject<HTMLButtonElement | null>;
+  onAvatarClick: () => void;
+  onBrandClick: () => void;
   learnerName: string;
   points: number;
   levelLabel: string;
   isHydrated: boolean;
-  mode?: "learning" | "management";
-  onLogout?: () => void | Promise<void>;
+  inert?: boolean;
   "data-tour"?: string;
 }) {
   const initials = learnerName.slice(0, 2).toUpperCase();
-  const managementMode = mode === "management";
 
   return (
-    <header className="topbar portal-topbar">
-      <div className="portal-topbar-welcome">
-        <span className="topbar-kicker">
-          {managementMode ? "Gestão administrativa" : "Seu espaço de aprendizagem"}
-        </span>
-        <strong>Olá, {learnerName}</strong>
+    <header
+      className={styles.topbar}
+      inert={isInert ? true : undefined}
+      aria-hidden={isInert ? "true" : undefined}
+    >
+      <button
+        type="button"
+        ref={menuButtonRef}
+        className={styles.menuButton}
+        onClick={onToggleMenu}
+        aria-expanded={menuOpen}
+        aria-controls="portal-menu-panel"
+      >
+        <PortalIcon name="menu" size={18} />
+        <span>{menuOpen ? "Fechar" : "Menu"}</span>
+      </button>
+      <button
+        type="button"
+        className={styles.brand}
+        onClick={onBrandClick}
+        aria-label="Ir para a visão geral da Casa Digital Segura"
+      >
+        <BrandMark />
+        <strong aria-hidden="true">Casa Digital Segura</strong>
+      </button>
+      <div className={styles.spacer} />
+      <div
+        className={styles.progress}
+        aria-live="polite"
+        data-tour={progressTourTarget}
+      >
+        <strong>{isHydrated ? `${points} pontos` : "Carregando"}</strong>
+        <span>{levelLabel}</span>
       </div>
-      <div className="topbar-actions">
-        <div
-          className="topbar-progress"
-          aria-live="polite"
-          data-tour={progressTourTarget}
-        >
-          <strong>
-            {managementMode
-              ? "Acesso autorizado"
-              : isHydrated
-                ? `${points} pontos`
-                : "Carregando progresso"}
-          </strong>
-          <span>{managementMode ? "Conta administradora" : levelLabel}</span>
-        </div>
-        <UserAvatar
-          fallback={initials}
-          label={`Avatar de ${learnerName}`}
-          className="avatar"
-        />
-        {onLogout ? (
-          <button type="button" className="topbar-logout" onClick={onLogout}>
-            Sair
-          </button>
-        ) : null}
-      </div>
+      <button
+        type="button"
+        className={styles.avatar}
+        onClick={onAvatarClick}
+        aria-label={`Ver perfil de ${learnerName}`}
+      >
+        <UserAvatar fallback={initials} label={`Avatar de ${learnerName}`} />
+      </button>
     </header>
+  );
+}
+
+export function PortalMenuPanel({
+  open,
+  activeView,
+  onNavigate,
+  onClose,
+  onLogout,
+  canAccessManagement = false,
+  storeLabel,
+  returnFocusRef,
+  hideBackdrop = false,
+}: {
+  open: boolean;
+  activeView: PortalViewKey;
+  onNavigate: (view: PortalViewKey) => void;
+  onClose: () => void;
+  onLogout?: () => void | Promise<void>;
+  canAccessManagement?: boolean;
+  storeLabel: string;
+  returnFocusRef: RefObject<HTMLButtonElement | null>;
+  hideBackdrop?: boolean;
+}) {
+  const selectedView = activeView === "missao" ? "missoes" : activeView;
+  const [journeyExpansionOverride, setJourneyExpansionOverride] =
+    useState<boolean | null>(null);
+  const journeyExpanded =
+    journeyExpansionOverride ??
+    (activeView === "laboratorio" || activeView === "simulacoes");
+  const visibleItems = PORTAL_NAV_ITEMS.filter(
+    (item) => item.key !== "gestao" || canAccessManagement,
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    const panel = document.getElementById("portal-menu-panel");
+    panel?.querySelector<HTMLElement>("button")?.focus();
+  }, [open]);
+
+  if (!open) return null;
+
+  const closeAndReturnFocus = () => {
+    onClose();
+    window.requestAnimationFrame(() => returnFocusRef.current?.focus());
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeAndReturnFocus();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const controls = event.currentTarget.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+    );
+    if (!controls.length) return;
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <>
+      {!hideBackdrop ? (
+        <button
+          type="button"
+          className={styles.panelBackdrop}
+          aria-label="Fechar menu"
+          onClick={closeAndReturnFocus}
+        />
+      ) : null}
+      <aside
+        id="portal-menu-panel"
+        className={styles.panel}
+        data-tour="menu-panel"
+        aria-label="Menu principal"
+        onKeyDown={handleKeyDown}
+      >
+        <div className={styles.panelHeading}>
+          <strong>Menu</strong>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={closeAndReturnFocus}
+            aria-label="Fechar menu"
+          >
+            ×
+          </button>
+        </div>
+        <nav aria-label="Navegação principal">
+          <ul className={styles.panelNav}>
+            {visibleItems.map((item) => {
+              const isActive = selectedView === item.key;
+              if (item.key === "missoes") {
+                return (
+                  <li key={item.key}>
+                    <div className={styles.journeyRow}>
+                      <button
+                        type="button"
+                        className={
+                          isActive
+                            ? `${styles.navItem} ${styles.navItemActive}`
+                            : styles.navItem
+                        }
+                        onClick={() => onNavigate(item.key)}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        <span className={styles.tile} aria-hidden="true">
+                          <PortalIcon name={item.icon} size={20} />
+                        </span>
+                        <span>{item.label}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.journeyToggle} ${journeyExpanded ? styles.journeyToggleExpanded : ""}`}
+                        onClick={() =>
+                          setJourneyExpansionOverride(!journeyExpanded)
+                        }
+                        aria-expanded={journeyExpanded}
+                        aria-controls="portal-journey-submenu"
+                        aria-label={`${journeyExpanded ? "Ocultar" : "Mostrar"} PhishLab e Simulações`}
+                      >
+                        <ChevronDown size={20} strokeWidth={2.5} aria-hidden="true" />
+                      </button>
+                    </div>
+                    <ul
+                      id="portal-journey-submenu"
+                      className={styles.journeySubmenu}
+                      hidden={!journeyExpanded}
+                    >
+                      {JOURNEY_NAV_ITEMS.map((child) => {
+                        const childActive = selectedView === child.key;
+                        return (
+                          <li key={child.key}>
+                            <button
+                              type="button"
+                              className={
+                                childActive
+                                  ? `${styles.journeySubitem} ${styles.journeySubitemActive}`
+                                  : styles.journeySubitem
+                              }
+                              onClick={() => onNavigate(child.key)}
+                              aria-current={childActive ? "page" : undefined}
+                            >
+                              <PortalIcon name={child.icon} size={18} />
+                              <span>{child.label}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </li>
+                );
+              }
+              return (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    className={
+                      isActive
+                        ? `${styles.navItem} ${styles.navItemActive}`
+                        : styles.navItem
+                    }
+                    onClick={() => onNavigate(item.key)}
+                    aria-current={isActive ? "page" : undefined}
+                    data-tour={
+                      item.key === "perfil" ? "profile-navigation" : undefined
+                    }
+                  >
+                    <span
+                      className={styles.tile}
+                      aria-hidden="true"
+                    >
+                      <PortalIcon name={item.icon} size={20} />
+                    </span>
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <div className={styles.panelFooter}>
+          <span>{storeLabel}</span>
+          {onLogout ? (
+            <button type="button" onClick={() => void onLogout()}>
+              Sair da conta
+            </button>
+          ) : null}
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -266,15 +363,23 @@ export function ActivityFocusBar({
 }) {
   return (
     <header className="activity-focus-bar" aria-label="Modo foco da atividade">
-      <button type="button" className="activity-focus-back" onClick={onBack}>
-        <PortalIcon name="arrow-left" size={18} />
-        <span>Missões</span>
+      <button
+        type="button"
+        className="activity-focus-back"
+        onClick={onBack}
+        aria-label={`Voltar para ${areaLabel}`}
+        title={`Voltar para ${areaLabel}`}
+      >
+        <PortalIcon name="arrow-left" size={20} />
       </button>
       <div className="activity-focus-context">
         <span>{areaLabel}</span>
         <strong>{contextLabel}</strong>
       </div>
-      <div className="activity-focus-meta" aria-label="Progresso geral do participante">
+      <div
+        className="activity-focus-meta"
+        aria-label="Progresso geral do participante"
+      >
         <strong>{points} pontos</strong>
         <span>{levelLabel}</span>
       </div>

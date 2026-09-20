@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { useDragReorder } from "@/features/activities/useDragReorder";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import {
@@ -24,6 +25,7 @@ import {
   type BankProcessCardId,
   type BankReportBlockId,
 } from "@/lib/content/activities/bank-change/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { POINT_RULES } from "@/lib/domain/rules";
 import type {
   BankProcessV2Answer,
@@ -42,16 +44,17 @@ type BankChangeChallengeProps = {
   onComplete: (answer: BankProcessV2Answer) => Promise<BankProcessV2Result>;
   onBackToTeams: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
-type View = "briefing" | "compare" | "contact" | "response" | "process" | "report" | "review" | "result" | "debrief";
+type View = "briefing" | "compare" | "contact" | "response" | "process" | "report" | "review" | "result";
 
 const STEPS: readonly { id: View; label: string }[] = [
   { id: "briefing", label: "Contexto" }, { id: "compare", label: "Comparar" },
   { id: "contact", label: "Contato" }, { id: "response", label: "Resposta" },
   { id: "process", label: "Processo" }, { id: "report", label: "Reporte" },
   { id: "review", label: "Revisão" }, { id: "result", label: "Resultado" },
-  { id: "debrief", label: "O que levar para o trabalho" },
 ] as const;
 const STEP_LABELS = STEPS.map((step) => step.label);
 
@@ -78,8 +81,10 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
   const {
     existingAttempt, existingResult, hasLegacyCompletion, rewardAlreadyClaimed,
     aggregateAlreadyCounted, claimedPoints, reducedMotion, onComplete,
-    onBackToTeams, onOpenProfile,
+    onBackToTeams, onOpenProfile, getUnlockedAchievementIds,
+    getNewlyUnlockedAchievements,
   } = props;
+  const celebration = usePostSubmitCelebration("Mudança bancária sem atalho", "var(--learn-yellow)");
   const [view, setView] = useState<View>(existingResult ? "result" : "briefing");
   const [comparisonIds, setComparisonIds] = useState<BankComparisonId[]>(existingAttempt?.selectedComparisonIds ?? []);
   const [contactSourceId, setContactSourceId] = useState<BankContactSourceId | "">(existingAttempt?.contactSourceId ?? "");
@@ -115,6 +120,7 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
     if (!contactSourceId || isSubmitting) return;
     setIsSubmitting(true);
     setError("");
+    const beforeIds = getUnlockedAchievementIds();
     try {
       const nextResult = await onComplete({
         activityId: BANK_CHANGE_PROCESS_ACTIVITY_ID,
@@ -133,6 +139,7 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
       setResult(nextResult);
       setCountedOnThisAttempt(!aggregateAlreadyCounted);
       go("result");
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setError("Não foi possível registrar a estação agora. Revise as etapas e tente novamente.");
     } finally { setIsSubmitting(false); }
@@ -140,8 +147,10 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
 
   const restart = () => {
     setComparisonIds([]); setContactSourceId(""); setProcessIds([]); setReportBlockIds([]);
-    setResult(null); setCountedOnThisAttempt(false); setError(""); go("briefing");
+    setResult(null); setCountedOnThisAttempt(false); setError(""); celebration.reset(); go("briefing");
   };
+
+  if (celebration.screen) return celebration.screen;
 
   if (view === "briefing") return (
     <div className="activity-workspace page-stack bank-change-page bank-process-page">
@@ -157,7 +166,7 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
           {hasLegacyCompletion ? <p className="bank-process-legacy-note">Sua conclusão anterior continua registrada. Esta mecânica pratica o mesmo controle sem conceder a recompensa novamente.</p> : null}
           <button type="button" className="primary-button" onClick={() => go("compare")}>Começar pela comparação</button>
         </div>
-        <aside aria-label="Resumo da atividade"><span>Recompensa</span><strong>{POINT_RULES.teamOperation}</strong><p>pontos-base na primeira conclusão lógica, mais bônus de desempenho</p><dl><div><dt>Formato</dt><dd>5 estações</dd></div><div><dt>Tempo</dt><dd>14 min</dd></div><div><dt>Radar</dt><dd>Opcional e pontuado</dd></div></dl></aside>
+        <aside aria-label="Resumo da atividade"><span>{rewardAlreadyClaimed ? "Pontos já recebidos" : "Recompensa"}</span><strong>{rewardAlreadyClaimed ? claimedPoints : POINT_RULES.teamOperation}</strong><p>{rewardAlreadyClaimed ? "Você pode refazer a atividade, mas os pontos são concedidos uma vez." : "pontos-base na primeira conclusão, mais bônus de desempenho"}</p><dl><div><dt>Formato</dt><dd>5 estações</dd></div><div><dt>Tempo</dt><dd>14 min</dd></div><div><dt>Radar</dt><dd>Opcional e pontuado</dd></div></dl></aside>
       </section>
     </div>
   );
@@ -173,16 +182,18 @@ export function BankChangeChallenge(props: BankChangeChallengeProps) {
     return <div className="activity-workspace page-stack bank-change-page bank-process-page">
       {activityProgress}
       <section className="bank-change-result-hero"><div><span className="section-kicker">Resultado privado</span><h1 ref={headingRef} tabIndex={-1}>{result.needsReview ? "O processo ainda contém um atalho" : "O processo protegeu a mudança"}</h1><p>Suas escolhas e sua nota ficam privadas. A equipe recebe somente os cinco controles normalizados e as competências cobertas.</p></div><div className="bank-change-result-score" aria-label={`Nota ${result.score} de 100`}><strong>{result.score}</strong><span>/100</span></div></section>
-      <section className="bank-change-result-summary" aria-label="Resumo do resultado"><article><span>Controles completos</span><strong>{result.correctDecisions}/5</strong></article><article><span>Pontos gerais</span><strong>{rewardAlreadyClaimed && !countedOnThisAttempt ? claimedPoints : result.potentialReward}</strong><small>{rewardAlreadyClaimed && !countedOnThisAttempt ? "já confirmados" : "confirmados agora"}</small></article><article><span>Indicadores do setor</span><strong>{aggregateAlreadyCounted && !countedOnThisAttempt ? "Sem alteração" : "Atualizados"}</strong><small>uma contribuição para esta atividade</small></article><article><span>Revisão</span><strong>{result.needsReview ? "Recomendada" : "Dispensada"}</strong></article></section>
+      <section className="bank-change-result-summary" aria-label="Resumo do resultado"><article><span>Controles completos</span><strong>{result.correctDecisions}/5</strong></article><article><span>Pontos da atividade</span><strong>{claimedPoints || result.potentialReward}</strong><small>concedidos na primeira conclusão</small></article><article><span>Indicadores do setor</span><strong>{aggregateAlreadyCounted && !countedOnThisAttempt ? "Sem alteração" : "Atualizados"}</strong><small>uma contribuição para esta atividade</small></article><article><span>Revisão</span><strong>{result.needsReview ? "Recomendada" : "Dispensada"}</strong></article></section>
       <section className="bank-process-result-review"><div className="teams-section-heading"><div><span className="section-kicker">Revisão das respostas</span><h2>O que você acertou e o que precisa revisar</h2></div><span>{result.correctDecisions} de 5 controles completos</span></div>
-        <ol>{checks.map((check, index) => { const correct = check.score === check.max; return <li key={check.label} className={correct ? "safe" : "review"}><span>{String(index + 1).padStart(2, "0")}</span><div><small>{correct ? "Acertou" : "Precisa revisar"}</small><h3>{check.label}</h3><p>Sua resposta atingiu {check.score} de {check.max} pontos neste controle.</p></div></li>; })}</ol>
+        <ol>{checks.map((check, index) => { const correct = check.score === check.max; return <li key={check.label} className={correct ? "safe" : "review"}><span>{String(index + 1).padStart(2, "0")}</span><div><small>{correct ? "Acertou" : "Precisa revisar"}</small><h3>{check.label}</h3><p>{check.score} de {check.max} pontos neste controle.</p></div></li>; })}</ol>
         <div className="bank-process-answer-detail"><article><strong>Sua fonte de confirmação</strong><span>{contactLabel(contactSourceId)}</span><small>Esperado: contato homologado no cadastro.</small></article><article><strong>Seu processo</strong><span>{processIds.map((id) => content.processCards.find((card) => card.id === id)?.label).join(" → ") || "Nenhuma ação incluída"}</span><small>O bloqueio vem antes da confirmação; fluxo oficial e segunda aprovação se complementam.</small></article><article><strong>Seu reporte</strong><span>{reportBlockIds.map((id) => content.reportBlocks.find((block) => block.id === id)?.label).join(" · ") || "Nenhum bloco incluído"}</span><small>O esperado contém fatos, contenção e confirmação, sem segredos ou acusação.</small></article></div>
-        <button type="button" className="primary-button" onClick={() => go("debrief")}>Entender o processo completo</button>
+        <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={restart}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToTeams}>Voltar às equipes</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div>
       </section>
     </div>;
   }
-
-  if (view === "debrief" && result) return <div className="activity-workspace page-stack bank-change-page bank-process-page">{activityProgress}<section className="bank-process-debrief"><span className="section-kicker">O que levar para o trabalho</span><h1 ref={headingRef} tabIndex={-1}>{contentPackage.debrief.title}</h1><p>{contentPackage.debrief.body}</p><ol><li><strong>Conter</strong><span>Suspender mudança e pagamento relacionado, preservando o pedido.</span></li><li><strong>Confirmar</strong><span>Partir do contato que já estava no cadastro antes da solicitação.</span></li><li><strong>Proteger</strong><span>Manter bloqueio, fluxo oficial e segunda aprovação, sem trocar um controle pelo outro.</span></li><li><strong>Registrar</strong><span>Relatar fatos, ação tomada e resposta obtida, sem segredos ou dados excessivos.</span></li></ol><div className="bank-change-result-actions"><button type="button" className="primary-button" onClick={onBackToTeams}>Ver placar agregado</button><button type="button" className="text-button" onClick={onOpenProfile}>Abrir Meu perfil</button><button type="button" className="text-button" onClick={restart}>Refazer estação</button></div></section></div>;
 
   return <div className="activity-workspace page-stack bank-change-page bank-process-page">
     <div className="bank-change-topbar"><button type="button" className="text-button" onClick={onBackToTeams}>← Sair da estação</button></div>

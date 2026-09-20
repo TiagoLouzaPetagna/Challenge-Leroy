@@ -35,6 +35,7 @@ export type ActivityContractFamily =
   | "batch-triage-v2"
   | "radar-v1"
   | "team-challenge-v1"
+  | "team-protocol-v1"
   | "bank-change-v1"
   | "bank-process-v2"
   | "not-published";
@@ -48,6 +49,7 @@ export type ActivityPlayerKey =
   | "link-analyzer"
   | "workday-simulation"
   | "secure-inbox-team-challenge"
+  | "team-protocol"
   | "bank-change-team-challenge"
   | "radar-article";
 

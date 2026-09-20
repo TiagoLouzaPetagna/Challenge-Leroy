@@ -1,7 +1,8 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { useState, type CSSProperties } from "react";
-import { FlaskConical } from "lucide-react";
 
 import styles from "./PhishLabHub.module.css";
 
@@ -66,7 +67,7 @@ const stations = [
   {
     id: "mirror-page",
     eyebrow: "Estação 03",
-    statusLabel: "Em breve",
+    statusLabel: "Em produção",
     title: "Espelho de Página",
     summary:
       "Compare uma página fictícia legítima com uma imitação e descubra por que a aparência não comprova identidade.",
@@ -79,7 +80,7 @@ const stations = [
   {
     id: "incident-line",
     eyebrow: "Estação 04",
-    statusLabel: "Em breve",
+    statusLabel: "Em produção",
     title: "Linha do Incidente",
     summary:
       "Organize acontecimentos depois de uma interação e pratique a ordem correta de contenção e reporte.",
@@ -92,10 +93,6 @@ const stations = [
 ] as const;
 
 type StationId = (typeof stations)[number]["id"];
-
-function LabMark() {
-  return <FlaskConical aria-hidden="true" />;
-}
 
 function MagnifierMark() {
   return (
@@ -194,53 +191,14 @@ export function PhishLabHub({
   senderRewardPoints,
   onOpenAnalyzer,
   onOpenSenderInspector,
-  onBackToOverview,
 }: PhishLabHubProps) {
-  const recommendedTitle =
-    recommendedActivityId === SENDER_INSPECTOR_ACTIVITY_ID
-      ? "Confirmar quem está por trás do pedido"
-      : recommendedActivityId === PHISHLAB_ACTIVITY_ID
-        ? "Analisar o domínio antes de confiar"
-        : "Escolha a investigação que quer praticar";
-  const isRecommended = Boolean(recommendedActivityId);
-
   return (
     <div className="page-stack lab-page">
-      <header className={styles.labHeader}>
-        <div className={styles.headerTopline}>
-          <span className={styles.labEyebrow}>
-            <span className={styles.labMark}><LabMark /></span>
-            Laboratório de investigação
-          </span>
-          <button type="button" className={styles.backButton} onClick={onBackToOverview}>
-            <span aria-hidden="true">←</span> Voltar à visão geral
-          </button>
-        </div>
-        <div className={styles.headerMain}>
-          <div className={styles.headerCopy}>
-            <h1>PhishLab</h1>
-            <p>Observe evidências, teste uma hipótese e leve a técnica para o próximo caso.</p>
-          </div>
-          <p className={styles.investigationQuestion}>
-            <span>Seu próximo experimento</span>
-            <strong>O que você quer investigar?</strong>
-          </p>
-        </div>
-        <aside className={`${styles.recommendation} ${isRecommended ? styles.recommendationActive : ""}`}>
-          <span className={styles.recommendationIcon} aria-hidden="true">
-            {isRecommended ? <CheckMark /> : <MagnifierMark />}
-          </span>
-          <div>
-            <span>{isRecommended ? "Boa próxima prática" : "Prática opcional"}</span>
-            <strong>{recommendedTitle}</strong>
-          </div>
-          <p>
-            {isRecommended
-              ? "Esta indicação usa seu progresso atual e ajuda a reforçar uma habilidade já observada."
-              : "Escolha livremente uma técnica e investigue no seu ritmo."}
-          </p>
-        </aside>
-      </header>
+      <SectionBanner variant="lab" labelledBy="phishlab-title">
+        <span>PhishLab · Laboratório de investigação</span>
+        <h1 id="phishlab-title">Toda mensagem<br />deixa pistas.</h1>
+        <p>Observe evidências, teste uma hipótese e descubra o que existe por trás de um remetente ou de um link.</p>
+      </SectionBanner>
 
       {senderResult || domainResult ? (
         <div className={styles.lastResults} aria-label="Resultados do PhishLab">
@@ -279,7 +237,6 @@ export function PhishLabHub({
             <span className="section-kicker">Estações</span>
             <h2 id="phishlab-stations-title">Escolha uma bancada</h2>
           </div>
-          <p>Duas investigações estão abertas agora. As próximas aparecem como parte do roteiro do laboratório.</p>
         </div>
         <div className={styles.stationGrid}>
           {stations.map((station) => {
@@ -288,6 +245,9 @@ export function PhishLabHub({
                 recommendedActivityId === SENDER_INSPECTOR_ACTIVITY_ID) ||
               (station.target === "domain" &&
                 recommendedActivityId === PHISHLAB_ACTIVITY_ID);
+            const stationIsCompleted =
+              (station.target === "sender" && Boolean(senderResult)) ||
+              (station.target === "domain" && Boolean(domainResult));
 
             return (
               <article
@@ -325,7 +285,7 @@ export function PhishLabHub({
                 {station.playable ? (
                   <button
                     type="button"
-                    className={styles.stationButton}
+                    className={stationIsCompleted ? "text-button" : "learning-button"}
                     onClick={
                       station.target === "sender"
                         ? onOpenSenderInspector
@@ -341,7 +301,7 @@ export function PhishLabHub({
                 ) : (
                   <p className={styles.productionNotice}>
                     <span aria-hidden="true">●</span>
-                    <strong>Em breve</strong> · estação ainda indisponível
+                    <strong>Em produção</strong> · disponibilidade futura
                   </p>
                 )}
               </article>

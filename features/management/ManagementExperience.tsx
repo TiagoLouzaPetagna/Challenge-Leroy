@@ -1,11 +1,14 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { useMemo, useState, type FormEvent } from "react";
 
 import { useAppState } from "@/app/providers";
 import { PORTAL_ACTIVITY_REGISTRY } from "@/lib/activities/registry";
 import {
   createCustomSectorId,
+  currentWorkAreaId,
   CUSTOM_SECTOR_ID,
   findSectorDefinition,
   SECTOR_CATALOG,
@@ -37,7 +40,7 @@ const MANAGEMENT_TABS: ReadonlyArray<{
 }> = [
   { id: "summary", label: "Resumo", description: "Situação deste recorte" },
   { id: "people", label: "Pessoas", description: "Usuários fictícios" },
-  { id: "sectors", label: "Setores", description: "Distribuição local" },
+  { id: "sectors", label: "Áreas", description: "Distribuição local" },
   { id: "content", label: "Conteúdos", description: "Consulta do catálogo" },
 ];
 
@@ -136,17 +139,18 @@ export function ManagementExperience() {
       SECTOR_CATALOG.map((sector) => [sector.id, { ...sector }]),
     );
     users.forEach((user) => {
-      if (!definitions.has(user.sectorId)) {
-        definitions.set(user.sectorId, { id: user.sectorId, name: user.sectorName });
+      const workAreaId = currentWorkAreaId(user.sectorId);
+      if (!definitions.has(workAreaId)) {
+        definitions.set(workAreaId, { id: workAreaId, name: user.sectorName });
       }
     });
 
     return Array.from(definitions.values())
       .map((sector) => ({
         ...sector,
-        total: users.filter((user) => user.sectorId === sector.id).length,
+        total: users.filter((user) => currentWorkAreaId(user.sectorId) === sector.id).length,
         active: users.filter(
-          (user) => user.sectorId === sector.id && user.status === "active",
+          (user) => currentWorkAreaId(user.sectorId) === sector.id && user.status === "active",
         ).length,
       }))
       .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "pt-BR"));
@@ -159,7 +163,7 @@ export function ManagementExperience() {
         !normalizedQuery ||
         normalize(user.name).includes(normalizedQuery) ||
         normalize(user.employeeId).includes(normalizedQuery);
-      const matchesSector = sectorFilter === "all" || user.sectorId === sectorFilter;
+      const matchesSector = sectorFilter === "all" || currentWorkAreaId(user.sectorId) === sectorFilter;
       const matchesStatus = statusFilter === "all" || user.status === statusFilter;
       return matchesQuery && matchesSector && matchesStatus;
     });
@@ -202,7 +206,7 @@ export function ManagementExperience() {
 
     if (name.length < 2) return setFormError("Informe um nome com pelo menos 2 caracteres.");
     if (employeeId.length < 3) return setFormError("Informe uma matrícula com pelo menos 3 caracteres.");
-    if (sectorName.length < 2) return setFormError("Selecione ou informe o setor da pessoa.");
+    if (sectorName.length < 2) return setFormError("Selecione ou informe a área de trabalho da pessoa.");
 
     try {
       saveManagementTestUser({ id: form.id, name, employeeId, sectorId, sectorName });
@@ -231,20 +235,11 @@ export function ManagementExperience() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero} aria-labelledby="management-title">
-        <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}>Gestão administrativa · acesso por conta</span>
-          <h1 id="management-title">Gestão do programa</h1>
-          <p>
-            Um primeiro bastidor para organizar pessoas de teste por setor e
-            consultar o conteúdo já modelado. A identidade e a permissão vêm da
-            conta autenticada; convites e cadastro público continuam fora deste recorte.
-          </p>
-        </div>
+      <SectionBanner variant="management" labelledBy="management-title" footer={
         <aside className={styles.adminCard}>
           <span>Conta administradora</span>
           <strong>{account?.name ?? state.demo.administrator.name}</strong>
-          <p>{account?.employeeId ?? "Sessão autenticada"} · {account?.sectorName ?? "Administração"}</p>
+          <p>{account?.employeeId ?? "Sessão autenticada"} · {account?.sectorName ?? "Loja - Gestão"}</p>
           <button
             type="button"
             onClick={logout}
@@ -252,7 +247,11 @@ export function ManagementExperience() {
             Sair da conta
           </button>
         </aside>
-      </header>
+      }>
+        <span>Painel de gestão</span>
+        <h1 id="management-title">Conecte pessoas.<br />Cultive segurança.</h1>
+        <p>Organize pessoas por área de trabalho, acompanhe o programa e consulte os conteúdos que ajudam a construir uma cultura de proteção.</p>
+      </SectionBanner>
 
       <nav className={styles.tabs} aria-label="Seções da gestão administrativa">
         {MANAGEMENT_TABS.map((tab) => (
@@ -273,7 +272,7 @@ export function ManagementExperience() {
         <div className={styles.stack}>
           <section className={styles.metricGrid} aria-label="Resumo da gestão local">
             <article><span>Pessoas de teste</span><strong>{users.length}</strong><small>{activeUsers} ativas neste diretório</small></article>
-            <article><span>Setores com pessoas</span><strong>{sectors.filter((sector) => sector.total > 0).length}</strong><small>Organização somente por setor</small></article>
+            <article><span>Áreas com pessoas</span><strong>{sectors.filter((sector) => sector.total > 0).length}</strong><small>Organização por área de trabalho</small></article>
             <article><span>Conteúdos disponíveis</span><strong>{availableContent.length}</strong><small>{plannedContent.length} ainda planejados</small></article>
             <article><span>Alterações registradas</span><strong>{state.admin.auditLog.length}</strong><small>Histórico local do protótipo</small></article>
           </section>
@@ -281,12 +280,12 @@ export function ManagementExperience() {
           <section className={styles.summaryGrid}>
             <article className={styles.panel}>
               <span className={styles.eyebrow}>O que funciona agora</span>
-              <h2>Diretório demonstrativo por setor</h2>
+              <h2>Diretório demonstrativo por área</h2>
               <ul>
                 <li>Adicionar e editar pessoas fictícias.</li>
                 <li>Ativar ou desativar registros locais.</li>
-                <li>Filtrar por matrícula, nome, setor e status.</li>
-                <li>Consultar setores e conteúdos sem alterar o Arcade.</li>
+                <li>Filtrar por matrícula, nome, área e status.</li>
+                <li>Consultar áreas e conteúdos sem alterar o Arcade.</li>
               </ul>
               <button type="button" className={styles.primaryButton} onClick={() => setActiveTab("people")}>Gerenciar pessoas de teste</button>
             </article>
@@ -310,14 +309,14 @@ export function ManagementExperience() {
             <div>
               <span className={styles.eyebrow}>Diretório local</span>
               <h2 id="management-people-title">Pessoas de teste</h2>
-              <p>Registros fictícios para validar a organização por setor.</p>
+              <p>Registros fictícios para validar a organização por área de trabalho.</p>
             </div>
             <button type="button" className={styles.primaryButton} onClick={openNewUser}>Adicionar pessoa</button>
           </div>
 
           <div className={styles.filters}>
             <label><span>Buscar</span><input type="search" value={query} placeholder="Nome ou matrícula" onChange={(event) => setQuery(event.target.value)} /></label>
-            <label><span>Setor</span><select value={sectorFilter} onChange={(event) => setSectorFilter(event.target.value)}><option value="all">Todos os setores</option>{sectors.map((sector) => <option key={sector.id} value={sector.id}>{sector.name}</option>)}</select></label>
+            <label><span>Área de trabalho</span><select value={sectorFilter} onChange={(event) => setSectorFilter(event.target.value)}><option value="all">Todas as áreas</option>{sectors.map((sector) => <option key={sector.id} value={sector.id}>{sector.name}</option>)}</select></label>
             <label><span>Status</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="all">Todos</option><option value="active">Ativos</option><option value="inactive">Inativos</option></select></label>
           </div>
 
@@ -332,8 +331,8 @@ export function ManagementExperience() {
               <div className={styles.formGrid}>
                 <label><span>Nome de exibição</span><input name="testUserName" minLength={2} maxLength={80} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
                 <label><span>Matrícula de teste</span><input name="testUserEmployeeId" minLength={3} maxLength={32} value={form.employeeId} onChange={(event) => setForm({ ...form, employeeId: event.target.value })} /></label>
-                <label><span>Setor</span><select name="testUserSector" value={form.sectorChoice} onChange={(event) => setForm({ ...form, sectorChoice: event.target.value })}>{SECTOR_CATALOG.map((sector) => <option key={sector.id} value={sector.id}>{sector.name}</option>)}<option value={CUSTOM_SECTOR_ID}>Outro setor</option></select></label>
-                {form.sectorChoice === CUSTOM_SECTOR_ID ? <label><span>Nome do outro setor</span><input name="testUserCustomSector" minLength={2} maxLength={80} value={form.customSectorName} onChange={(event) => setForm({ ...form, customSectorName: event.target.value })} /></label> : null}
+                <label><span>Área de trabalho</span><select name="testUserSector" value={form.sectorChoice} onChange={(event) => setForm({ ...form, sectorChoice: event.target.value })}>{SECTOR_CATALOG.map((sector) => <option key={sector.id} value={sector.id}>{sector.name}</option>)}<option value={CUSTOM_SECTOR_ID}>Outra área</option></select></label>
+                {form.sectorChoice === CUSTOM_SECTOR_ID ? <label><span>Nome da outra área</span><input name="testUserCustomSector" minLength={2} maxLength={80} value={form.customSectorName} onChange={(event) => setForm({ ...form, customSectorName: event.target.value })} /></label> : null}
               </div>
               {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
               <div className={styles.actionRow}><button type="submit" className={styles.primaryButton} disabled={!isHydrated}>{form.id ? "Salvar alterações" : "Adicionar pessoa"}</button><button type="button" className={styles.secondaryButton} onClick={resetForm}>Cancelar</button></div>
@@ -342,12 +341,12 @@ export function ManagementExperience() {
 
           <div className={styles.tableWrap}>
             <table>
-              <thead><tr><th>Pessoa</th><th>Matrícula</th><th>Setor</th><th>Status</th><th><span className={styles.srOnly}>Ações</span></th></tr></thead>
+              <thead><tr><th>Pessoa</th><th>Matrícula</th><th>Área de trabalho</th><th>Status</th><th><span className={styles.srOnly}>Ações</span></th></tr></thead>
               <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user.id}>
                     <td><strong>{user.name}</strong><small>Funcionário fictício</small></td>
-                    <td>{user.employeeId}</td><td>{user.sectorName}</td>
+                    <td>{user.employeeId}</td><td>{findSectorDefinition(user.sectorId)?.name ?? user.sectorName}</td>
                     <td><span className={user.status === "active" ? styles.activeStatus : styles.inactiveStatus}>{user.status === "active" ? "Ativo" : "Inativo"}</span></td>
                     <td><div className={styles.rowActions}><button type="button" onClick={() => openEditUser(user)}>Editar</button><button type="button" onClick={() => changeStatus(user)}>{user.status === "active" ? "Desativar" : "Ativar"}</button></div></td>
                   </tr>
@@ -362,7 +361,7 @@ export function ManagementExperience() {
 
       {activeTab === "sectors" ? (
         <section className={styles.panel} aria-labelledby="management-sectors-title">
-          <div className={styles.sectionHeading}><div><span className={styles.eyebrow}>Organização atual</span><h2 id="management-sectors-title">Setores</h2><p>Sem unidade, loja, função ou hierarquia adicional neste recorte.</p></div></div>
+          <div className={styles.sectionHeading}><div><span className={styles.eyebrow}>Organização atual</span><h2 id="management-sectors-title">Áreas de trabalho</h2><p>Classificação por função, sem atribuir uma loja ou unidade específica.</p></div></div>
           <div className={styles.sectorGrid}>{sectors.map((sector) => <article key={sector.id}><span>{sector.total > 0 ? "Em uso" : "Disponível"}</span><h3>{sector.name}</h3><strong>{sector.total} {sector.total === 1 ? "pessoa" : "pessoas"}</strong><small>{sector.active} {sector.active === 1 ? "registro ativo" : "registros ativos"}</small></article>)}</div>
         </section>
       ) : null}

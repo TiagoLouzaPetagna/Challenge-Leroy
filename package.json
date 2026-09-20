@@ -12,6 +12,7 @@
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "test:browser": "node scripts/run-browser-tests.mjs",
     "test:all": "npm test && node scripts/run-browser-tests.mjs --skip-build",
+    "seed:ranking:local": "node scripts/seed-local-sector-ranking.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern playwright-report --ignore-pattern test-results --ignore-pattern tmp --ignore-pattern artifacts --ignore-pattern output --ignore-pattern public/house-3d/vendor",
     "db:generate": "drizzle-kit generate",
     "db:migrate:remote": "wrangler d1 migrations apply fortifica-db --remote",

@@ -65,7 +65,7 @@ export function AccountLogin() {
           <h1 id="login-story-title">Segurança se constrói em equipe.</h1>
           <p>
             Entre com sua conta para continuar suas missões, acompanhar o
-            progresso do seu setor e acessar apenas as áreas permitidas para o
+            progresso da sua área de trabalho e acessar apenas as áreas permitidas para o
             seu perfil.
           </p>
         </div>

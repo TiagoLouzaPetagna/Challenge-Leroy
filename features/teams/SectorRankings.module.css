@@ -1,0 +1,32 @@
+.section { overflow: hidden; padding: clamp(23px, 3vw, 32px); border: 1px solid #dce8df; border-radius: 26px; color: #173f35; background: #fffdf8; }
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.kicker { color: #52802d; font-size: 12px; font-weight: 900; letter-spacing: .1em; }
+.heading h2 { margin: 6px 0 8px; font-family: var(--learn-display), Fraunces, Georgia, serif; font-size: clamp(29px, 3vw, 39px); letter-spacing: -.035em; line-height: 1.1; }
+.heading p { max-width: 64ch; margin: 0; color: #526b5c; line-height: 1.5; }
+.trophy { flex: 0 0 auto; color: #52802d; }
+.tabs { display: inline-flex; gap: 4px; margin-top: 24px; padding: 4px; border: 1px solid #d8e6d9; border-radius: 13px; background: #edf5e9; }
+.tabs button { min-height: 40px; padding: 8px 16px; border: 0; border-radius: 9px; color: #45634c; background: transparent; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.tabs button.selected { color: #173f35; background: #fff; box-shadow: 0 1px 4px #183d2924; }
+.tabs button:focus-visible { outline: 3px solid #173f35; outline-offset: 3px; }
+.description { margin: 17px 0 21px; color: #526b5c; font-size: 14px; line-height: 1.45; }
+.feedback { margin: 0; padding: 18px; border-radius: 14px; color: #526b5c; background: #f3f8ef; }
+.podium { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.card { position: relative; display: flex; min-height: 230px; flex-direction: column; align-items: center; padding: 19px 14px 17px; border: 1px solid #d7e5d7; border-radius: 18px; background: #f7faf4; text-align: center; }
+.card.first { border-color: #aecb84; background: linear-gradient(160deg, #eef7d9 0%, #fcfdf5 62%); }
+.card.second { border-color: #c9d9d2; background: linear-gradient(160deg, #edf5f1 0%, #fafcf9 62%); }
+.card.third { border-color: #dfd1bb; background: linear-gradient(160deg, #f9f0df 0%, #fdfcf8 62%); }
+.card.current { box-shadow: inset 0 0 0 2px #408455; }
+.place { align-self: flex-start; padding: 5px 9px; border-radius: 7px; color: #49643e; background: #e7f0de; font-size: 11px; font-weight: 900; letter-spacing: .03em; }
+.first .place { color: #34551e; background: #d6ecac; }
+.second .place { color: #3c5d57; background: #deebe6; }
+.third .place { color: #735133; background: #f2e0c4; }
+.emblem { display: grid; width: 70px; height: 79px; flex: 0 0 auto; place-items: center; margin-top: 8px; padding-bottom: 6px; clip-path: polygon(50% 0, 91% 12%, 91% 67%, 50% 100%, 9% 67%, 9% 12%); color: #f6ffe8; background: #2c6849; filter: drop-shadow(0 3px 1px #173f3529); }
+.first .emblem { color: #285033; background: #c8eb75; }
+.second .emblem { color: #214a3b; background: #c4dcd1; }
+.third .emblem { color: #5a3e2a; background: #e9c79d; }
+.card h3 { display: -webkit-box; overflow: hidden; margin: 9px 0 0; font-size: 17px; line-height: 1.2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.yourSector { margin-top: 5px; color: #417447; font-size: 11px; font-weight: 900; }
+.metric { display: grid; gap: 1px; justify-items: center; width: 100%; margin-top: auto; padding-top: 12px; border-top: 1px solid #dce8d8; }
+.metric strong { font-family: var(--learn-display), Fraunces, Georgia, serif; font-size: 27px; letter-spacing: -.03em; line-height: 1.1; }
+.metric span { color: #526b5c; font-size: 12px; }
+@media (max-width: 620px) { .trophy { display: none; } .tabs { display: flex; } .tabs button { flex: 1; padding-inline: 10px; } .podium { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; } .podium .card:last-child:nth-child(odd) { grid-column: 1 / -1; } .card { min-height: 206px; padding: 12px 6px; } .place { font-size: 10px; } .emblem { width: 52px; height: 60px; } .card h3 { font-size: 13px; } .metric strong { font-size: 22px; } .metric span { font-size: 10px; } }

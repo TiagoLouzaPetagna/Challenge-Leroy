@@ -164,3 +164,24 @@ export const arcadeRuns = sqliteTable(
     ),
   ],
 );
+
+export const teamProtocolResponses = sqliteTable(
+  "team_protocol_responses",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    sectorId: text("sector_id").notNull(),
+    periodId: text("period_id").notNull(),
+    orderJson: text("order_json").notNull(),
+    correct: integer("correct", { mode: "boolean" }).notNull(),
+    submittedAt: text("submitted_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_team_protocol_account_sector_period").on(
+      table.accountId, table.sectorId, table.periodId,
+    ),
+    index("idx_team_protocol_sector_period").on(table.sectorId, table.periodId),
+  ],
+);

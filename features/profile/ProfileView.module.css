@@ -227,7 +227,7 @@
   position: relative;
   display: grid;
   min-width: 0;
-  min-height: 320px;
+  min-height: 420px;
   place-items: end center;
   align-self: stretch;
 }
@@ -279,8 +279,8 @@
   display: grid;
   width: 62px;
   height: 70px;
-  top: 42px;
-  left: -6px;
+  top: 12px;
+  left: -12px;
   place-items: center;
   border-radius: 20px;
   background: var(--learn-yellow);
@@ -379,8 +379,104 @@
   background: #d4ff70;
 }
 
-.avatarCard button:active {
-  transform: translateY(1px);
+.avatarCard button:focus-visible {
+  outline: 3px solid var(--learn-focus);
+  outline-offset: 3px;
+}
+
+.houseInvitation {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  padding: 24px clamp(22px, 3vw, 36px);
+  border: 1px solid #c9dec6;
+  border-radius: 24px;
+  background: linear-gradient(110deg, #e7f1e6, #f6f7e8 75%);
+  box-shadow: 0 12px 32px rgb(23 63 53 / 7%);
+}
+
+.houseInvitationIcon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border: 1px solid #aad2a5;
+  border-radius: 19px;
+  color: var(--learn-forest);
+  background: #d8efca;
+  box-shadow: inset 0 -4px 0 rgb(23 63 53 / 9%);
+}
+
+.houseInvitationCopy > span {
+  color: var(--learn-green);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.houseInvitationCopy h2 {
+  margin: 3px 0 4px;
+  color: var(--learn-forest);
+  font-size: clamp(23px, 2.5vw, 30px);
+  line-height: 1.05;
+}
+
+.houseInvitationCopy p {
+  color: #516b5d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.houseInvitationActions {
+  display: flex;
+  align-items: stretch;
+  gap: 9px;
+}
+
+.houseInvitationActions button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.housePrimaryAction {
+  border: 1px solid #97c629;
+  color: var(--learn-forest-deep);
+  background: var(--learn-lime);
+  box-shadow: 0 4px 0 #689622;
+}
+
+.houseInvitationActions .housePrimaryAction:hover { background: #d4ff70; }
+.houseInvitationActions .housePrimaryAction:active { box-shadow: 0 1px 0 #689622; transform: translateY(3px); }
+
+.houseSecondaryAction {
+  border: 1px solid #afcdb4;
+  color: var(--learn-forest);
+  background: #fffdf7;
+}
+
+.houseInvitationActions .houseSecondaryAction:hover { background: #f2f8e8; }
+
+@media (max-width: 900px) {
+  .houseInvitation { grid-template-columns: 64px minmax(0, 1fr); }
+  .houseInvitationActions { grid-column: 2; flex-wrap: wrap; }
+}
+
+@media (max-width: 560px) {
+  .houseInvitation { grid-template-columns: 1fr; }
+  .houseInvitationActions { grid-column: 1; }
+  .houseInvitationActions button { flex: 1 1 150px; }
 }
 
 .sectionNav {
@@ -1211,48 +1307,26 @@
   place-items: center;
 }
 
-.achievementMark::before {
-  content: "";
-  grid-area: 1 / 1;
-  width: 62px;
-  height: 62px;
-  border: 1px solid #cbd4cd;
-  border-radius: 20px;
-  background: #eef0eb;
-  transform: rotate(4deg);
-}
-
-.unlocked .achievementMark::before {
-  border-color: #91bd55;
-  background: var(--learn-lime);
-}
-
 .achievementMark svg,
 .achievementMark span {
   grid-area: 1 / 1;
 }
 
 .achievementMark svg {
-  width: 34px;
-  height: 34px;
-  fill: none;
+  width: 64px;
+  height: 72px;
+  fill: #e2e7e1;
   stroke: #89958f;
-  stroke-width: 1.8;
+  stroke-width: 1.5;
 }
 
 .unlocked .achievementMark svg {
-  fill: none;
+  fill: var(--learn-lime);
   stroke: var(--learn-forest);
 }
 
 .achievementMark span {
-  align-self: end;
-  z-index: 2;
-  margin-bottom: -1px;
-  padding: 2px 6px;
-  border-radius: 999px;
   color: var(--learn-forest);
-  background: #fffdf7;
   font-family: var(--learn-display);
   font-size: 17px;
   font-weight: 650;
@@ -1510,11 +1584,11 @@
   }
 
   .heroVisual {
-    min-height: 280px;
+    min-height: 340px;
   }
 
   .avatarCard {
-    min-height: 288px;
+    min-height: 300px;
   }
 
   .summaryStory,
@@ -1547,12 +1621,11 @@
   }
 
   .heroVisual {
-    min-height: 270px;
+    min-height: 320px;
   }
 
   .avatarCard {
-    width: min(88%, 292px);
-    min-height: 300px;
+    width: min(100%, 292px);
   }
 
   .hero::before,
@@ -1629,12 +1702,11 @@
   }
 
   .heroVisual {
-    min-height: 235px;
+    min-height: 300px;
   }
 
   .avatarCard {
-    width: min(94%, 276px);
-    min-height: 278px;
+    min-height: 290px;
   }
 
   .levelSeal {

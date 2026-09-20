@@ -1,10 +1,13 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import {
   useEffect,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -39,9 +42,9 @@ import type {
   LearnerPreferences,
   NextStepRecommendation,
   ReasonKey,
-  SectorMetrics,
 } from "@/lib/domain/types";
 import { selectAchievements } from "@/lib/domain/achievements";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import {
   selectActiveReview,
   selectBestMissionSummary,
@@ -73,12 +76,9 @@ import {
   selectMainJourney,
   selectNextStep,
   selectPointOrigins,
-  selectTeamShield,
   selectTotalPoints,
   selectLatestTeamChallengeAttempt,
   selectLatestTeamChallengeResult,
-  selectSectorMetrics,
-  selectSectorRanking,
   selectTeamChallengeContribution,
   selectBankChangeContribution,
   selectLatestBankChangeAttempt,
@@ -111,7 +111,9 @@ import {
 } from "@/features/simulations/SimulationExperience";
 import { WorkdayTriageSimulation } from "@/features/simulations/WorkdayTriageSimulation";
 import { RadarArticle, RadarHub } from "@/features/radar/RadarExperience";
-import { TeamChallenge, TeamsHub } from "@/features/teams/TeamsExperience";
+import { TeamChallenge } from "@/features/teams/TeamsExperience";
+import { SectorProtocolActivity } from "@/features/teams/SectorProtocolActivity";
+import { TeamsOverview } from "@/features/teams/TeamsOverview";
 import { BankChangeChallenge } from "@/features/teams/BankChangeChallenge";
 import { ArcadeGameDetail, ArcadeHub } from "@/features/arcade/ArcadeExperience";
 import {
@@ -121,7 +123,7 @@ import {
 import { GuidedTutorial } from "@/features/onboarding/GuidedTutorial";
 import {
   ActivityFocusBar,
-  PortalSidebar,
+  PortalMenuPanel,
   PortalTopbar,
 } from "@/features/ui/PortalChrome";
 import {
@@ -129,13 +131,11 @@ import {
   type PortalIconName,
 } from "@/features/ui/PortalIcons";
 import {
-  IllustratedMessage,
   LearningButton,
-  Mascot,
-  ProgressJourney,
 } from "@/features/ui/LearningUI";
 import { ActivityRouteState } from "@/features/activities/ActivityRouteState";
 import { ActivityShell } from "@/features/activities/ActivityShell";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import { isActivityPlayerReady } from "@/features/activities/player-registry";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
@@ -167,7 +167,7 @@ type SectionContent = {
 
 const viewLabels: Partial<Record<ViewKey, string>> = {
   inicio: "Visão geral",
-  missoes: "Missões",
+  missoes: "Jornada",
   simulacoes: "Simulações",
   laboratorio: "PhishLab",
   arcade: "Arcade",
@@ -374,43 +374,43 @@ const sectionContent: Record<Exclude<ViewKey, "inicio" | "missao">, SectionConte
     flow: ["Receber alerta", "Entender técnica", "Consultar sinais", "Aplicar orientação"],
   },
   equipes: {
-    badge: "Defesa coletiva",
-    title: "Segurança se constrói em equipe",
+    badge: "Prática do setor",
+    title: "Um caso para todos da sua área",
     summary:
-      "As atividades individuais contribuem para um escudo coletivo. Setores podem cumprir objetivos comuns e acompanhar sua própria evolução.",
+      "Cada pessoa monta a sequência de ações para o mesmo caso. O painel reúne o resultado sem expor respostas individuais.",
     purpose:
-      "Reforçar colaboração, comunicação e reporte, evitando que a gamificação dependa somente de competição individual.",
+      "Treinar uma decisão da rotina e acompanhar como o setor se saiu.",
     blocks: [
       {
         eyebrow: "Objetivo",
-        title: "Escudo coletivo",
+        title: "Caso do setor",
         summary:
-          "Indicador construído com participação, competências dominadas, colaboração e reportes corretos da equipe.",
+          "Todos analisam o mesmo pedido e escolhem a ordem das ações.",
         marker: "EC",
       },
       {
-        eyebrow: "Operação",
-        title: "Missões cooperativas",
+        eyebrow: "Prática",
+        title: "Montar a rota segura",
         summary:
-          "Distribuem papéis como triagem, investigação, verificação, comunicação e resposta ao incidente.",
+          "Ordene três ações e deixe de fora o atalho inseguro.",
         marker: "MC",
       },
       {
-        eyebrow: "Comparação",
-        title: "Ranking normalizado",
+        eyebrow: "Setor",
+        title: "Contexto próximo da rotina",
         summary:
-          "Compara evolução proporcional e média por participante para não favorecer automaticamente equipes maiores.",
+          "O pedido acompanha a área escolhida no cadastro.",
         marker: "RN",
       },
       {
-        eyebrow: "Partilha",
-        title: "Reconhecimento do grupo",
+        eyebrow: "Privacidade",
+        title: "Resultado do grupo",
         summary:
-          "Troféus coletivos, destaque por colaboração e escolha de temas futuros valorizam a ajuda entre colegas.",
+          "O painel mostra totais e libera o resultado agregado a partir de três participações.",
         marker: "PT",
       },
     ],
-    flow: ["Formar equipe", "Dividir papéis", "Resolver operação", "Fortalecer escudo"],
+    flow: ["Ler o pedido", "Ordenar ações", "Receber feedback", "Acompanhar o setor"],
   },
   perfil: {
     badge: "Progresso individual",
@@ -493,46 +493,58 @@ const sectionContent: Record<Exclude<ViewKey, "inicio" | "missao">, SectionConte
 };
 
 const homeModules: Array<{
-  key: "simulacoes" | "laboratorio" | "arcade" | "radar";
-  label: string;
+  key: "laboratorio" | "simulacoes" | "radar" | "equipes" | "arcade";
   title: string;
   summary: string;
-  tone: string;
+  color: string;
   icon: PortalIconName;
 }> = [
   {
-    key: "simulacoes",
-    label: "Prática",
-    title: "Simulações",
-    summary: "Treine decisões em uma rotina segura e realista.",
-    tone: "mint",
-    icon: "simulations",
-  },
-  {
     key: "laboratorio",
-    label: "Análise",
     title: "PhishLab",
-    summary: "Investigue remetentes, links e outros sinais.",
-    tone: "blue",
+    summary: "Uma pista por vez.",
+    color: "var(--learn-teal)",
     icon: "laboratory",
   },
   {
-    key: "arcade",
-    label: "Jogos",
-    title: "Arcade",
-    summary: "Pratique rapidamente em desafios independentes.",
-    tone: "yellow",
-    icon: "arcade",
+    key: "simulacoes",
+    title: "Simulações",
+    summary: "Uma manhã de trabalho.",
+    color: "var(--learn-coral)",
+    icon: "simulations",
   },
   {
     key: "radar",
-    label: "Referência",
     title: "Radar",
-    summary: "Consulte explicações curtas sobre ameaças atuais.",
-    tone: "coral",
+    summary: "Entenda um golpe por vez.",
+    color: "var(--learn-sky)",
     icon: "radar",
   },
+  {
+    key: "equipes",
+    title: "Equipes",
+    summary: "Práticas e progresso do seu setor.",
+    color: "var(--learn-yellow)",
+    icon: "teams",
+  },
+  {
+    key: "arcade",
+    title: "Arcade",
+    summary: "Rodadas curtas.",
+    color: "var(--learn-lilac)",
+    icon: "arcade",
+  },
 ];
+
+function buildTrailPath(nodeCenters: Array<{ x: number; y: number; radius: number }>): string {
+  return nodeCenters.slice(1).map((end, index) => {
+    const start = nodeCenters[index];
+    const startY = start.y + start.radius + 8;
+    const endY = end.y - end.radius - 8;
+    const curveDepth = Math.min(200, Math.abs(end.x - start.x) * 0.24);
+    return `M${start.x} ${startY} C${start.x} ${startY + curveDepth}, ${end.x} ${endY - curveDepth}, ${end.x} ${endY}`;
+  }).join("");
+}
 
 const missionSteps = ["Briefing", "Investigar", "Decidir", "Resultado"];
 
@@ -631,24 +643,21 @@ const reasonOptions: Array<{ id: ReasonKey; label: string }> = [
 ];
 
 function HomeView({
+  isHydrated,
   learnerName,
   onNavigate,
   onOpenRecommendation,
-  sectorMetrics,
-  teamContributionCounted,
   nextStep,
   recommendationMeta,
   learningPath,
-  recentActivity,
   onOpenActivity,
   showTutorialInvitation,
   onOpenTutorial,
 }: {
+  isHydrated: boolean;
   learnerName: string;
   onNavigate: (view: ViewKey) => void;
   onOpenRecommendation: () => void;
-  sectorMetrics: SectorMetrics;
-  teamContributionCounted: boolean;
   nextStep: NextStepRecommendation;
   recommendationMeta: {
     estimatedMinutes: number;
@@ -657,27 +666,41 @@ function HomeView({
     areaLabel: string;
   };
   learningPath: LearningPathView;
-  recentActivity: ProfileHistoryView[];
   onOpenActivity: (href: string) => void;
   showTutorialInvitation: boolean;
   onOpenTutorial: (opener: HTMLButtonElement) => void;
 }) {
-  const journeyProgress =
-    learningPath.progressMax === 0
-      ? 0
-      : Math.round((learningPath.progressValue / learningPath.progressMax) * 100);
-  const firstOpenStepIndex = learningPath.steps.findIndex(
-    (step) => step.status !== "completed",
-  );
-  const pathWindowStart = Math.min(
-    Math.max((firstOpenStepIndex < 0 ? learningPath.steps.length - 1 : firstOpenStepIndex) - 1, 0),
-    Math.max(learningPath.steps.length - 4, 0),
-  );
-  const visiblePathSteps = learningPath.steps.slice(
-    pathWindowStart,
-    pathWindowStart + 4,
-  );
+  const currentStepId =
+    learningPath.steps.find((step) => step.status === "in_progress")?.id ??
+    learningPath.steps.find((step) => step.status === "available")?.id;
+  const trailRef = useRef<HTMLOListElement>(null);
+  const trailPathRef = useRef<SVGPathElement>(null);
 
+  useEffect(() => {
+    const trail = trailRef.current;
+    const path = trailPathRef.current;
+    if (!trail || !path) return;
+
+    // Follow the actual node positions as the panel and text reflow.
+    const updatePath = () => {
+      const bounds = trail.getBoundingClientRect();
+      const centers = Array.from(trail.querySelectorAll(".home-trail__node"), (node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          x: rect.left - bounds.left + rect.width / 2,
+          y: rect.top - bounds.top + rect.height / 2,
+          radius: rect.height / 2,
+        };
+      });
+      path.setAttribute("d", buildTrailPath(centers));
+    };
+
+    const observer = new ResizeObserver(updatePath);
+    observer.observe(trail);
+    for (const item of trail.children) observer.observe(item);
+    updatePath();
+    return () => observer.disconnect();
+  }, [isHydrated, learningPath.steps]);
   return (
     <div className="page-stack home-dashboard">
       {showTutorialInvitation ? (
@@ -709,14 +732,14 @@ function HomeView({
         </button>
       </header>
 
-      <section className="home-learning-hero" data-tour="next-step" aria-labelledby="home-next-title">
-        <div className="home-learning-hero__copy">
+      <SectionBanner variant="home" tour="next-step" labelledBy="home-next-title">
+        <div>
           <span className="home-learning-hero__meta">
             {recommendationMeta.areaLabel} · {recommendationMeta.estimatedMinutes} min
           </span>
-          <h1 id="home-next-title">Tem algo estranho<br />nesta mensagem.</h1>
+          <h1 id="home-next-title">Sua próxima escolha<br />faz a diferença.</h1>
           <p className="home-learning-hero__title">{nextStep.title}</p>
-          <p>Leia o aviso, descubra o que ele pede e escolha um caminho seguro.</p>
+          <p>Um novo passo para reconhecer riscos e agir com mais confiança no dia a dia.</p>
           <div className="home-learning-hero__actions">
             <LearningButton onClick={onOpenRecommendation}>
               {nextStep.actionLabel}
@@ -734,159 +757,122 @@ function HomeView({
           </div>
           <small>{recommendationMeta.basePoints} pontos · {recommendationMeta.statusLabel}</small>
         </div>
-        <IllustratedMessage>
-          <Mascot pose="thinking" size="medium" />
-        </IllustratedMessage>
-      </section>
+      </SectionBanner>
 
-      <section className="home-learning-status" aria-label="Seu progresso">
-        <div className="home-learning-status__journey">
-          <span>Jornada</span>
-          <ProgressJourney
-            current={learningPath.progressValue}
-            total={learningPath.progressMax}
-            label={learningPath.progressAssistiveLabel}
-          />
-        </div>
-        <dl className="home-learning-status__facts">
-          <div data-tour="team-summary">
-            <dt>Escudo coletivo</dt>
-            <dd>{sectorMetrics.score}</dd>
-            <small>{sectorMetrics.shieldLevel}</small>
-          </div>
-          <div>
-            <dt>Revisão</dt>
-            <dd>{nextStep.kind === "adaptiveReview" ? "Praticar" : "Em dia"}</dd>
-            <small>{teamContributionCounted ? "Contribuição computada" : "Privacidade preservada"}</small>
-          </div>
-          <div>
-            <dt>Avanço</dt>
-            <dd>{journeyProgress}%</dd>
-            <small>{learningPath.completedLabel}</small>
-          </div>
-        </dl>
-      </section>
-
-      <section className="home-path-panel" aria-labelledby="home-path-title">
+      {/* Seu caminho — home.md §7. A trilha é o herói: 8 nós completos, sem janela. */}
+      <section className="home-trail-panel" aria-labelledby="home-trail-title">
         <div className="panel-heading">
           <div>
-            <span className="section-kicker">Seu caminho</span>
-            <h2 id="home-path-title">{learningPath.title}</h2>
+            <h2 id="home-trail-title">Seu caminho</h2>
           </div>
-          <span className="home-path-progress">{learningPath.completedLabel}</span>
-        </div>
-        <ol className="home-path-list">
-          {visiblePathSteps.map((step) => (
-            <li className={`home-path-step is-${step.status}`} key={step.id}>
-              <span className="home-path-sequence" aria-hidden="true">
-                {step.sequenceLabel}
-              </span>
-              <div>
-                <small>{step.areaLabel}</small>
-                <strong>{step.title}</strong>
-                <span>{step.statusLabel}</span>
-              </div>
-              {!step.isActionDisabled ? (
-                <button
-                  type="button"
-                  className="text-button"
-                  onClick={() => onOpenActivity(step.href)}
-                  aria-label={`${step.actionLabel}: ${step.title}`}
-                >
-                  Abrir <span aria-hidden="true">→</span>
-                </button>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="home-activity-panel home-recent-panel" aria-labelledby="home-activity-title">
-        <div className="panel-heading">
-          <div>
-            <span className="section-kicker">Retome rapidamente</span>
-            <h2 id="home-activity-title">Atividade recente</h2>
-          </div>
-          {recentActivity.length > 0 ? (
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => onOpenActivity("/perfil/historico")}
-            >
-              Ver histórico completo <span aria-hidden="true">→</span>
-            </button>
+          {isHydrated ? (
+            <span className="home-trail-count">{learningPath.completedLabel}</span>
           ) : null}
         </div>
-        {recentActivity.length > 0 ? (
-          <ol className="home-activity-list">
-            {recentActivity.slice(0, 3).map((event) => (
-              <li key={event.id}>
-                <div className="home-activity-marker" aria-hidden="true" />
-                <div className="home-activity-copy">
-                  <span>{event.categoryLabel}</span>
-                  <strong>{event.title}</strong>
-                  <p>{event.detail}</p>
-                  <small>{event.date}</small>
-                </div>
-                <button
-                  type="button"
-                  className="text-button"
-                  onClick={() => onOpenActivity(event.href)}
-                >
-                  {event.actionLabel} <span aria-hidden="true">→</span>
-                </button>
-              </li>
-            ))}
+        <div className="home-trail-wrap">
+          <svg className="home-trail-path" aria-hidden="true">
+            <path ref={trailPathRef} />
+          </svg>
+          <ol className="home-trail" ref={trailRef}>
+            {!isHydrated
+              ? learningPath.steps.map((step) => (
+                  <li
+                    key={step.id}
+                    className="home-trail__item home-trail__item--skeleton"
+                    aria-hidden="true"
+                  >
+                    <span className="home-trail__node" />
+                  </li>
+                ))
+              : learningPath.steps.map((step) => {
+                  const isCurrent = step.id === currentStepId;
+                  return (
+                    <li
+                      key={step.id}
+                      className={`home-trail__item is-${step.status}`}
+                      data-area={step.areaLabel.toLowerCase()}
+                      aria-current={isCurrent ? "step" : undefined}
+                    >
+                      <span className="home-trail__node" aria-hidden="true">
+                        {step.status === "completed" ? "✓" : step.sequenceLabel}
+                      </span>
+                      <div className="home-trail__copy">
+                        {isCurrent ? <span className="home-trail__here">Você está aqui</span> : null}
+                        <strong>{step.title}</strong>
+                        <span className="home-trail__details">
+                          <span className="home-trail__area">{step.areaLabel}</span>
+                          <span className="home-trail__meta">{step.durationLabel}</span>
+                        </span>
+                        {step.status === "planned" ? (
+                          <span className="home-trail__chip">Em produção</span>
+                        ) : null}
+                        {step.status === "locked" ? (
+                          <p className="home-trail__prerequisites">{step.statusLabel}</p>
+                        ) : null}
+                        {!step.isActionDisabled && (isCurrent || step.status === "completed") ? (
+                          <button
+                            type="button"
+                            className={isCurrent ? "learning-button" : "text-button"}
+                            onClick={() => onOpenActivity(step.href)}
+                            aria-label={`${step.actionLabel}: ${step.title}`}
+                          >
+                            {isCurrent ? step.actionLabel : "Abrir"} <span aria-hidden="true">→</span>
+                          </button>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
           </ol>
-        ) : (
-          <div className="home-activity-empty">
-            <div aria-hidden="true">01</div>
-            <div>
-              <strong>Sua atividade aparecerá aqui</strong>
-              <p>
-                Conclua a primeira Missão para registrar seu progresso.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="primary-button dark"
-              onClick={() => onNavigate("missoes")}
-            >
-              Iniciar primeira Missão
-            </button>
-          </div>
-        )}
+        </div>
       </section>
 
-      <section className="content-section">
+      {/* Praticar do seu jeito — home.md §6. Cinco blocos, sem hierarquia entre si. */}
+      <section className="content-section" aria-labelledby="home-modes-title">
         <div className="section-heading-row">
-          <div>
-            <span className="section-kicker">Explore</span>
-            <h2>Pratique do seu jeito</h2>
-          </div>
-          <p>Quatro atalhos para praticar, investigar ou consultar.</p>
+          <h2 id="home-modes-title">Pratique do seu jeito</h2>
         </div>
-
-        <div className="module-grid home-shortcut-grid">
+        <div className="home-modes">
           {homeModules.map((module) => (
             <button
               type="button"
-              className={`module-card home-shortcut-card tone-${module.tone}`}
+              className="home-modes__card"
               key={module.key}
+              style={{ "--mode-color": module.color } as CSSProperties}
               onClick={() => onNavigate(module.key)}
             >
-              <span className="home-shortcut-icon" aria-hidden="true">
-                <PortalIcon name={module.icon} size={22} />
+              <span className="home-modes__icon" aria-hidden="true">
+                <PortalIcon name={module.icon} size={26} />
               </span>
-              <span className="module-label">{module.label}</span>
-              <span className="module-title">{module.title}</span>
-              <span className="module-summary">{module.summary}</span>
-              <span className="module-link">
-                Abrir área <span aria-hidden="true">↗</span>
+              <span className="home-modes__title">{module.title}</span>
+              <span className="home-modes__summary">{module.summary}</span>
+              <span className="home-modes__link">
+                Abrir <span aria-hidden="true">→</span>
               </span>
             </button>
           ))}
         </div>
+      </section>
+
+      {/* O painel de Equipes usa o progresso real das contas do setor. */}
+      <section className="home-shield" aria-labelledby="home-shield-title" data-tour="team-shield">
+        <div
+          className="home-shield__badge"
+          role="img"
+          aria-label="Progresso da área"
+        >
+          <svg viewBox="0 0 48 56" aria-hidden="true">
+            <title>Escudo da área</title>
+            <path d="M24 2 46 10v16c0 16-9.5 24-22 28C11.5 50 2 42 2 26V10Z" />
+          </svg>
+        </div>
+        <div className="home-shield__copy">
+          <h2 id="home-shield-title">Seu setor em Equipes</h2>
+          <p>Pratique o desafio do setor e acompanhe o progresso de todos.</p>
+        </div>
+        <button type="button" className="primary-button" onClick={() => onNavigate("equipes")}>
+          Abrir Equipes <span aria-hidden="true">→</span>
+        </button>
       </section>
     </div>
   );
@@ -898,13 +884,21 @@ function MissionView({
   claimedMissionPoints,
   onComplete,
   onNavigate,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: {
   existingResult: MissionResult | null;
   rewardAlreadyClaimed: boolean;
   claimedMissionPoints: number;
   onComplete: (answer: MissionAnswer) => Promise<MissionResult>;
   onNavigate: (view: ViewKey) => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 }) {
+  const celebration = usePostSubmitCelebration(
+    "O aviso que não podia esperar",
+    "var(--learn-lime)",
+  );
   const [stage, setStage] = useState(existingResult ? 3 : 0);
   const [selectedMessage, setSelectedMessage] = useState("security");
   const [inspectedEvidence, setInspectedEvidence] = useState<EvidenceKey[]>([]);
@@ -914,7 +908,7 @@ function MissionView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const [rewardGrantedInAttempt, setRewardGrantedInAttempt] = useState(false);
-  const stageTitleRef = useActivityStageFocus(stage);
+  const stageTitleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
 
   const currentMessage =
     inboxMessages.find((message) => message.id === selectedMessage) ?? inboxMessages[1];
@@ -939,6 +933,7 @@ function MissionView({
     setIsSubmitting(true);
     setSubmissionError("");
     const grantsFirstReward = !rewardAlreadyClaimed;
+    const beforeIds = getUnlockedAchievementIds();
 
     try {
       const result = await onComplete({
@@ -953,6 +948,7 @@ function MissionView({
       setRewardGrantedInAttempt(grantsFirstReward);
       setStage(3);
       window.scrollTo({ top: 0, behavior: "smooth" });
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setSubmissionError(
         "Não foi possível registrar a tentativa. Tente novamente.",
@@ -972,6 +968,7 @@ function MissionView({
     setSubmissionError("");
     setIsSubmitting(false);
     setRewardGrantedInAttempt(false);
+    celebration.reset();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -981,6 +978,8 @@ function MissionView({
   const displayedBonusPoints = displayResult
     ? displayResult.potentialReward - POINT_RULES.mainMission
     : 0;
+
+  if (celebration.screen) return celebration.screen;
 
   return (
     <ActivityShell
@@ -1274,19 +1273,6 @@ function MissionView({
                     </strong>
                   <p>A contribuição coletiva valoriza comportamento seguro, aprendizagem e reporte — nunca a exposição de erros.</p>
                 </article>
-                <article className="reward-result-card">
-                  <span>Pontos gerais</span>
-                  <strong>
-                    {rewardGrantedInAttempt
-                      ? `+${displayResult.potentialReward} pontos`
-                      : `${claimedMissionPoints} pontos registrados`}
-                  </strong>
-                  <p>
-                    {rewardGrantedInAttempt
-                      ? `Base de ${POINT_RULES.mainMission} + bônus de ${displayedBonusPercentage}% (${displayedBonusPoints} pontos).`
-                      : "A recompensa da primeira conclusão já foi concedida; repetições não duplicam pontos."}
-                  </p>
-                </article>
               </div>
 
               <div className="learning-debrief">
@@ -1308,29 +1294,12 @@ function MissionView({
                     a recomendação de reforço e nunca bloqueia a próxima Missão.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="primary-button dark"
-                  onClick={() => onNavigate("missoes")}
-                >
-                  Ver jornada de Missões
-                </button>
               </div>
 
-              <div className="result-actions">
-                <button
-                  type="button"
-                  className="primary-button dark"
-                  onClick={() => onNavigate(displayResult.needsReview ? "laboratorio" : "missoes")}
-                >
-                  {displayResult.needsReview ? "Reforçar no PhishLab" : "Ver próxima Missão"}
-                </button>
-                <button type="button" className="text-button" onClick={() => onNavigate("perfil")}>
-                  Ver meu perfil <span aria-hidden="true">→</span>
-                </button>
-                <button type="button" className="text-button" onClick={resetMission}>
-                  Refazer missão
-                </button>
+              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={resetMission}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={() => onNavigate("missoes")}>Voltar às missões</button>
+                <button type="button" className="activity-completion-button" onClick={() => onNavigate("perfil")}>Meu perfil</button>
               </div>
             </div>
           ) : null}
@@ -1488,11 +1457,27 @@ export default function Home() {
   } = useAppState();
   const [notice, setNotice] = useState("");
   const [tutorialReplayOpen, setTutorialReplayOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [preferencePreview, setPreferencePreview] =
     useState<LearnerPreferences | null>(null);
   const tutorialOpenerRef = useRef<HTMLButtonElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mainContentRef = useRef<HTMLElement | null>(null);
   const previousPathnameRef = useRef(pathname);
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+  const getUnlockedAchievementIds = () =>
+    new Set(
+      selectAchievements(stateRef.current)
+        .filter((achievement) => achievement.unlocked)
+        .map((achievement) => achievement.id),
+    );
+  const getNewlyUnlockedAchievements = (beforeIds: Set<string>) =>
+    selectAchievements(stateRef.current).filter(
+      (achievement) => achievement.unlocked && !beforeIds.has(achievement.id),
+    );
   const routeResolution = useMemo(
     () => resolvePortalRoute(pathname ?? "/"),
     [pathname],
@@ -1509,6 +1494,7 @@ export default function Home() {
   const isSenderInspector = playerKey === "sender-inspector";
   const isWorkdaySimulation = playerKey === "workday-simulation";
   const isTeamChallenge = playerKey === "secure-inbox-team-challenge";
+  const isTeamProtocol = playerKey === "team-protocol";
   const isBankChangeChallenge =
     playerKey === "bank-change-team-challenge";
   const arcadeGame = useMemo(() => {
@@ -1637,8 +1623,6 @@ export default function Home() {
     () => selectLatestTeamChallengeResult(state),
     [state],
   );
-  const sectorMetrics = useMemo(() => selectSectorMetrics(state), [state]);
-  const sectorRanking = useMemo(() => selectSectorRanking(state), [state]);
   const teamChallengeContribution = useMemo(
     () => selectTeamChallengeContribution(state),
     [state],
@@ -1666,7 +1650,6 @@ export default function Home() {
   const totalPoints = useMemo(() => selectTotalPoints(state), [state]);
   const learnerSector = useMemo(() => selectLearnerSector(state), [state]);
   const currentLevel = useMemo(() => selectCurrentLevel(state), [state]);
-  const teamShield = useMemo(() => selectTeamShield(state), [state]);
   const mainJourney = useMemo(() => selectMainJourney(state), [state]);
   const nextStep = useMemo(() => selectNextStep(state), [state]);
   const levelProgress = useMemo(() => selectLevelProgress(state), [state]);
@@ -1837,6 +1820,7 @@ export default function Home() {
         status,
         statusLabel: presentationStatusLabels[step.presentationStatus],
         metaLabel: `${step.estimatedMinutes} min · ${step.basePoints} pontos-base · ${competencyLabel}`,
+        durationLabel: `${step.estimatedMinutes} min`,
         actionLabel:
           status === "planned"
             ? "Conteúdo em produção"
@@ -2045,16 +2029,14 @@ export default function Home() {
         status: origin.status,
       })),
       teamName: learnerSector.name,
-      teamShield,
       teamContributionStatus: bankChangeContribution ?? teamChallengeContribution
         ? {
-            label: "Registrada",
-            detail: `${(bankChangeContribution ?? teamChallengeContribution)!.correctDecisions} de ${(bankChangeContribution ?? teamChallengeContribution)!.totalDecisions} decisões entraram somente nos agregados do setor.`,
+            label: "Concluída",
+            detail: "Você concluiu uma prática de Equipes. A página do setor mostra o desafio atual e outras atividades.",
           }
         : {
-            label: "Pendente",
-            detail:
-              "Conclua Mudança bancária sem atalho para registrar sua primeira contribuição agregada.",
+            label: "Disponível",
+            detail: "Abra Equipes para praticar o desafio do seu setor.",
           },
     }),
     [
@@ -2072,7 +2054,6 @@ export default function Home() {
       bankChangeContribution,
       teamChallengeContribution,
       state.demo.learner,
-      teamShield,
       totalPoints,
     ],
   );
@@ -2101,6 +2082,8 @@ export default function Home() {
             ? "Equipes · Mudança bancária sem atalho"
           : isTeamChallenge
             ? "Equipes · Caixa de Entrada Segura"
+          : isTeamProtocol
+            ? "Equipes · Desafio do setor"
         : viewLabels[activeView] ?? "Visão geral",
     [
       activeView,
@@ -2112,6 +2095,7 @@ export default function Home() {
       isSenderInspector,
       isBankChangeChallenge,
       isTeamChallenge,
+      isTeamProtocol,
       isWorkdaySimulation,
       radarArticle,
     ],
@@ -2131,6 +2115,15 @@ export default function Home() {
     simulation: "Simulação",
     team: "Equipe",
   } as const;
+  const recommendationAreaColors = {
+    mission: "var(--learn-lime)",
+    phishlab: "var(--learn-teal)",
+    simulation: "var(--learn-coral)",
+    team: "var(--learn-yellow)",
+  } as const;
+  const nextStepAreaColor = recommendationDefinition
+    ? recommendationAreaColors[recommendationDefinition.area]
+    : "var(--learn-lime)";
   const recommendationStatusLabels: Record<NextStepRecommendation["kind"], string> = {
     startMission: "Disponível",
     continueMission: "Em andamento",
@@ -2185,7 +2178,7 @@ export default function Home() {
     }
 
     completeTutorial();
-    router.push(PORTAL_VIEW_ROUTES.missao);
+    router.push(PORTAL_VIEW_ROUTES.missoes);
   };
 
   const restartDemo = () => {
@@ -2237,7 +2230,7 @@ export default function Home() {
         <a className="skip-link" href="#main-content">
           Pular para o conteúdo principal
         </a>
-        <div className={isFocusMode ? "activity-focus-shell" : "app-shell-layout"}>
+        <div className={isFocusMode ? "activity-focus-shell" : undefined}>
         {isFocusMode ? (
           <ActivityFocusBar
             contextLabel={currentLabel}
@@ -2247,36 +2240,47 @@ export default function Home() {
             onBack={() => router.push(routeResolution.hubRoute)}
           />
         ) : (
-          <PortalSidebar
-            activeView={activeView}
-            onNavigate={navigate}
-            canAccessManagement={account?.role === "administrator"}
-            data-learning-tour="learning-navigation"
-            data-profile-tour="profile-navigation"
-          />
+          <>
+            <PortalTopbar
+              menuOpen={menuOpen}
+              onToggleMenu={() => setMenuOpen((open) => !open)}
+              menuButtonRef={menuButtonRef}
+              onAvatarClick={() => navigate("perfil")}
+              onBrandClick={() => navigate("inicio")}
+              learnerName={account?.name ?? state.demo.learner.name}
+              points={totalPoints}
+              levelLabel={currentLevel.label}
+              isHydrated={isHydrated}
+              inert={menuOpen}
+              data-tour="progress-summary"
+            />
+            <PortalMenuPanel
+              open={menuOpen}
+              activeView={activeView}
+              onNavigate={(view) => {
+                setMenuOpen(false);
+                navigate(view);
+              }}
+              onClose={() => setMenuOpen(false)}
+              onLogout={logout}
+              canAccessManagement={account?.role === "administrator"}
+              storeLabel={`${state.demo.learner.store} · ${state.demo.learner.area}`}
+              returnFocusRef={menuButtonRef}
+              hideBackdrop={guidedTutorialOpen}
+            />
+            <div className="mobile-view-label" aria-live="polite">
+              {currentLabel}
+            </div>
+          </>
         )}
         <main
           ref={mainContentRef}
           id="main-content"
           tabIndex={-1}
           className={isFocusMode ? "main-area activity-focus-main" : "main-area"}
+          inert={!isFocusMode && menuOpen ? true : undefined}
+          aria-hidden={!isFocusMode && menuOpen ? "true" : undefined}
         >
-        {!isFocusMode ? (
-          <>
-            <PortalTopbar
-              learnerName={account?.name ?? state.demo.learner.name}
-              points={totalPoints}
-              levelLabel={currentLevel.label}
-              isHydrated={isHydrated}
-              mode={account?.role === "administrator" ? "management" : "learning"}
-              onLogout={logout}
-              data-tour="progress-summary"
-            />
-            <div className="mobile-view-label" aria-live="polite">
-              {currentLabel}
-            </div>
-          </>
-        ) : null}
         {notice ? (
           <div className="notice" role="status">
             <span aria-hidden="true">i</span>
@@ -2294,17 +2298,13 @@ export default function Home() {
             />
           ) : activeView === "inicio" ? (
             <HomeView
+              isHydrated={isHydrated}
               learnerName={account?.name ?? state.demo.learner.name}
               onNavigate={navigate}
               onOpenRecommendation={() => router.push(nextStep.href)}
-              sectorMetrics={sectorMetrics}
-              teamContributionCounted={Boolean(
-                bankChangeContribution ?? teamChallengeContribution,
-              )}
               nextStep={nextStep}
               recommendationMeta={recommendationMeta}
               learningPath={learningPath}
-              recentActivity={recentActivity}
               onOpenActivity={(href) => router.push(href)}
               showTutorialInvitation={tutorial.status === "available"}
               onOpenTutorial={openTutorial}
@@ -2399,6 +2399,8 @@ export default function Home() {
                   router.push("/phishlab/quem-enviou-de-verdade")
                 }
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : isCompromisedConversationMission ? (
               <ConversationReconstructionMission
@@ -2417,6 +2419,8 @@ export default function Home() {
                   router.push("/missoes/voce-iniciou-este-acesso")
                 }
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : isMfaFatigueMission ? (
               <MfaFatigueMission
@@ -2449,6 +2453,8 @@ export default function Home() {
                   router.push("/missoes/cliquei-e-agora")
                 }
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : isRecoveryMission ? (
               <RecoveryMission
@@ -2470,6 +2476,8 @@ export default function Home() {
                   router.push("/simulacoes/dia-de-trabalho")
                 }
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : (
               <MissionView
@@ -2479,6 +2487,8 @@ export default function Home() {
                 claimedMissionPoints={missionRewardClaim?.points ?? 0}
                 onComplete={submitMission}
                 onNavigate={navigate}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             )
           ) : activeView === "laboratorio" ? (
@@ -2499,6 +2509,8 @@ export default function Home() {
                   router.push("/phishlab/analisador-de-links")
                 }
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : isLinkAnalyzer ? (
               <DomainUnderMagnifierLab
@@ -2509,10 +2521,12 @@ export default function Home() {
                 claimedPoints={phishLabRewardClaim?.points ?? 0}
                 onComplete={submitDomainAnalyzerV2}
                 onBackToHub={() => router.push("/phishlab")}
-                onOpenSimulation={() =>
-                  router.push("/simulacoes/dia-de-trabalho")
+                onOpenNextActivity={() =>
+                  router.push("/missoes/a-conversa-ja-estava-acontecendo")
                 }
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : (
               <PhishLabHub
@@ -2551,6 +2565,8 @@ export default function Home() {
                 onOpenTeamChallenge={() =>
                   router.push("/equipes/mudanca-bancaria-sem-atalho")
                 }
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : (
               <SimulationsHub
@@ -2567,10 +2583,10 @@ export default function Home() {
             )
           ) : activeView === "arcade" ? (
             arcadeGame ? (
-              <ArcadeGameDetail
-                game={arcadeGame}
-                onBackToArcade={() => router.push("/arcade")}
-              />
+            <ArcadeGameDetail
+              game={arcadeGame}
+              onBackToArcade={() => router.push("/arcade")}
+            />
             ) : (
               <ArcadeHub
                 onOpenGame={(slug) => router.push(`/arcade/${slug}`)}
@@ -2598,6 +2614,8 @@ export default function Home() {
               onOpenReview={() => router.push(nextStep.href)}
               onOpenArcade={() => navigate("arcade")}
               onOpenAvatar={() => router.push("/avatar-lab")}
+              onOpenHouse={() => router.push("/casa")}
+              onExploreHouses={() => router.push("/casas")}
               onOpenActivity={(href) => router.push(href)}
               tutorialCompleted={tutorial.status === "completed"}
               onOpenTutorial={openTutorial}
@@ -2638,6 +2656,8 @@ export default function Home() {
                 onComplete={submitBankProcessV2}
                 onBackToTeams={() => router.push("/equipes")}
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
               />
             ) : isTeamChallenge ? (
               <TeamChallenge
@@ -2650,27 +2670,21 @@ export default function Home() {
                 onComplete={submitTeamChallenge}
                 onBackToTeams={() => router.push("/equipes")}
                 onOpenProfile={() => navigate("perfil")}
+                getUnlockedAchievementIds={getUnlockedAchievementIds}
+                getNewlyUnlockedAchievements={getNewlyUnlockedAchievements}
+              />
+            ) : isTeamProtocol ? (
+              <SectorProtocolActivity
+                teamName={learnerSector.name}
               />
             ) : (
-              <TeamsHub
+              <TeamsOverview
                 teamName={learnerSector.name}
-                metrics={sectorMetrics}
-                aggregate={state.teams.sectorAggregate}
-                ranking={sectorRanking}
-                goal={state.teams.activeGoal}
-                history={state.teams.history}
-                contribution={bankChangeContribution}
-                latestResult={bankChangeResult}
-                legacyCompleted={Boolean(teamChallengeResult)}
-                rewardPoints={bankChangeRewardClaim?.points ?? 0}
-                onOpenChallenge={() =>
-                  router.push("/equipes/mudanca-bancaria-sem-atalho")
-                }
-                onOpenLegacyChallenge={() =>
-                  router.push("/equipes/caixa-de-entrada-segura")
-                }
-                onOpenProfile={() => navigate("perfil")}
-                onBackToOverview={() => navigate("inicio")}
+                onOpenProtocol={() => router.push("/equipes/desafio-do-setor")}
+                onOpenBankChange={() => router.push("/equipes/mudanca-bancaria-sem-atalho")}
+                onOpenInbox={() => router.push("/equipes/caixa-de-entrada-segura")}
+                bankChangeClaimedPoints={bankChangeRewardClaim?.points ?? null}
+                inboxClaimedPoints={teamChallengeRewardClaim?.points ?? null}
               />
             )
           ) : activeView === "gestao" ? (
@@ -2712,9 +2726,11 @@ export default function Home() {
           mode={tutorialReplayOpen ? "replay" : "required"}
           persistedStep={tutorial.currentStep}
           reducedMotion={effectivePreferences.reducedMotion}
+          nextStepAreaColor={nextStepAreaColor}
           onStepChange={setTutorialStep}
           onComplete={finishGuidedTutorial}
           onCloseReplay={closeTutorialReplay}
+          onMenuStepChange={setMenuOpen}
         />
       ) : null}
     </div>

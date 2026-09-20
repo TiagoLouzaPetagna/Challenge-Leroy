@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 
 import {
   TUTORIAL_LAST_STEP,
+  TUTORIAL_REPLAY_LAST_STEP,
   TUTORIAL_STEPS,
 } from "./tutorial-catalog";
 import { Mascot } from "../ui/LearningUI";
+import styles from "./GuidedTutorial.module.css";
 
 type GuidedTutorialProps = {
   mode: "required" | "replay";
   persistedStep: number;
   reducedMotion: boolean;
+  nextStepAreaColor: string;
   onStepChange: (step: number) => void;
   onComplete: () => void;
   onCloseReplay: () => void;
+  onMenuStepChange: (active: boolean) => void;
 };
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -25,9 +29,11 @@ export function GuidedTutorial({
   mode,
   persistedStep,
   reducedMotion,
+  nextStepAreaColor,
   onStepChange,
   onComplete,
   onCloseReplay,
+  onMenuStepChange,
 }: GuidedTutorialProps) {
   const [replayStep, setReplayStep] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -38,6 +44,33 @@ export function GuidedTutorial({
     TUTORIAL_LAST_STEP,
   );
   const step = TUTORIAL_STEPS[activeStep];
+  const isLastStep = activeStep === TUTORIAL_LAST_STEP;
+  const isReplayClosing = mode === "replay" && isLastStep;
+  const title = isReplayClosing ? TUTORIAL_REPLAY_LAST_STEP.title : step.title;
+  const description = isReplayClosing
+    ? TUTORIAL_REPLAY_LAST_STEP.description
+    : step.description;
+  const chipColor = step.id === "next-step" ? nextStepAreaColor : step.chipColor;
+
+  // O passo "menu" abre o painel real do Shell; nenhum outro passo mexe nele.
+  useEffect(() => {
+    const isMenuStep = step.id === "menu";
+    onMenuStepChange(isMenuStep);
+    return () => {
+      if (isMenuStep) onMenuStepChange(false);
+    };
+  }, [step.id, onMenuStepChange]);
+
+  // team-shield é a última seção da Home: sem esta folga, a página não tem
+  // espaço para rolar o alvo até o centro pretendido, e o recorte fica perto
+  // demais do cartão fixo (canto inferior direito) — colisão real em 1440px.
+  useEffect(() => {
+    const previous = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = `${window.innerHeight}px`;
+    return () => {
+      document.body.style.paddingBottom = previous;
+    };
+  }, []);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -50,12 +83,11 @@ export function GuidedTutorial({
 
       if (!target) {
         root.dataset.hasTarget = "false";
-        root.removeAttribute("data-card-side");
         return;
       }
 
       const rect = target.getBoundingClientRect();
-      const padding = window.innerWidth <= 620 ? 8 : 12;
+      const padding = 12;
       const left = clamp(rect.left - padding, 8, window.innerWidth - 16);
       const top = clamp(rect.top - padding, 8, window.innerHeight - 16);
       const width = clamp(
@@ -68,33 +100,26 @@ export function GuidedTutorial({
         0,
         window.innerHeight - top - 8,
       );
-      const cardWidth = Math.min(410, window.innerWidth - 40);
-      const roomOnRight = window.innerWidth - (left + width);
-      const placeOnRight = roomOnRight >= cardWidth + 28;
-      const cardLeft = placeOnRight
-        ? left + width + 20
-        : Math.max(20, left - cardWidth - 20);
-      const cardTop = clamp(top, 20, Math.max(20, window.innerHeight - 500));
 
       root.dataset.hasTarget = "true";
-      root.dataset.cardSide = placeOnRight ? "right" : "left";
       const style = root.style;
       style.setProperty("--tour-left", `${left}px`);
       style.setProperty("--tour-top", `${top}px`);
       style.setProperty("--tour-width", `${width}px`);
       style.setProperty("--tour-height", `${height}px`);
-      style.setProperty("--tour-card-left", `${cardLeft}px`);
-      style.setProperty("--tour-card-top", `${cardTop}px`);
     };
 
     const target = step.target
       ? document.querySelector<HTMLElement>(step.target)
       : null;
-    target?.scrollIntoView({
-      block: window.innerWidth <= 620 ? "start" : "center",
-      inline: "nearest",
-      behavior: reducedMotion ? "auto" : "smooth",
-    });
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      const scrollTarget = rect.top + window.scrollY + rect.height / 2 - 300;
+      window.scrollTo({
+        top: Math.max(0, scrollTarget),
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+    }
 
     const frame = window.requestAnimationFrame(updatePosition);
     window.addEventListener("resize", updatePosition);
@@ -144,10 +169,18 @@ export function GuidedTutorial({
     }
   };
 
+  const primaryLabel = isLastStep
+    ? mode === "replay"
+      ? "Concluir revisão"
+      : "Ir para as Missões"
+    : activeStep === 0
+      ? "Começar"
+      : "Continuar";
+
   return (
     <div
       ref={rootRef}
-      className="guided-tour"
+      className={styles.tour}
       data-has-target="false"
       role="dialog"
       aria-modal="true"
@@ -155,57 +188,51 @@ export function GuidedTutorial({
       aria-describedby="guided-tour-description"
       onKeyDown={handleKeyDown}
     >
-      <div className="guided-tour-full-shade" aria-hidden="true" />
-      <div className="guided-tour-shade top" aria-hidden="true" />
-      <div className="guided-tour-shade left" aria-hidden="true" />
-      <div className="guided-tour-shade right" aria-hidden="true" />
-      <div className="guided-tour-shade bottom" aria-hidden="true" />
-      <div className="guided-tour-highlight" aria-hidden="true" />
+      <div className={styles.shade} aria-hidden="true" />
 
-      <section className="guided-tour-card">
+      <section className={styles.card}>
         {activeStep === 0 ? (
-          <div className="guided-tour-welcome-mascot">
+          <div className={styles.mascot}>
             <Mascot
-              pose="welcome"
+              pose="hero"
               size="medium"
-              alt="Leroyzin dá as boas-vindas à Casa Digital Segura."
+              alt="Leroyzin recebe você na Casa Digital Segura."
             />
           </div>
         ) : null}
-        <div className="guided-tour-meta">
-          <span>{step.eyebrow}</span>
-          <strong>Etapa {activeStep + 1} de {TUTORIAL_STEPS.length}</strong>
-        </div>
-        <h2 id="guided-tour-title" ref={headingRef} tabIndex={-1}>
+
+        {step.chipLabel ? (
+          <span
+            className={styles.chip}
+            data-tone={step.chipTone ?? "neutral"}
+            style={chipColor ? ({ "--chip-color": chipColor } as CSSProperties) : undefined}
+          >
+            {step.chipLabel}
+          </span>
+        ) : null}
+
+        <h2 id="guided-tour-title" className={styles.title} ref={headingRef} tabIndex={-1}>
           <span className="sr-only">
             Etapa {activeStep + 1} de {TUTORIAL_STEPS.length}:{" "}
           </span>
-          {step.title}
+          {title}
         </h2>
-        <p id="guided-tour-description">{step.description}</p>
-        <p className="guided-tour-detail">{step.detail}</p>
-        <p className="guided-tour-target-label">
-          <span aria-hidden="true">◎</span> Área em destaque: {step.targetLabel}
+        <p id="guided-tour-description" className={styles.body}>
+          {description}
         </p>
 
-        <ol className="guided-tour-progress" aria-label="Progresso do tutorial">
+        <ol className={styles.progress} aria-hidden="true">
           {TUTORIAL_STEPS.map((item, index) => (
             <li
               key={item.id}
-              className={
-                index === activeStep
-                  ? "active"
-                  : index < activeStep
-                    ? "completed"
-                    : ""
+              data-state={
+                index === activeStep ? "current" : index < activeStep ? "done" : undefined
               }
-            >
-              <span className="sr-only">{item.title}</span>
-            </li>
+            />
           ))}
         </ol>
 
-        <div className="guided-tour-actions">
+        <div className={styles.actions}>
           <div>
             {activeStep > 0 ? (
               <button
@@ -217,28 +244,18 @@ export function GuidedTutorial({
               </button>
             ) : null}
             {mode === "replay" ? (
-              <button
-                type="button"
-                className="text-button guided-tour-close"
-                onClick={onCloseReplay}
-              >
+              <button type="button" className="text-button" onClick={onCloseReplay}>
                 Fechar tutorial
               </button>
             ) : null}
           </div>
-          {activeStep === TUTORIAL_LAST_STEP ? (
-            <button type="button" className="primary-button" onClick={onComplete}>
-              {mode === "replay" ? "Concluir revisão" : "Começar primeira Missão"}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => setStep(activeStep + 1)}
-            >
-              {activeStep === 0 ? "Começar" : "Continuar"}
-            </button>
-          )}
+          <button
+            type="button"
+            className="primary-button"
+            onClick={isLastStep ? onComplete : () => setStep(activeStep + 1)}
+          >
+            {primaryLabel}
+          </button>
         </div>
       </section>
     </div>

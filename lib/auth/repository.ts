@@ -8,6 +8,7 @@ import {
   authSessions,
 } from "@/db/schema";
 import type { AppState } from "@/lib/domain/types";
+import { findSectorDefinition, LEGACY_SECTOR_MAPPINGS } from "@/lib/content/sector-catalog";
 import { DEMO_OVERLOOKED_LEADERBOARD } from "@/lib/content/overlooked-demo-leaderboard";
 import { calculateAuthoritativeProgressSummary } from "@/lib/leaderboard/projection";
 
@@ -100,8 +101,8 @@ const SEED_ACCOUNTS = [
     employeeId: "ADMIN-0001",
     name: "Marina Alves",
     role: "administrator" as const,
-    sectorId: "administracao",
-    sectorName: "Administração",
+    sectorId: "loja-gestao",
+    sectorName: "Loja - Gestão",
     passwordSalt: "f4adb627c2d31eedf35bb44e6f78fdf3",
     passwordHash:
       "bbc29f7c42f558055551288fd864dbeae3217d9450d338170111a73e343f9b1f",
@@ -112,8 +113,8 @@ const SEED_ACCOUNTS = [
     employeeId: "FUNC-0001",
     name: "Lucas",
     role: "learner" as const,
-    sectorId: "casa-decoracao",
-    sectorName: "Casa & Decoração",
+    sectorId: "loja-comercio",
+    sectorName: "Loja - Comércio",
     passwordSalt: "3151b07852555901cf35d48e3e9a4a37",
     passwordHash:
       "45994c8d8333396012eaaa9d44a63b14537b484a25dc1e3702172f2192d1ad98",
@@ -124,8 +125,8 @@ const SEED_ACCOUNTS = [
     employeeId: "FUNC-0002",
     name: "Ana Costa",
     role: "learner" as const,
-    sectorId: "tecnologia",
-    sectorName: "Tecnologia",
+    sectorId: "matriz-tecnologia",
+    sectorName: "Matriz - Tecnologia",
     passwordSalt: "824f683a215ec021c2938c3aa8c7a4ce",
     passwordHash:
       "f64a8123062a39c51421439c40dfeb2d6016c30b8500172c280ac4b1b0013569",
@@ -175,6 +176,13 @@ async function initializeAuthStorage(): Promise<void> {
         ),
       ),
   );
+
+  // Converte somente os antigos setores demonstrativos. Contas com áreas
+  // personalizadas continuam com a classificação escolhida pelo usuário.
+  await d1.batch(LEGACY_SECTOR_MAPPINGS.map(({ from, to }) =>
+    d1.prepare("UPDATE accounts SET sector_id = ?, sector_name = ?, updated_at = CURRENT_TIMESTAMP WHERE sector_id = ?")
+      .bind(to, findSectorDefinition(to)!.name, from),
+  ));
 
   const demoLeaderboardUpdatedAt = new Date().toISOString();
   await d1.batch([

@@ -14,8 +14,10 @@ import {
   type ActivityAnswerReviewItem,
 } from "@/features/activities/primitives/ActivityAnswerReview";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import {
   DOMAIN_ANALYZER_V2_ACTIVITY_ID,
   DOMAIN_ANALYZER_V2_ACTIVITY_VERSION,
@@ -26,6 +28,7 @@ import {
   type DomainAnalyzerV2Package,
   type UrlSegmentRoleId,
 } from "@/lib/content/activities/domain-under-magnifier/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { DOMAIN_UNDER_MAGNIFIER_V1_PACKAGE } from "@/lib/content/activities/domain-under-magnifier/v1";
 import { POINT_RULES } from "@/lib/domain/rules";
 import type {
@@ -58,8 +61,10 @@ type DomainUnderMagnifierLabProps = {
     answer: DomainAnalyzerV2Answer,
   ) => Promise<DomainAnalyzerV2Result>;
   onBackToHub: () => void;
-  onOpenSimulation: () => void;
+  onOpenNextActivity: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 function packageById(casePackageId: string): DomainAnalyzerV2Package {
@@ -357,9 +362,15 @@ export function DomainUnderMagnifierLab({
   claimedPoints,
   onComplete,
   onBackToHub,
-  onOpenSimulation,
+  onOpenNextActivity,
   onOpenProfile,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: DomainUnderMagnifierLabProps) {
+  const celebration = usePostSubmitCelebration(
+    "Domínio sob a lupa",
+    "var(--learn-teal)",
+  );
   const [stage, setStage] = useState(existingResult ? 7 : 0);
   const [casePackageId, setCasePackageId] = useState(
     packageById(
@@ -387,7 +398,7 @@ export function DomainUnderMagnifierLab({
   const [rewardGrantedInAttempt, setRewardGrantedInAttempt] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const stageTitleRef = useActivityStageFocus(stage);
+  const stageTitleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
   const calibrationTitleRef = useRef<HTMLHeadingElement>(null);
   const contentPackage = packageById(casePackageId);
   const { content } = contentPackage;
@@ -451,6 +462,7 @@ export function DomainUnderMagnifierLab({
     setIsSubmitting(true);
     setError("");
     const grantsFirstReward = !rewardAlreadyClaimed;
+    const beforeIds = getUnlockedAchievementIds();
 
     try {
       const result = await onComplete({
@@ -472,6 +484,7 @@ export function DomainUnderMagnifierLab({
       setDisplayResult(result);
       setRewardGrantedInAttempt(grantsFirstReward);
       goTo(7);
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setError("Não foi possível registrar o laboratório. Revise e tente novamente.");
     } finally {
@@ -484,6 +497,7 @@ export function DomainUnderMagnifierLab({
     setDisplayResult(null);
     setRewardGrantedInAttempt(false);
     setError("");
+    celebration.reset();
     goTo(0);
   };
 
@@ -499,6 +513,7 @@ export function DomainUnderMagnifierLab({
     setDisplayResult(null);
     setRewardGrantedInAttempt(false);
     setError("");
+    celebration.reset();
     goTo(0);
   };
 
@@ -652,6 +667,8 @@ export function DomainUnderMagnifierLab({
             explanation: String(explanation),
           }))
         : [];
+
+  if (celebration.screen) return celebration.screen;
 
   return (
     <ActivityShell
@@ -1061,18 +1078,6 @@ export function DomainUnderMagnifierLab({
                     <strong>{(displayResult as DomainAnalyzerV2Result).transferPoints}/25</strong>
                     <p>Aplicação em outra aparência.</p>
                   </article>
-                  <article className="reward-result-card">
-                    <span>Pontos gerais</span>
-                    <strong>
-                      {rewardGrantedInAttempt
-                        ? `+${displayResult.potentialReward}`
-                        : `${claimedPoints} registrados`}
-                    </strong>
-                    <p>
-                      Base {POINT_RULES.phishLab} + bônus de {bonusPoints}. A versão
-                      2 não reabre recompensa anterior.
-                    </p>
-                  </article>
                 </div>
                 <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details></>
               ) : (
@@ -1084,75 +1089,15 @@ export function DomainUnderMagnifierLab({
                   </p>
                 </div>
               )}
-              <div className="result-actions">
-                <button
-                  type="button"
-                  className="primary-button dark"
-                  onClick={() => goTo(8)}
-                >
-                  Ver o que aprendeu
-                </button>
-                <button type="button" className="text-button" onClick={onOpenProfile}>
-                  Ver no Meu perfil
-                </button>
-                <button type="button" className="text-button" onClick={reset}>
-                  Refazer laboratório
-                </button>
+              <ActivityNextStep area="Missões" title="A conversa já estava acontecendo" onOpen={onOpenNextActivity} />
+              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={practiceAnotherCase}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToHub}>Voltar ao PhishLab</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
               </div>
             </div>
           ) : null}
 
-          {stage === 8 && displayResult ? (
-            <div className="url-anatomy-debrief foundation-stage">
-              <span className="section-kicker">O que levar para o trabalho</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>
-                {isV2Result
-                  ? contentPackage.debrief.title
-                  : DOMAIN_UNDER_MAGNIFIER_V1_PACKAGE.debrief.title}
-              </h2>
-              <p>
-                {isV2Result
-                  ? contentPackage.debrief.body
-                  : DOMAIN_UNDER_MAGNIFIER_V1_PACKAGE.debrief.body}
-              </p>
-              {isV2Result ? (
-                <dl>
-                  <div>
-                    <dt>Fato observável</dt>
-                    <dd>O domínio registrado do caso era {content.mainCase.segments.find((segment) => segment.id === content.mainCase.correctRegisteredDomainSegmentId)?.value}.</dd>
-                  </div>
-                  <div>
-                    <dt>Limite</dt>
-                    <dd>A anatomia não prova reputação, propriedade humana atual nem ausência de comprometimento.</dd>
-                  </div>
-                  <div>
-                    <dt>Ação segura</dt>
-                    <dd>{content.safeRouteOptions.find((option) => option.id === contentPackage.allowlists.correctSafeRouteId)?.label}.</dd>
-                  </div>
-                </dl>
-              ) : (
-                <div className="legacy-result-notice">
-                  <strong>O que levar para o trabalho correspondente à versão 1.</strong>
-                  <p>A tentativa antiga não recebe segmentos, pacote ou interpretação da versão 2.</p>
-                </div>
-              )}
-              <div className="lab-player-actions">
-                <button
-                  type="button"
-                  className="primary-button dark"
-                  onClick={onOpenSimulation}
-                >
-                  Ver Simulação recomendada
-                </button>
-                <button type="button" className="text-button" onClick={practiceAnotherCase}>
-                  Praticar com outro caso
-                </button>
-                <button type="button" className="text-button" onClick={onBackToHub}>
-                  Voltar ao PhishLab
-                </button>
-              </div>
-            </div>
-          ) : null}
         </div>
       </section>
     </ActivityShell>

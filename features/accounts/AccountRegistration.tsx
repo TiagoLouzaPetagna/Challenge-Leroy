@@ -114,7 +114,7 @@ export function AccountRegistration() {
     }
 
     if (sectorName.length < 2) {
-      setError("Selecione ou informe o setor em que a pessoa trabalha.");
+      setError("Selecione ou informe a área em que a pessoa trabalha.");
       return;
     }
 
@@ -142,8 +142,8 @@ export function AccountRegistration() {
 
         <div className={styles.grid}>
           <section className={styles.intro} aria-labelledby="registration-title">
-            <span className={styles.eyebrow}>P1 · Conta por setor</span>
-            <h1 id="registration-title">Seu acesso começa pelo setor.</h1>
+            <span className={styles.eyebrow}>P1 · Conta por área</span>
+            <h1 id="registration-title">Seu acesso começa pela área de trabalho.</h1>
             <p>
               Este fluxo substitui a identidade fictícia no navegador sem pedir
               unidade, loja, senha ou credencial corporativa real.
@@ -160,7 +160,7 @@ export function AccountRegistration() {
               <div>
                 <span>02</span>
                 <p>
-                  <strong>Somente setor</strong>
+                  <strong>Somente área de trabalho</strong>
                   <small>Nenhum vínculo com unidade é solicitado ou inferido.</small>
                 </p>
               </div>
@@ -179,7 +179,7 @@ export function AccountRegistration() {
               <span>Dados atualizados</span>
               <h2>{completedProfile.name}</h2>
               <p>
-                O perfil agora está vinculado ao setor {completedProfile.sectorName}.
+                O perfil agora está vinculado à área {completedProfile.sectorName}.
                 O progresso anterior foi preservado e nenhum dado foi enviado para
                 a Leroy Merlin.
               </p>
@@ -230,7 +230,7 @@ export function AccountRegistration() {
               </label>
 
               <label className={styles.field}>
-                <span>Setor</span>
+                <span>Área de trabalho</span>
                 <select
                   name="sector"
                   value={form.sectorChoice}
@@ -241,14 +241,14 @@ export function AccountRegistration() {
                       {sector.name}
                     </option>
                   ))}
-                  <option value={CUSTOM_SECTOR_ID}>Outro setor</option>
+                  <option value={CUSTOM_SECTOR_ID}>Outra área</option>
                 </select>
                 <small>Não é necessário informar loja ou unidade.</small>
               </label>
 
               {form.sectorChoice === CUSTOM_SECTOR_ID ? (
                 <label className={styles.field}>
-                  <span>Nome do outro setor</span>
+                  <span>Nome da outra área</span>
                   <input
                     name="customSector"
                     type="text"
@@ -307,7 +307,7 @@ export function AccountRegistration() {
                   ))}
                 </div>
                 <p className={styles.rankingNote}>
-                  O ranking coletivo de setores continua agregado. Erros, notas e
+                  O ranking coletivo de áreas continua agregado. Erros, notas e
                   respostas individuais nunca aparecem nele.
                 </p>
               </fieldset>

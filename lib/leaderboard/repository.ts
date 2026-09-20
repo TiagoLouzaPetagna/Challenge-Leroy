@@ -202,7 +202,7 @@ function createSectorRanking(
         sectorId,
         sectorName: members[0]?.sectorName ?? sectorId,
         score,
-        averagePoints: Math.round(
+        averagePoints: roundPercentage(
           members.reduce((total, member) => total + member.totalPoints, 0) /
             members.length,
         ),

@@ -1,0 +1,36 @@
+.page { display: grid; width: min(100%, 1180px); gap: 22px; margin-inline: auto; color: #173f35; }
+.kicker { color: #52802d; font-size: 12px; font-weight: 900; letter-spacing: .1em; }
+.sectionTabs { display: flex; gap: 8px; border-bottom: 1px solid #d9e5dc; }
+.sectionTabs button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 10px 18px 13px; border: 0; border-bottom: 3px solid transparent; color: #5c7162; background: transparent; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+.sectionTabs button:hover { color: #1c553c; }
+.sectionTabs button.activeTab { border-bottom-color: #4a9a4d; color: #173f35; }
+.sectionTabs button:focus-visible { outline: 3px solid #173f35; outline-offset: -3px; }
+.sectionPanel { display: grid; gap: 22px; }
+.featured { display: flex; align-items: center; gap: 24px; padding: clamp(24px, 3vw, 34px); border: 1px solid #d5e5d7; border-radius: 26px; background: #f2f9e9; }
+.featuredIcon { display: grid; width: 60px; height: 60px; flex: 0 0 auto; place-items: center; border-radius: 18px; color: #225c38; background: #dbefc7; }
+.featuredCopy { flex: 1; }
+.featured h2, .sectionHeading h2 { margin: 6px 0 8px; font-family: var(--learn-display), Fraunces, Georgia, serif; font-size: clamp(29px, 3vw, 39px); letter-spacing: -.035em; line-height: 1.1; }
+.featured p { max-width: 56ch; margin: 0 0 20px; line-height: 1.5; }
+.featured button { display: inline-flex; align-items: center; gap: 9px; }
+.featuredProgress { display: grid; min-width: 106px; height: 106px; align-content: center; justify-items: center; border: 2px solid #accd93; border-radius: 50%; background: #fff; }
+.featuredProgress strong { font-family: var(--learn-display), Fraunces, Georgia, serif; font-size: 40px; line-height: 1; }
+.featuredProgress strong span { font-size: 22px; }
+.featuredProgress > span { font-size: 11px; font-weight: 800; }
+.protocol, .more { padding: clamp(23px, 3vw, 32px); border: 1px solid #dce8df; border-radius: 26px; background: #fffdf8; }
+.sectionHeading { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.protocolIntro { margin: 4px 0 20px; color: #466454; line-height: 1.5; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stats > div { display: grid; gap: 4px; padding: 15px 18px; border-radius: 14px; background: #eef7e9; }
+.stats strong { font-family: var(--learn-display), Fraunces, Georgia, serif; font-size: 32px; line-height: 1; }
+.stats span { color: #47624e; font-size: 13px; line-height: 1.3; }
+.refresh { display: inline-flex; align-items: center; gap: 7px; padding: 9px 11px; border: 1px solid #c2d5c7; border-radius: 10px; color: #173f35; background: #fff; font-weight: 800; cursor: pointer; }
+.error { padding: 10px 14px; border-radius: 10px; color: #744215; background: #fff1da; }
+.moreGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.moreGrid button { display: flex; align-items: center; gap: 13px; padding: 17px; border: 1px solid #d7e6d9; border-radius: 16px; color: #173f35; background: #fff; text-align: left; cursor: pointer; }
+.moreGrid button:hover { border-color: #6b9e53; background: #f6faef; }
+.moreGrid button > span { display: grid; flex: 1; gap: 3px; }
+.moreGrid small { color: #536e5d; line-height: 1.35; }
+.moreGrid .reward { justify-self: start; margin-top: 6px; padding: 5px 9px; border-radius: 999px; color: #245a31; background: #e9f5d9; font-size: 12px; font-weight: 850; line-height: 1.2; }
+.refresh:focus-visible, .moreGrid button:focus-visible { outline: 3px solid #173f35; outline-offset: 3px; }
+@media (max-width: 620px) { .stats { grid-template-columns: 1fr; } }
+@media (max-width: 620px) { .featuredIcon { display: none; } .featured { align-items: flex-start; flex-direction: column; } .featuredProgress { position: absolute; right: 25px; width: 68px; height: 68px; min-width: 68px; } .featured { position: relative; } .featuredCopy .kicker { display: block; max-width: calc(100% - 85px); } .featuredProgress strong { font-size: 25px; } .featuredProgress strong span { font-size: 14px; } .featuredProgress > span { font-size: 8px; } .moreGrid { grid-template-columns: 1fr; } }

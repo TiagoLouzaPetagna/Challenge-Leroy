@@ -5,7 +5,7 @@ import { sites } from "./build/sites-vite-plugin";
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= "false";
@@ -24,6 +24,9 @@ export default defineConfig(async () => {
       sites(),
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+        // The installed local workerd supports dates only through 2026-05-22.
+        // Keep the deployment compatibility date in wrangler.jsonc unchanged.
+        config: command === "serve" ? { compatibility_date: "2026-05-22" } : undefined,
       }),
     ],
   };

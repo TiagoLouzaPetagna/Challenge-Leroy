@@ -9,7 +9,10 @@ export type House3DMode = "view" | "edit" | "build" | "visitor";
 type House3DExperienceProps = {
   mode: House3DMode;
   onModeChange?: (mode: Exclude<House3DMode, "visitor">) => void;
+  exportRequestId?: number;
+  onExport?: (snapshot: { sceneJson: string; thumbnailUrl: string; theme: string } | null) => void;
   visitorProfileId?: string;
+  publishedVisitor?: boolean;
   visitorTheme?: "crafted" | "cyberpunk" | "industrial";
   ownerName?: string;
 };
@@ -17,7 +20,10 @@ type House3DExperienceProps = {
 export function House3DExperience({
   mode,
   onModeChange,
+  exportRequestId,
+  onExport,
   visitorProfileId,
+  publishedVisitor,
   visitorTheme,
   ownerName,
 }: House3DExperienceProps) {
@@ -27,6 +33,7 @@ export function House3DExperience({
   const visitorQuery = visitorProfileId
     ? `&visitor=${encodeURIComponent(visitorProfileId)}${
         visitorTheme ? `&theme=${encodeURIComponent(visitorTheme)}` : ""
+      }${publishedVisitor ? "&published=1" : ""
       }`
     : "";
 
@@ -42,6 +49,14 @@ export function House3DExperience({
   }, [sendMode]);
 
   useEffect(() => {
+    if (!exportRequestId || status !== "ready") return;
+    frameRef.current?.contentWindow?.postMessage(
+      { type: "casa-digital:export-scene", requestId: exportRequestId },
+      window.location.origin,
+    );
+  }, [exportRequestId, status]);
+
+  useEffect(() => {
     function receive(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== frameRef.current?.contentWindow) return;
       if (event.data?.type === "casa-atelie:ready") {
@@ -49,6 +64,12 @@ export function House3DExperience({
         sendMode();
       }
       if (event.data?.type === "casa-atelie:error") setStatus("error");
+      if (event.data?.requestId === exportRequestId && event.data?.type === "casa-atelie:export-error") onExport?.(null);
+      if (event.data?.requestId === exportRequestId && event.data?.type === "casa-atelie:export-scene") {
+        const { sceneJson, thumbnailUrl, theme } = event.data;
+        onExport?.(typeof sceneJson === "string" && typeof thumbnailUrl === "string" && typeof theme === "string"
+          ? { sceneJson, thumbnailUrl, theme } : null);
+      }
       const nextMode = event.data?.mode;
       if (
         event.data?.type === "casa-atelie:mode" &&
@@ -59,7 +80,7 @@ export function House3DExperience({
     }
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [onModeChange, sendMode]);
+  }, [onModeChange, onExport, exportRequestId, sendMode]);
 
   return (
     <section className="house-3d-shell" aria-label="Casa digital em 3D">

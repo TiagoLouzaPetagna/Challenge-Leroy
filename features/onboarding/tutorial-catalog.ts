@@ -1,69 +1,69 @@
+export type TutorialChipTone = "mode" | "neutral";
+
 export type TutorialStepDefinition = {
   id: string;
-  eyebrow: string;
   title: string;
   description: string;
-  detail: string;
   target: string | null;
-  targetLabel: string;
+  chipLabel: string | null;
+  chipTone: TutorialChipTone | null;
+  /** Só para chips "mode" com cor fixa. O passo "next-step" recebe a cor em runtime (área da recomendação real). */
+  chipColor?: string;
 };
 
 export const TUTORIAL_STEPS: readonly TutorialStepDefinition[] = [
   {
     id: "welcome",
-    eyebrow: "Boas-vindas",
-    title: "Sua jornada pela Casa Digital Segura começa aqui",
+    title: "Esta é a sua oficina.",
     description:
-      "Em cerca de dois minutos, você conhecerá os principais espaços do portal e como acompanhar sua evolução.",
-    detail:
-      "Todos os casos, endereços e mensagens utilizados nas atividades são fictícios e foram preparados para uma experiência segura.",
+      "Aqui você treina, uma ferramenta por vez, para reconhecer golpes no dia a dia da loja. Cinco telas e você começa.",
     target: null,
-    targetLabel: "Apresentação inicial do portal",
+    chipLabel: null,
+    chipTone: null,
   },
   {
     id: "next-step",
-    eyebrow: "Orientação personalizada",
-    title: "Comece sempre pelo seu próximo passo",
+    title: "Comece sempre por aqui.",
     description:
-      "A Visão geral destaca uma atividade principal e explica por que ela foi recomendada para você.",
-    detail:
-      "Uma revisão pode ganhar destaque quando houver algo para praticar, mas nunca bloqueia a continuação da jornada.",
+      "Esta é a sua próxima atividade. A plataforma escolhe uma de cada vez, para você não precisar decidir por onde entrar.",
     target: '[data-tour="next-step"]',
-    targetLabel: "Cartão Seu próximo passo",
+    chipLabel: "Seu próximo passo",
+    chipTone: "mode",
   },
   {
-    id: "learning-areas",
-    eyebrow: "Minha jornada",
-    title: "Cada área desenvolve uma parte da aprendizagem",
+    id: "menu",
+    title: "Tudo o que existe fica neste menu.",
     description:
-      "Missões contam a história principal; Simulações exercitam decisões; PhishLab aprofunda a investigação; Radar explica técnicas; e Arcade reúne jogos futuros.",
-    detail:
-      "Você pode explorar livremente essas áreas, mesmo quando a plataforma apresenta uma recomendação.",
-    target: '[data-tour="learning-navigation"]',
-    targetLabel: "Grupo Minha jornada da navegação principal",
+      "Jornada conta a história principal. Use a seta ao lado para abrir PhishLab e Simulações, onde você treina decisões. Radar explica os golpes. Equipes é da sua área. Arcade é jogo. Você pode entrar em qualquer uma quando quiser, mesmo quando a plataforma recomenda outra coisa.",
+    target: '[data-tour="menu-panel"]',
+    chipLabel: "Menu",
+    chipTone: "neutral",
   },
   {
-    id: "progress",
-    eyebrow: "Evolução com privacidade",
-    title: "Pontos e escudo mostram progressos diferentes",
+    id: "team-shield",
+    title: "Sua área joga junto.",
     description:
-      "Os pontos confirmados aumentam seu nível pessoal, enquanto o escudo combina participação, precisão e cobertura de competências da equipe.",
-    detail:
-      "Suas notas, seus erros e suas decisões ficam no perfil privado. Colegas visualizam somente os indicadores agregados da equipe.",
-    target: '[data-tour="progress-summary"]',
-    targetLabel: "Resumo de pontos e nível",
+      "Abra Equipes para praticar o desafio da sua área e acompanhar o progresso do setor. Respostas e erros individuais ficam privados.",
+    target: '[data-tour="team-shield"]',
+    chipLabel: "Seu setor",
+    chipTone: "mode",
+    chipColor: "var(--learn-yellow)",
   },
   {
     id: "ready",
-    eyebrow: "Tudo pronto",
-    title: "Agora você já pode começar a jornada",
+    title: "Pronto. Sua primeira Missão está esperando.",
     description:
-      "A primeira Missão apresenta o fundamento usado nas atividades seguintes e explica cada decisão dentro do próprio contexto.",
-    detail:
-      "Quando um caso pedir reporte ou recuperação, a própria atividade mostrará a orientação fictícia necessária. Nenhuma ação envia um reporte real.",
+      "Nela você investiga um caso e decide o que fazer. Esta apresentação não aparece de novo — se quiser rever, ela fica no seu perfil.",
     target: null,
-    targetLabel: "Conclusão da apresentação inicial",
+    chipLabel: null,
+    chipTone: null,
   },
 ] as const;
 
 export const TUTORIAL_LAST_STEP = TUTORIAL_STEPS.length - 1;
+
+/** home.md/onboarding.md: só o último passo tem segunda versão (replay pelo Perfil). */
+export const TUTORIAL_REPLAY_LAST_STEP = {
+  title: "É isso.",
+  description: "Você pode voltar aqui quando quiser, pelo seu perfil.",
+};

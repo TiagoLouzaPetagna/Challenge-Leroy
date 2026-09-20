@@ -120,23 +120,23 @@
 .heroArtwork {
   position: relative;
   align-self: stretch;
-  min-height: 470px;
+  min-height: 520px;
   animation: teams-art-enter 620ms 80ms cubic-bezier(.2, .8, .2, 1) both;
 }
 
 .shieldFrame {
   position: absolute;
   z-index: 2;
-  width: min(76%, 430px);
-  top: 50%;
-  right: 8%;
+  width: min(55%, 370px);
+  top: 42px;
+  left: 4%;
   padding: 18px;
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 38px;
   color: var(--teams-forest);
   background: rgb(255 253 247 / 92%);
   box-shadow: 0 24px 55px rgb(4 32 23 / 28%);
-  transform: translateY(-50%) rotate(2deg);
+  transform: rotate(-3deg);
   backdrop-filter: blur(12px);
 }
 
@@ -191,10 +191,10 @@
 .mascot {
   position: absolute !important;
   z-index: 3;
-  width: min(23vw, 250px) !important;
-  height: min(23vw, 250px) !important;
-  right: 0;
-  bottom: -14px;
+  width: min(32vw, 410px) !important;
+  height: min(32vw, 410px) !important;
+  right: 10px;
+  bottom: 0;
   filter: drop-shadow(0 18px 20px rgb(4 32 23 / 22%));
   animation: teams-mascot-enter 560ms 260ms cubic-bezier(.2, .85, .25, 1) both;
 }
@@ -227,7 +227,7 @@
   transform: rotate(-45deg);
 }
 
-.unitNodeOne { top: 13%; left: 5%; animation-delay: 250ms; }
+.unitNodeOne { top: 3%; left: 2%; animation-delay: 250ms; }
 .unitNodeTwo { top: 9%; right: 8%; animation-delay: 330ms; }
 .unitNodeThree { left: 8%; bottom: 14%; animation-delay: 410ms; }
 
@@ -840,8 +840,8 @@
 @media (max-width: 1160px) {
   .hero { grid-template-columns: minmax(350px, 0.9fr) minmax(400px, 1.1fr); }
   .heroCopy { padding-left: 46px; }
-  .shieldFrame { width: 82%; right: 3%; }
-  .mascot { width: 220px !important; height: 220px !important; }
+  .shieldFrame { width: 62%; left: 2%; }
+  .mascot { width: 320px !important; height: 320px !important; }
   .metricsStory { grid-template-columns: minmax(240px, 0.7fr) minmax(430px, 1.3fr); gap: 42px; }
 }
 
@@ -852,9 +852,9 @@
   }
 
   .heroCopy { padding: 42px 38px 20px; }
-  .heroArtwork { min-height: 410px; }
-  .shieldFrame { width: min(75%, 430px); right: 10%; }
-  .mascot { width: 210px !important; height: 210px !important; }
+  .heroArtwork { min-height: 480px; }
+  .shieldFrame { width: min(55%, 370px); left: 8%; }
+  .mascot { width: 380px !important; height: 380px !important; right: 5%; }
   .goalBand,
   .featuredChallenge,
   .metricsStory,
@@ -871,10 +871,10 @@
   .hero h1 { font-size: clamp(48px, 16vw, 68px); }
   .privacyNote { align-items: flex-start; border-radius: 18px; }
   .heroActions { align-items: flex-start; flex-direction: column; }
-  .heroArtwork { min-height: 330px; }
-  .shieldFrame { width: min(84%, 360px); right: 5%; padding: 10px; border-radius: 26px; }
+  .heroArtwork { min-height: 470px; }
+  .shieldFrame { width: min(70%, 300px); left: 6%; top: 12px; padding: 10px; border-radius: 26px; }
   .shieldCaption { left: 14px; bottom: 13px; }
-  .mascot { width: 160px !important; height: 160px !important; right: -5px; }
+  .mascot { width: min(82%, 300px) !important; height: 290px !important; right: 0; }
   .unitNode { width: 42px; height: 42px; }
   .goalBand { padding: 24px; gap: 24px; }
   .goalNumbers strong { font-size: 27px; }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, KeyRound, MapPin, ShieldAlert, Smartphone } from "lucide-react";
 
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { ActivityShell } from "@/features/activities/ActivityShell";
@@ -10,8 +9,10 @@ import {
   type ActivityAnswerReviewItem,
 } from "@/features/activities/primitives/ActivityAnswerReview";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import {
   findMfaConsoleV2Package,
   MFA_CONSOLE_ACTIVITY_ID,
@@ -27,6 +28,7 @@ import {
   type MfaSupportResponseId,
   type MfaTransferActionId,
 } from "@/lib/content/activities/mfa-console/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { calculatePerformanceBonus, POINT_RULES } from "@/lib/domain/rules";
 import type {
   MfaConsoleV2Answer,
@@ -205,6 +207,8 @@ type Props = {
   onOpenDomainLab: () => void;
   onOpenRecovery: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 function optionLabel<T extends string>(
@@ -230,7 +234,10 @@ export function MfaFatigueMission(props: Props) {
     onOpenDomainLab,
     onOpenRecovery,
     onOpenProfile,
+    getUnlockedAchievementIds,
+    getNewlyUnlockedAchievements,
   } = props;
+  const celebration = usePostSubmitCelebration("Você iniciou este acesso?", "var(--learn-lime)");
   const initialPackageId = existingCasePackageId ?? MFA_CONSOLE_CANONICAL_PACKAGE_ID;
   const [casePackageId, setCasePackageId] = useState(initialPackageId);
   const contentPackage = findMfaConsoleV2Package(casePackageId) ?? MFA_CONSOLE_V2_PACKAGES[0];
@@ -263,7 +270,7 @@ export function MfaFatigueMission(props: Props) {
   const [rewardGrantedInAttempt, setRewardGrantedInAttempt] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
-  const titleRef = useActivityStageFocus(stage);
+  const titleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
   useEffect(() => {
     if (stage !== 7 || !displayResult) return;
     const frame = window.requestAnimationFrame(() => titleRef.current?.focus());
@@ -305,7 +312,7 @@ export function MfaFatigueMission(props: Props) {
           <div className="mfa-prerequisite-content"><h2>Preparação necessária</h2><div className="mfa-prerequisite-list">
             <article className={senderLabCompleted ? "is-complete" : ""}><span>{senderLabCompleted ? "Concluído" : "Pendente"}</span><h3>Quem enviou de verdade?</h3>{!senderLabCompleted ? <button className="text-button" onClick={onOpenSenderLab} type="button">Abrir PhishLab</button> : null}</article>
             <article className={domainLabCompleted ? "is-complete" : ""}><span>{domainLabCompleted ? "Concluído" : "Pendente"}</span><h3>Domínio sob a lupa</h3>{!domainLabCompleted ? <button className="text-button" onClick={onOpenDomainLab} type="button">Abrir PhishLab</button> : null}</article>
-          </div><button className="text-button" onClick={onBackToMissions} type="button"><ArrowLeft size={16} aria-hidden="true" /> Voltar ao percurso</button></div>
+          </div><button className="text-button" onClick={onBackToMissions} type="button">← Voltar ao percurso</button></div>
         </section>
       </ActivityShell>
     );
@@ -316,12 +323,14 @@ export function MfaFatigueMission(props: Props) {
   const resetForPackage = (nextPackageId: string) => {
     const nextPackage = findMfaConsoleV2Package(nextPackageId) ?? MFA_CONSOLE_V2_PACKAGES[0];
     setCasePackageId(nextPackage.casePackageId); setStage(0); setRevealedEventCount(1); setAssociationByEventId({}); setActionByEventId({}); setSupportResponseIds([]); setOfficialEntryRouteId(null); setOfficialConsoleActionIds([]); setReportDetailIds([]); setTransferAssociationId(null); setTransferActionId(null); setDisplayResult(null); setSubmittedAnswer(null); setRewardGrantedInAttempt(false); setSubmissionError("");
+    celebration.reset();
   };
   const finish = async () => {
     if (!allEventAnswersReady || supportResponseIds.length === 0 || !officialEntryRouteId || officialConsoleActionIds.length === 0 || reportDetailIds.length === 0 || !transferAssociationId || !transferActionId || isSubmitting) return;
     const answer: MfaConsoleV2Answer = { activityId: MFA_CONSOLE_ACTIVITY_ID, activityVersion: MFA_CONSOLE_ACTIVITY_VERSION, casePackageId: contentPackage.casePackageId, mechanicId: MFA_CONSOLE_MECHANIC_ID, eventInitiationAssociations: content.events.map((event) => ({ eventId: event.id, associationId: associationByEventId[event.id] })), eventActions: content.events.map((event) => ({ eventId: event.id, actionId: actionByEventId[event.id] })), supportResponseIds, officialEntryRouteId, officialConsoleActionIds, reportDetailIds, transferAssociationId, transferActionId };
     setIsSubmitting(true); setSubmissionError("");
-    try { const result = await onComplete(answer); setSubmittedAnswer(answer); setDisplayResult(result); setRewardGrantedInAttempt(!rewardAlreadyClaimed); setStage(7); }
+    const beforeIds = getUnlockedAchievementIds();
+    try { const result = await onComplete(answer); setSubmittedAnswer(answer); setDisplayResult(result); setRewardGrantedInAttempt(!rewardAlreadyClaimed); setStage(7); celebration.begin(getNewlyUnlockedAchievements(beforeIds)); }
     catch { setSubmissionError("Não foi possível registrar a tentativa. Tente novamente."); }
     finally { setIsSubmitting(false); }
   };
@@ -336,13 +345,15 @@ export function MfaFatigueMission(props: Props) {
   const bonusPoints = result ? result.potentialReward - POINT_RULES.mainMission : 0;
   const bonusPercentage = result ? Math.round(calculatePerformanceBonus(result.score) * 100) : 0;
 
+  if (celebration.screen) return celebration.screen;
+
   return (
     <ActivityShell activityId={MFA_CONSOLE_ACTIVITY_ID} className="activity-workspace page-stack mission-page mfa-mission-page">
       <section className="mission-shell">
         <header className={`mission-header ${stage > 0 ? "activity-context-summary" : ""}`}><div><span className="section-badge">Confiança sob pressão · Etapa 05</span><h1>Você iniciou este acesso?</h1><p>Compare os pedidos de acesso com o que você está fazendo e decida quais deve aprovar.</p></div><div className="mission-meta" aria-label="Informações da missão"><span>Tempo estimado</span><strong>9 minutos</strong><small>{POINT_RULES.mainMission} pontos-base</small></div></header>
         <ActivityProgress steps={steps} currentStep={stage} ariaLabel="Progresso de Você iniciou este acesso" />
         <div className="mission-content" aria-live="polite">
-          {stage === 0 ? <div className="mission-briefing mfa-opening"><div className="briefing-copy"><span className="section-kicker">Situação</span><h2 ref={titleRef} tabIndex={-1}>Pedidos de acesso começam a chegar</h2><p>{content.situation}</p>{content.priorExposureNote ? <div className="briefing-callout"><ShieldAlert size={20} aria-hidden="true" /><p>{content.priorExposureNote}</p></div> : null}</div><div className="mfa-opening-scene" aria-label="Celular recebendo uma solicitação de acesso"><div className="mfa-phone"><span className="mfa-phone__camera" /><div className="mfa-phone__app"><KeyRound size={22} aria-hidden="true" /><small>Solicitação de acesso</small><strong>Você está tentando entrar?</strong><p><MapPin size={14} aria-hidden="true" /> Outro dispositivo</p><div><span>Negar</span><span>Aprovar</span></div></div></div><span className="mfa-phone-alert"><Smartphone size={18} aria-hidden="true" /> Novo pedido</span></div><div className="briefing-objectives mfa-briefing-context"><span className="section-kicker">O que você fará</span><p><strong>Seu papel:</strong> {content.role}</p><button className="primary-button dark" type="button" onClick={() => setStage(1)}>Ver os pedidos de acesso</button></div></div> : null}
+          {stage === 0 ? <div className="mission-briefing"><div className="briefing-copy"><span className="section-kicker">Situação</span><h2 ref={titleRef} tabIndex={-1}>Pedidos de acesso começam a chegar</h2><p>{content.situation}</p>{content.priorExposureNote ? <div className="briefing-callout"><span aria-hidden="true">!</span><p>{content.priorExposureNote}</p></div> : null}</div><div className="briefing-objectives mfa-briefing-context"><span className="section-kicker">O que você fará</span><p><strong>Seu papel:</strong> {content.role}</p><button className="primary-button dark" type="button" onClick={() => setStage(1)}>Ver os pedidos de acesso</button></div></div> : null}
 
           {stage === 1 ? <div className="mfa-workspace"><section className="mfa-event-panel" aria-labelledby="mfa-events-title"><span className="simulation-label">Pedidos de acesso</span><h2 id="mfa-events-title" ref={titleRef} tabIndex={-1}>Você iniciou este pedido de acesso?</h2><p>Compare os dados do pedido com seu acesso. Indique se foi você e escolha uma ação.</p>
             {content.ownActions.length > 0 ? <div className="mfa-request-list">{content.ownActions.map((action) => <article key={action.id}><div><span>{action.timeLabel} · ação registrada por você</span><h3>{action.service}</h3><p>{action.purpose} · desafio {action.challenge}</p></div><strong>{action.status === "active" ? "Ainda ativa" : "Encerrada"}</strong></article>)}</div> : <div className="briefing-callout"><span aria-hidden="true">i</span><p>Você não iniciou nenhuma entrada ou alteração neste período.</p></div>}
@@ -376,9 +387,12 @@ export function MfaFatigueMission(props: Props) {
             <ActivityError message={submissionError} /><div className="mission-actions"><button type="button" className="secondary-button" onClick={() => setStage(5)}>Voltar à revisão</button><button type="button" className="primary-button dark" disabled={!transferAssociationId || !transferActionId || isSubmitting} onClick={finish}>{isSubmitting ? "Avaliando…" : "Concluir missão"}</button></div>
           </div> : null}
 
-          {stage === 7 && result ? <div className="mission-result"><div className="result-hero"><div className="score-ring" aria-label={`Pontuação ${result.score} de 100`}><strong>{result.score}</strong><span>/100</span></div><div><span className="section-kicker">Resultado privado</span><h2 ref={titleRef} tabIndex={-1}>{result.needsReview ? "Há decisões importantes para revisar" : "Processo seguro concluído"}</h2><p>A repetição, a aparência do aplicativo e a fala do suporte não substituem uma ação iniciada por você nem uma verificação independente.</p></div></div><div className="reward-card"><span>Recompensa desta atividade</span><strong>+{rewardGrantedInAttempt ? result.potentialReward : claimedPoints} pontos</strong><small>{rewardGrantedInAttempt ? `${POINT_RULES.mainMission} base + ${bonusPoints} de bônus (${bonusPercentage}%)` : rewardAlreadyClaimed ? "A primeira conclusão já concedeu a recompensa; repetições não duplicam pontos." : "Tentativa anterior preservada."}</small></div><details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details><div className="mission-actions"><button type="button" className="primary-button dark" onClick={() => setStage(8)}>Ver o que aprendeu</button><button type="button" className="secondary-button" onClick={() => resetForPackage(contentPackage.casePackageId)}>Refazer este caso</button></div></div> : null}
+          {stage === 7 && result ? <div className="mission-result"><div className="result-hero"><div className="score-ring" aria-label={`Pontuação ${result.score} de 100`}><strong>{result.score}</strong><span>/100</span></div><div><span className="section-kicker">Resultado privado</span><h2 ref={titleRef} tabIndex={-1}>{result.needsReview ? "Há decisões importantes para revisar" : "Processo seguro concluído"}</h2><p>A repetição, a aparência do aplicativo e a fala do suporte não substituem uma ação iniciada por você nem uma verificação independente.</p></div></div><details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details><ActivityNextStep area="Missões" title="Cliquei. E agora?" onOpen={onOpenRecovery} /><div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={() => resetForPackage(contentPackage.casePackageId)}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToMissions}>Voltar às missões</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div></div> : null}
 
-          {stage === 8 ? <div className="mission-decision-panel"><span className="section-kicker">O que levar para o trabalho</span><h2 ref={titleRef} tabIndex={-1}>A pergunta central é “eu iniciei isto?”</h2><p>Uma solicitação só deve ser aprovada quando nasce de uma ação sua ainda ativa e os detalhes exibidos correspondem ao serviço, finalidade e desafio esperados. Se isso não ocorrer, negue e use uma rota oficial que já existia antes da mensagem.</p><p>Se uma aprovação ou código já foi entregue, não esconda o ocorrido: interrompa o contato, revise sessões, inicie a recuperação adequada e reporte rapidamente. O erro não elimina a possibilidade de contenção.</p><div className="mission-actions"><button type="button" className="primary-button dark" onClick={onOpenRecovery}>Continuar para “Cliquei. E agora?”</button><button type="button" className="secondary-button" onClick={() => { const currentIndex = MFA_CONSOLE_V2_PACKAGES.findIndex((item) => item.casePackageId === contentPackage.casePackageId); const next = MFA_CONSOLE_V2_PACKAGES[(currentIndex + 1) % MFA_CONSOLE_V2_PACKAGES.length]; resetForPackage(next.casePackageId); }}>Praticar com outro caso</button><button type="button" className="text-button" onClick={onOpenProfile}>Ver meu perfil</button><button type="button" className="text-button" onClick={onBackToMissions}>Voltar ao percurso</button></div></div> : null}
         </div>
       </section>
     </ActivityShell>

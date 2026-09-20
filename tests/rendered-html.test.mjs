@@ -34,12 +34,10 @@ test("renderiza a plataforma Casa Digital Segura", async () => {
   const html = await response.text();
   assert.match(html, /<title>Casa Digital Segura \| Leroy Merlin<\/title>/i);
   assert.match(html, /Casa Digital/);
-  assert.match(html, /Tem algo estranho/);
+  assert.match(html, /Sua pr.xima escolha/);
   assert.match(html, /O aviso que n.{0,4}o podia esperar/);
   assert.doesNotMatch(html, /Como reportar/);
-  assert.match(html, /Atividade recente/);
-  assert.match(html, /Sua atividade aparecer.{0,4} aqui/);
-  assert.match(html, /Abrir .rea/);
+  assert.match(html, /Ver toda a jornada/);
   assert.doesNotMatch(html, /Ver estrutura/);
   assert.match(html, /Protótipo funcional/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/i);
@@ -62,9 +60,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /Cliquei\. E agora/,
         /Uma manh. comum/,
         /Mudan.a banc.ria sem atalho/,
-        /Radar opcional, com pontos/,
-        /\+5 pontos/,
-        /Recomenda.{0,8}o, n.{0,4}o bloqueio/,
+        /Todas as Miss.es/,
       ],
     },
     {
@@ -76,7 +72,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /Continuar/,
         /Progresso da miss.o de fundamento/,
         /Etapa 1 de 6/,
-        /Um aviso\. Trinta minutos/,
+        /Leia o e-mail e observe o que ele pede/,
       ],
     },
     {
@@ -155,7 +151,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/phishlab",
       expected: [
         /class="page-stack lab-page"/,
-        /<h1>PhishLab<\/h1>/,
+        /id="phishlab-title">Toda mensagem<br\/>deixa pistas\.<\/h1>/,
         /Quem enviou de verdade/,
         /Dom.nio sob a lupa/,
         /Espelho de P/,
@@ -184,8 +180,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/simulacoes",
       expected: [
         /class="page-stack simulation-page"/,
-        /Simula..es . pr.tica/,
-        /<h1>Escolha seu cen.rio.<\/h1>/,
+        /id="simulations-title">Na d.vida,<br\/>treine sua escolha\.<\/h1>/,
         /Uma manh. comum/,
         /Ataque multicanal/,
       ],
@@ -205,7 +200,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
         /class="page-stack arcade-page"/,
         /Escolha um desafio/,
         /Overlooked/,
-        /Dispon.vel/,
+        /Jogar agora/,
         /Um jogo\. Uma habilidade sob press.o/,
         /Score e pontos cumprem pap.is diferentes/,
       ],
@@ -214,17 +209,17 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname: "/arcade/overlooked",
       expected: [
         /class="page-stack arcade-detail-page arcade-game-room"/,
-        /Jogo Overlooked/,
-        /Quem domina o escrit.rio/,
+        /Todos os jogos/,
+        /Jogo carregado/,
+        /Tela cheia/,
         /Hall da fama/,
-        /visitar sua casa/,
       ],
     },
     {
       pathname: "/radar",
       expected: [
         /class="page-stack radar-page"/,
-        /Radar educativo/,
+        /Explore sinais antes que eles virem problema/,
         /Quishing: phishing escondido em QR Codes/,
         /Explore por situa/,
       ],
@@ -243,10 +238,21 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/equipes",
       expected: [
-        /class="page-stack teams-page"/,
-        /Tr.s indicadores, nenhum ranking individual/,
-        /40% \+ 40% \+ 20%/,
+        /<h1[^>]*>Equipes<\/h1>/,
+        /id="teams-activity-tab"/,
+        /id="teams-ranking-tab"/,
+        /Desafio da .rea/,
+        /Resultado da .rea/,
         /Caixa de Entrada Segura/,
+      ],
+    },
+    {
+      pathname: "/equipes/desafio-do-setor",
+      expected: [
+        /Monte a rota segura/,
+        /Mensagem recebida/,
+        /Escolha tr.s a..es/,
+        /Conferir minha decis.o/,
       ],
     },
     {
@@ -280,7 +286,7 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
       pathname,
     );
     const html = await response.text();
-    for (const pattern of expected) assert.match(html, pattern, pathname);
+    for (const pattern of expected) assert.match(html, pattern, `${pathname}: ${pattern}`);
   }
 });
 
@@ -343,7 +349,7 @@ test("simplifica a missão em seis etapas preservando o contrato e a identidade 
 
   const stageBlock = mission.match(/const STEPS = (\[[^;]+\]);/)?.[1] ?? "[]";
   assert.equal(JSON.parse(stageBlock).length, 6);
-  assert.match(mission, /useActivityStageFocus\(stage\)/);
+  assert.match(mission, /useActivityStageFocus\(stage, Boolean\(celebration\.screen\)\)/);
   assert.doesNotMatch(mission, /ActivityProgress/);
   assert.doesNotMatch(mission, /option\.detail/);
   assert.match(mission, /Rever minhas decisões/);
@@ -364,7 +370,7 @@ test("simplifica a missão em seis etapas preservando o contrato e a identidade 
   }
 
   assert.doesNotMatch(chrome, /current=\{1\}|total=\{4\}|ProgressJourney/);
-  assert.equal(tutorial.match(/pose="welcome"/g)?.length, 1);
+  assert.equal(tutorial.match(/pose="hero"/g)?.length, 1);
   assert.match(tutorial, /activeStep === 0/);
   assert.doesNotMatch(mission, /pose="welcome"/);
 
@@ -398,7 +404,7 @@ test("todas as atividades disponíveis encerram com revisão explícita das resp
   assert.match(reviewComponent, /O que você acertou e o que precisa revisar/);
   assert.match(reviewComponent, /Acertou/);
   assert.match(reviewComponent, /Precisa revisar/);
-  assert.match(reviewComponent, /Sua resposta/);
+  assert.match(reviewComponent, /item\.userAnswer/);
   assert.match(reviewComponent, /Resposta esperada/);
 
   const playersUsingSharedReview = [
@@ -911,20 +917,18 @@ test("mantém o tutorial 7B versionado, retomável e sem conceder pontos", async
     );
     assert.equal(selectTotalPoints(completed), initialPoints);
 
-    assert.match(page, /data-tour="next-step"/);
-    assert.match(page, /learning-navigation/);
+    assert.match(page, /tour="next-step"/);
     assert.match(page, /data-tour="progress-summary"/);
-    assert.match(page, /profile-navigation/);
-    assert.match(page, /data-tour="team-summary"/);
+    assert.match(page, /data-tour="team-shield"/);
     assert.doesNotMatch(page, /data-tour="report-button"/);
     assert.doesNotMatch(page, /Como reportar/);
     assert.match(page, /showTutorialInvitation/);
     assert.match(tutorialView, /aria-modal="true"/);
     assert.match(tutorialView, /data-has-target="false"/);
-    assert.match(tutorialView, /Começar primeira Missão/);
+    assert.match(tutorialView, /Ir para as Missões/);
     assert.doesNotMatch(tutorialView, /Pular(?: o)? tutorial/i);
-    assert.match(tutorialCatalog, /Agora você já pode começar a jornada/);
-    assert.match(tutorialCatalog, /Nenhuma ação envia um reporte real/);
+    assert.match(tutorialCatalog, /Pronto\. Sua primeira Missão está esperando/);
+    assert.match(tutorialCatalog, /\[data-tour="menu-panel"\]/);
     assert.doesNotMatch(tutorialCatalog, /report-button/);
     assert.match(profile, /Rever tutorial do portal/);
     assert.match(profile, /Iniciar tutorial do portal/);
@@ -1288,6 +1292,32 @@ test("executa o ciclo adaptativo sem bloquear a jornada nem duplicar recompensas
         delete globalThis.window;
       }
     }
+  } finally {
+    await vite.close();
+  }
+});
+
+test("reinicia a rodada do setor na virada do mês em São Paulo", async () => {
+  const { createServer } = await import("vite");
+  const vite = await createServer({
+    root: fileURLToPath(projectRoot),
+    configFile: false,
+    server: { middlewareMode: true },
+    appType: "custom",
+    logLevel: "silent",
+  });
+
+  try {
+    const { currentTeamPeriod, getTeamProtocolCase, isProtocolOrder, isSafeProtocolOrder } = await vite.ssrLoadModule("/lib/teams/protocol.ts");
+    assert.equal(currentTeamPeriod(new Date("2026-10-01T02:59:59Z")).id, "2026-09");
+    assert.equal(currentTeamPeriod(new Date("2026-10-01T03:00:00Z")).id, "2026-10");
+    assert.match(getTeamProtocolCase("administracao", "2026-09").message, /pagamento/);
+    assert.match(getTeamProtocolCase("logistica", "2026-09").message, /entrega/);
+    assert.notEqual(getTeamProtocolCase("logistica", "2026-09").message, getTeamProtocolCase("logistica", "2026-10").message);
+    assert.equal(isProtocolOrder(["pause", "verify", "report"]), true);
+    assert.equal(isProtocolOrder(["pause", "pause", "report"]), false);
+    assert.equal(isSafeProtocolOrder(["pause", "verify", "report"]), true);
+    assert.equal(isSafeProtocolOrder(["shortcut", "verify", "report"]), false);
   } finally {
     await vite.close();
   }
@@ -3159,6 +3189,10 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
       new URL("public/house-3d/app.js", projectRoot),
       "utf8",
     );
+    const defaultHouse = JSON.parse(await readFile(
+      new URL("public/house-3d/assets/principal/editor-seed.json", projectRoot),
+      "utf8",
+    ));
     const gameHtml = await readFile(
       new URL("public/arcade-games/overlooked/index.html", projectRoot),
       "utf8",
@@ -3179,7 +3213,11 @@ test("integra o Overlooked com pontuação recalculável e ranking próprio", as
     assert.match(podium, /entries\.slice\(0, 3\)/);
     assert.match(podium, /\/casa\/\$\{entry\.profileId\}/);
     assert.match(visitorHouse, /visitorProfileId=\{profile\.profileId\}/);
-    assert.match(house3d, /if\(visitorProfile\)\{saved=\{status:'empty'\}/);
+    assert.match(house3d, /if\(visitorProfile\)\{/);
+    assert.deepEqual(defaultHouse.items, []);
+    assert.equal(defaultHouse.cells.length, 36);
+    assert.deepEqual(new Set(defaultHouse.cells.map(([x, z]) => `${x},${z}`)),
+      new Set(Array.from({ length: 6 }, (_, x) => Array.from({ length: 6 }, (_, z) => `${x},${z}`)).flat()));
     assert.match(gameHtml, /<title>Overlooked<\/title>/);
     assert.match(gameHtml, /class="email-app-bar"/);
     assert.match(gameHtml, /Casa Digital/);
@@ -3666,7 +3704,7 @@ test("resolve o registro P0 sem rotas duplicadas nem queda silenciosa no hub", a
       "/lib/content/activities/domain-under-magnifier/v1.ts",
     );
 
-    assert.equal(PORTAL_ACTIVITY_REGISTRY.length, 31);
+    assert.equal(PORTAL_ACTIVITY_REGISTRY.length, 32);
     assert.equal(
       new Set(PORTAL_ACTIVITY_REGISTRY.map((item) => item.activityId)).size,
       PORTAL_ACTIVITY_REGISTRY.length,
@@ -3680,7 +3718,7 @@ test("resolve o registro P0 sem rotas duplicadas nem queda silenciosa no hub", a
       PORTAL_ACTIVITY_REGISTRY.filter(
         (item) => item.integrationStatus === "available",
       ).length,
-      10,
+      11,
     );
     assert.equal(
       PORTAL_ACTIVITY_REGISTRY.filter(
@@ -4928,7 +4966,7 @@ test("mantém a gestão protegida por login e apresenta a organização somente 
   const profileResponse = await render("/perfil");
   assert.equal(profileResponse.status, 200);
   const profileHtml = await profileResponse.text();
-  assert.match(profileHtml, /Casa &amp; Decora..o/);
+  assert.match(profileHtml, /Loja - Com.rcio/);
   assert.doesNotMatch(profileHtml, /Loja 047/);
 
   const managementResponse = await render("/gestao");
@@ -5007,8 +5045,8 @@ test("preserva a migração do cadastro legado e mantém o Arcade fora do fluxo 
         registration: {
           employeeId: "LM-1024",
           name: "Bruno Lima",
-          sectorId: "casa-decoracao",
-          sectorName: "Casa & Decoração",
+          sectorId: "loja-comercio",
+          sectorName: "Loja - Comércio",
           leaderboardParticipation: false,
           leaderboardIdentity: "anonymous",
         },
@@ -5017,7 +5055,7 @@ test("preserva a migração do cadastro legado e mantém o Arcade fora do fluxo 
     assert.equal(sameNamedSector.teams.ranking.length, initial.teams.ranking.length);
     assert.equal(
       sameNamedSector.teams.ranking.filter(
-        (entry) => entry.name === "Casa & Decoração",
+        (entry) => entry.name === "Loja - Comércio",
       ).length,
       1,
     );

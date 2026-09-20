@@ -77,9 +77,10 @@
 .causalArrow { display: flex; justify-content: center; padding-top: 98px; color: #739265; }
 .testConnection { display: flex; gap: 22px; align-items: center; padding-top: 20px; border-top: 1px solid var(--line); }
 .testConnection p { font-size: 14px; line-height: 1.7; color: var(--muted); }
-.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 18px; border: 1px solid var(--ink); border-radius: 8px; font-size: 14px !important; font-weight: 750 !important; min-height: 45px; transition: background .15s, transform .15s; flex-shrink: 0; }
-.primary { background: var(--ink); color: #fffdf7; }
-.primary:not(:disabled):hover { background: #285e46; transform: translateY(-1px); }
+.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 18px; border: 1px solid var(--ink); border-radius: 8px; font-size: 14px !important; font-weight: 750 !important; min-height: 45px; transition: background .15s, transform .15s, box-shadow .15s, filter .15s; flex-shrink: 0; }
+.primary { border: 0; border-radius: 14px; background: var(--learn-lime); color: var(--learn-forest-deep); box-shadow: var(--shadow-button); }
+.primary:not(:disabled):hover { filter: saturate(1.08) brightness(1.02); transform: translateY(-1px); }
+.primary:not(:disabled):active { box-shadow: 0 1px 0 #5f920d; transform: translateY(4px); }
 .secondary { background: #f4f5e9; color: var(--ink); }
 .station { border: 1px solid #cbd6c6; border-radius: 10px; background: #fffefa; overflow: hidden; min-width: 0; }
 .stationTop { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 15px 20px; background: #edf1e7; color: var(--ink); font-size: 12px; border-bottom: 1px solid #dce3d5; }
@@ -295,3 +296,7 @@
   .resultActions .primary { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .page *, .page *::before, .page *::after { animation: none !important; transition: none !important; } }
+
+.resultHeader { display: flex; align-items: center; min-height: 76px; padding: 12px 0; }
+.resultBack { display: grid; width: 46px; height: 46px; place-items: center; border: 2px solid var(--ink); border-radius: 50%; color: var(--ink); background: transparent; }
+.resultBack:hover { background: #eef7df; }

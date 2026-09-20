@@ -19,8 +19,7 @@ type ActivityAnswerReviewProps = {
 export function ActivityAnswerReview({
   items,
   title = "O que você acertou e o que precisa revisar",
-  description =
-    "Confira cada parte da sua resposta. Errar aqui serve para indicar o que vale praticar novamente.",
+  description,
   className = "",
 }: ActivityAnswerReviewProps) {
   const titleId = useId();
@@ -36,7 +35,7 @@ export function ActivityAnswerReview({
         <div>
           <span className="section-kicker">Revisão das respostas</span>
           <h2 id={titleId}>{title}</h2>
-          <p>{description}</p>
+          {description ? <p>{description}</p> : null}
         </div>
         <div className="activity-answer-review__summary">
           <strong aria-label={`${correctCount} de ${items.length} critérios atendidos`}>
@@ -58,7 +57,6 @@ export function ActivityAnswerReview({
             <h3>{item.title}</h3>
             {item.userAnswer ? (
               <p>
-                <span>Sua resposta</span>
                 <strong>{item.userAnswer}</strong>
               </p>
             ) : null}

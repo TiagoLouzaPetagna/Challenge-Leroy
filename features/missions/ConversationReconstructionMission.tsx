@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, MessageSquareText } from "lucide-react";
 
 import { EvidenceTray } from "@/features/activities/primitives/EvidenceTray";
 import { useDragReorder } from "@/features/activities/useDragReorder";
@@ -11,8 +10,10 @@ import {
   type ActivityAnswerReviewItem,
 } from "@/features/activities/primitives/ActivityAnswerReview";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import {
   COMPROMISED_CONVERSATION_V2_PACKAGES,
   CONVERSATION_RECONSTRUCTION_ACTIVITY_ID,
@@ -26,6 +27,7 @@ import {
   type ConversationTransferDecisionId,
   type EvidenceClassificationId,
 } from "@/lib/content/activities/compromised-conversation/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { POINT_RULES } from "@/lib/domain/rules";
 import type {
   ConversationEvidenceAssessment,
@@ -144,6 +146,8 @@ type ConversationReconstructionMissionProps = {
   onBackToMissions: () => void;
   onOpenNextActivity: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 function packageById(casePackageId: string): ConversationReconstructionPackage {
@@ -179,7 +183,13 @@ export function ConversationReconstructionMission({
   onBackToMissions,
   onOpenNextActivity,
   onOpenProfile,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: ConversationReconstructionMissionProps) {
+  const celebration = usePostSubmitCelebration(
+    "A conversa já estava acontecendo",
+    "var(--learn-lime)",
+  );
   const initialPackage = packageById(
     existingCasePackageId ??
       COMPROMISED_CONVERSATION_V2_PACKAGES[0].casePackageId,
@@ -215,7 +225,7 @@ export function ConversationReconstructionMission({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
-  const stageTitleRef = useActivityStageFocus(stage);
+  const stageTitleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
   const contentPackage = packageById(casePackageId);
   const { content, allowlists } = contentPackage;
   const isV2Result = Boolean(
@@ -310,6 +320,7 @@ export function ConversationReconstructionMission({
     setIsSubmitting(true);
     setError("");
     const grantsFirstReward = !rewardAlreadyClaimed;
+    const beforeIds = getUnlockedAchievementIds();
 
     try {
       const result = await onComplete({
@@ -332,6 +343,7 @@ export function ConversationReconstructionMission({
       setDisplayResult(result);
       setRewardGrantedInAttempt(grantsFirstReward);
       goTo(7);
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setError("Não foi possível registrar a tentativa. Revise as respostas e tente novamente.");
     } finally {
@@ -344,6 +356,7 @@ export function ConversationReconstructionMission({
     setDisplayResult(null);
     setRewardGrantedInAttempt(false);
     setError("");
+    celebration.reset();
     goTo(0);
   };
 
@@ -359,6 +372,7 @@ export function ConversationReconstructionMission({
     setDisplayResult(null);
     setRewardGrantedInAttempt(false);
     setError("");
+    celebration.reset();
     goTo(0);
   };
 
@@ -574,6 +588,8 @@ export function ConversationReconstructionMission({
           }))
         : [];
 
+  if (celebration.screen) return celebration.screen;
+
   return (
     <ActivityShell
       className="activity-workspace page-stack conversation-reconstruction-page"
@@ -608,7 +624,7 @@ export function ConversationReconstructionMission({
         <div className="conversation-reconstruction-workspace">
           {stage === 0 ? (
             <div className="conversation-opening">
-              <div className="conversation-opening__heading conversation-opening__heading--visual">
+              <div className="conversation-opening__heading">
                 <span className="section-kicker">Antes de começar</span>
                 <h2 ref={stageTitleRef} tabIndex={-1}>
                   O que mudou nesta conversa?
@@ -616,12 +632,7 @@ export function ConversationReconstructionMission({
                 <p>
                   Organize as mensagens e encontre o pedido que mudou o rumo da conversa.
                 </p>
-                <div className="conversation-opening__scene" aria-hidden="true">
-                  <MessageSquareText size={28} />
-                  <span><i />Conversa comum</span>
-                  <span><i />Pedido inesperado</span>
-                  <strong>Encontre a virada</strong>
-                </div>
+
               </div>
               <aside className="conversation-assigned-case">
                 <span>Caso atribuído</span>
@@ -675,7 +686,6 @@ export function ConversationReconstructionMission({
                       if (!message) return null;
                       return (
                         <li key={message.id} data-artifact-id={message.id} {...dragMessage(message.id)}>
-                          <GripVertical className="conversation-drag-handle" size={19} aria-hidden="true" />
                           <div className="conversation-position" aria-label={`Posição ${index + 1}`}>
                             {index + 1}
                           </div>
@@ -692,7 +702,7 @@ export function ConversationReconstructionMission({
                               onClick={() => moveMessage(message.id, index - 1)}
                               aria-label={`Mover mensagem de ${message.timeLabel} para cima`}
                             >
-                              <ArrowUp size={17} aria-hidden="true" />
+                              ↑
                             </button>
                             <button
                               type="button"
@@ -700,7 +710,7 @@ export function ConversationReconstructionMission({
                               onClick={() => moveMessage(message.id, index + 1)}
                               aria-label={`Mover mensagem de ${message.timeLabel} para baixo`}
                             >
-                              <ArrowDown size={17} aria-hidden="true" />
+                              ↓
                             </button>
                             <label>
                               <span className="sr-only">Posição da mensagem de {message.timeLabel}</span>
@@ -780,7 +790,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(0)}>
-                  <ArrowLeft size={16} aria-hidden="true" /> Voltar ao contexto do caso
+                  ← Voltar ao contexto do caso
                 </button>
                 <button
                   type="button"
@@ -849,7 +859,7 @@ export function ConversationReconstructionMission({
               </fieldset>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(1)}>
-                  <ArrowLeft size={16} aria-hidden="true" /> Rever reconstrução
+                  ← Rever reconstrução
                 </button>
                 <button
                   type="button"
@@ -878,7 +888,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(2)}>
-                  <ArrowLeft size={16} aria-hidden="true" /> Rever hipótese inicial
+                  ← Rever hipótese inicial
                 </button>
                 <button type="button" className="primary-button dark" onClick={() => goTo(4)}>
                   Revisar com a nova informação
@@ -923,7 +933,7 @@ export function ConversationReconstructionMission({
               </div>
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(3)}>
-                  <ArrowLeft size={16} aria-hidden="true" /> Rever nova informação
+                  ← Rever nova informação
                 </button>
                 <button type="button" className="primary-button dark" onClick={() => goTo(5)}>
                   Montar resposta final
@@ -1007,7 +1017,7 @@ export function ConversationReconstructionMission({
               )}
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(4)}>
-                  <ArrowLeft size={16} aria-hidden="true" /> Voltar à revisão
+                  ← Voltar à revisão
                 </button>
                 <button
                   type="button"
@@ -1051,7 +1061,7 @@ export function ConversationReconstructionMission({
               <ActivityError message={error} />
               <div className="mission-navigation">
                 <button type="button" className="text-button" onClick={() => goTo(5)}>
-                  <ArrowLeft size={16} aria-hidden="true" /> Rever resposta final
+                  ← Rever resposta final
                 </button>
                 <button
                   type="button"
@@ -1107,79 +1117,20 @@ export function ConversationReconstructionMission({
 
               <div className="result-grid">
                 <article>
-                  <span>Pontos gerais</span>
-                  <strong>
-                    {rewardGrantedInAttempt
-                      ? `+${displayResult.potentialReward}`
-                      : `${claimedPoints} registrados`}
-                  </strong>
-                  <p>Repetições e versões novas não duplicam a recompensa.</p>
-                </article>
-                <article>
                   <span>Privacidade</span>
                   <strong>Resposta individual</strong>
                   <p>Equipe e gestão não recebem ordem, evidências ou conclusão nominal.</p>
                 </article>
               </div>
-              <div className="mission-navigation">
-                <button type="button" className="primary-button dark" onClick={() => goTo(8)}>
-                  Ver o que aprendeu
-                </button>
-                <button type="button" className="text-button" onClick={onOpenProfile}>
-                  Ver no Meu perfil
-                </button>
+              <ActivityNextStep area="Missões" title="Você iniciou este acesso?" onOpen={onOpenNextActivity} />
+              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={reset}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToMissions}>Voltar às missões</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
               </div>
             </div>
           ) : null}
 
-          {stage === 8 && displayResult ? (
-            <div className="conversation-debrief-stage">
-              <span className="section-kicker">O que levar para o trabalho</span>
-              <h2 ref={stageTitleRef} tabIndex={-1}>
-                {isV2Result
-                  ? contentPackage.debrief.title
-                  : "Histórico legítimo não substitui confirmação"}
-              </h2>
-              <p>
-                {isV2Result
-                  ? contentPackage.debrief.body
-                  : "A versão 1 já ensinava que uma conta verdadeira pode estar sob outro controle. A versão 2 preserva esse resultado sem reinterpretá-lo."}
-              </p>
-              <div className="learning-debrief">
-                <span className="section-kicker">Regra transferível</span>
-                <h3>Pare → Avalie → Reconfirme → Escale e responda</h3>
-                <p>
-                  Quando destino, escopo ou processo muda, trate a mudança como um
-                  novo pedido. Confirme pelo diretório, portal ou contato que já
-                  existia antes da conversa e reporte fatos, não acusações.
-                </p>
-              </div>
-              <div className="adaptive-next-panel">
-                <div>
-                  <span className="section-kicker inverse">Próxima atividade</span>
-                  <h3>Você iniciou este acesso?</h3>
-                  <p>
-                    Aplique pausa, verificação e resposta segura diante de
-                    solicitações de MFA que você não iniciou.
-                  </p>
-                </div>
-                <button type="button" className="primary-button light" onClick={onOpenNextActivity}>
-                  Abrir próxima Missão
-                </button>
-              </div>
-              <div className="result-actions">
-                <button type="button" className="text-button" onClick={reset}>
-                  Refazer Missão
-                </button>
-                <button type="button" className="text-button" onClick={practiceAnotherCase}>
-                  Praticar com outro caso
-                </button>
-                <button type="button" className="text-button" onClick={onBackToMissions}>
-                  Voltar ao percurso
-                </button>
-              </div>
-            </div>
-          ) : null}
         </div>
       </section>
 

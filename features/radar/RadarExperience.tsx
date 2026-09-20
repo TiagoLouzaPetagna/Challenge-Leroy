@@ -189,9 +189,7 @@ function RadarContentCover({
 
 export function RadarHub({
   completedArticleIds,
-  radarPoints,
   onOpenArticle,
-  onBackToOverview,
 }: RadarHubProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -237,22 +235,11 @@ export function RadarHub({
       <div className={styles.page}>
         <header className={styles.hero} aria-labelledby="radar-page-title">
           <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>Radar educativo</span>
             <h1 id="radar-page-title">Explore sinais antes que eles virem problema.</h1>
             <p>
               Conteúdos curtos para reconhecer golpes, investigar padrões e tomar
               decisões mais seguras.
             </p>
-            <small id="radar-scope-note" className={styles.scopeNote}>
-              Conteúdo educativo — não é um feed de incidentes ativos da Leroy Merlin.
-            </small>
-            <button
-              type="button"
-              className={`text-button ${styles.backButton}`}
-              onClick={onBackToOverview}
-            >
-              <span aria-hidden="true">←</span> Voltar à visão geral
-            </button>
           </div>
 
           <figure className={styles.heroVisual}>
@@ -268,33 +255,11 @@ export function RadarHub({
             <figcaption>Observe · investigue · confirme</figcaption>
           </figure>
 
-          <aside className={styles.progress} aria-label="Seu histórico no Radar">
-            <div>
-              <strong>{completedArticleIds.length}</strong>
-              <span>conteúdo concluído</span>
-            </div>
-            <span className={styles.progressDivider} aria-hidden="true" />
-            <div>
-              <strong>{radarPoints}</strong>
-              <span>pontos confirmados</span>
-            </div>
-            <small>Recompensas únicas</small>
-          </aside>
         </header>
 
         <section className={styles.featured} aria-labelledby="radar-featured-title">
           <RadarContentCover article={featured} featured />
           <div className={styles.featuredCopy}>
-            <div className={styles.cardTopline}>
-              <span>Leitura em destaque</span>
-              <span
-                className={`${styles.status} ${
-                  completed.has(featured.id) ? styles.statusCompleted : styles.statusAvailable
-                }`}
-              >
-                {completed.has(featured.id) ? "Concluído" : "Disponível"}
-              </span>
-            </div>
             <h2 id="radar-featured-title">{featured.title}</h2>
             <p>{featured.summary}</p>
             <div
@@ -308,7 +273,7 @@ export function RadarHub({
             </div>
             <button
               type="button"
-              className={`primary-button dark ${styles.featuredAction}`}
+              className={completed.has(featured.id) ? "text-button" : "learning-button"}
               onClick={() => onOpenArticle(featured.slug)}
             >
               {completed.has(featured.id) ? "Reler conteúdo" : "Explorar conteúdo"}
@@ -320,13 +285,11 @@ export function RadarHub({
         <section className={styles.library} aria-labelledby="radar-library-title">
           <div className={styles.sectionHeading}>
             <div>
-              <span className={styles.eyebrow}>Biblioteca</span>
               <h2 id="radar-library-title">Explore por situação ou habilidade</h2>
             </div>
-            <p>Escolha um assunto e veja o que merece sua atenção.</p>
           </div>
 
-          <div className={styles.filters} aria-describedby="radar-scope-note">
+          <div className={styles.filters}>
             <label className={styles.searchField}>
               <span className="sr-only">Buscar conteúdo</span>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -398,9 +361,7 @@ export function RadarHub({
               <button type="button" onClick={clearFilters}>
                 Limpar filtros
               </button>
-            ) : (
-              <span>Catálogo em expansão</span>
-            )}
+            ) : null}
           </div>
 
           <div id="radar-library-results">
@@ -457,7 +418,7 @@ export function RadarHub({
                           </button>
                         ) : (
                           <span className={styles.plannedNote}>
-                            Em breve · leitura ainda não disponível
+                            Em produção · leitura ainda não disponível
                           </span>
                         )}
                       </div>
@@ -480,38 +441,6 @@ export function RadarHub({
           </div>
         </section>
 
-        <section className={styles.history} aria-labelledby="radar-history-title">
-          <div className={styles.historyHeading}>
-            <span className={styles.eyebrow}>Seu percurso</span>
-            <h2 id="radar-history-title">Leituras concluídas</h2>
-            <p>Releia quando precisar. A recompensa é registrada apenas uma vez.</p>
-          </div>
-          <div className={styles.historyList}>
-            {completedArticleIds.length ? (
-              RADAR_ARTICLES.filter((article) => completed.has(article.id)).map(
-                (article) => (
-                  <button
-                    type="button"
-                    key={article.id}
-                    onClick={() => onOpenArticle(article.slug)}
-                  >
-                    <span className={styles.historyCheck} aria-hidden="true">✓</span>
-                    <span>
-                      <strong>{article.title}</strong>
-                      <small>Disponível para releitura</small>
-                    </span>
-                    <span aria-hidden="true">→</span>
-                  </button>
-                ),
-              )
-            ) : (
-              <p className={styles.historyEmpty}>
-                <span aria-hidden="true">○</span>
-                Conclua o destaque para iniciar seu histórico.
-              </p>
-            )}
-          </div>
-        </section>
       </div>
     </div>
   );

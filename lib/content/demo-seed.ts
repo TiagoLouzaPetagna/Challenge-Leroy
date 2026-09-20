@@ -19,7 +19,7 @@ export function createDemoState(): AppState {
         id: "lucas",
         name: "Lucas",
         store: "Loja 047",
-        area: "Casa & Decoração",
+        area: "Loja - Comércio",
       },
       administrator: {
         id: "marina",
@@ -37,8 +37,8 @@ export function createDemoState(): AppState {
       history: [],
     },
     teams: {
-      id: "loja-047-casa-decoracao",
-      name: "Casa & Decoração",
+      id: "loja-comercio",
+      name: "Loja - Comércio",
       baseShield: 71,
       contributionClaims: {},
       aggregateClaims: {},

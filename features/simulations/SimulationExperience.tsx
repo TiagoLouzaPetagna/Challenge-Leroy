@@ -1,5 +1,7 @@
 "use client";
 
+import { SectionBanner } from "@/features/ui/SectionBanner";
+
 import { useMemo, useState, type CSSProperties } from "react";
 
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
@@ -165,29 +167,21 @@ export function SimulationsHub({
   latestResult,
   rewardPoints,
   onOpenWorkday,
-  onBackToOverview,
 }: SimulationsHubProps) {
   return (
     <div className="page-stack simulation-page">
       <div className={styles.hub}>
-        <div className={styles.introRegion}>
-          <button type="button" className={styles.backButton} onClick={onBackToOverview}>
-            <span aria-hidden="true">←</span> Visão geral
-          </button>
-          <header className={styles.editorialHeader}>
-            <span className={styles.kicker}>Simulações · prática</span>
-            <h1>Escolha seu cenário.</h1>
-            <p>Treine decisões seguras em situações próximas da rotina.</p>
-          </header>
-        </div>
+        <SectionBanner variant="simulations" labelledBy="simulations-title">
+          <span>Simulações · Prática segura</span>
+          <h1 id="simulations-title">Na dúvida,<br />treine sua escolha.</h1>
+          <p>Mensagens, pedidos e imprevistos da rotina. Escolha seu cenário e pratique decisões seguras, no seu ritmo.</p>
+        </SectionBanner>
 
         <section className={styles.availableSection} aria-labelledby="available-simulation-title">
         <div className={styles.sectionIntro}>
           <div>
-            <span className={styles.kicker}>Disponível agora</span>
             <h2 id="available-simulation-title">Seu próximo cenário</h2>
           </div>
-          <p>Uma experiência completa, com resultado somente depois das suas decisões.</p>
         </div>
 
         <article className={styles.featuredScenario} aria-labelledby="workday-title">
@@ -229,13 +223,11 @@ export function SimulationsHub({
                 {latestResult ? "Ver resultado ou refazer" : "Iniciar simulação"}
                 <span aria-hidden="true">→</span>
               </button>
-              <span>Resultado privado · feedback no fim</span>
             </div>
           </div>
 
           <div className={styles.featuredArtwork}>
             <WorkdaySceneArtwork />
-            <span className={styles.artworkCaption}>6 etapas · rotina mista</span>
           </div>
         </article>
         </section>
@@ -243,10 +235,8 @@ export function SimulationsHub({
         <section className={styles.productionSection} aria-labelledby="production-title">
         <div className={styles.sectionIntro}>
           <div>
-            <span className={styles.kicker}>Próximas práticas</span>
-            <h2 id="production-title">Em breve</h2>
+            <h2 id="production-title">Em produção</h2>
           </div>
-          <p>Estes cenários ainda estão sendo construídos e não podem ser iniciados.</p>
         </div>
 
         <div className={styles.futureGrid}>
@@ -263,7 +253,7 @@ export function SimulationsHub({
               </div>
               <div className={styles.futureCopy}>
                 <span className={styles.productionBadge}>
-                  Em breve
+                  <span aria-hidden="true">◌</span> Em produção
                 </span>
                 <h3 id={`${scenario.id}-title`}>{scenario.title}</h3>
                 <p>{scenario.summary}</p>
@@ -271,7 +261,6 @@ export function SimulationsHub({
                   <div><dt>Formato</dt><dd>{scenario.format}</dd></div>
                   <div><dt>Foco</dt><dd>{scenario.focus}</dd></div>
                 </dl>
-                <p className={styles.productionNote}>Esta prática ainda não está disponível.</p>
               </div>
             </article>
           ))}

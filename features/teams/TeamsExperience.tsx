@@ -6,6 +6,8 @@ import {
   TEAM_ACTION_LABELS,
   TEAM_CHALLENGE_CASES,
 } from "@/lib/content/team-challenge-catalog";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { POINT_RULES } from "@/lib/domain/rules";
 import { Mascot } from "@/features/ui/LearningUI";
 import type {
@@ -159,7 +161,6 @@ function SectorShieldBlueprint({
 }
 
 export function TeamsHub({
-  teamName,
   metrics,
   aggregate,
   ranking,
@@ -172,7 +173,6 @@ export function TeamsHub({
   onOpenChallenge,
   onOpenLegacyChallenge,
   onOpenProfile,
-  onBackToOverview,
 }: TeamsHubProps) {
   const currentRanking = ranking.find((item) => item.isCurrent);
   const pointsToGoal = Math.max(goal.targetScore - metrics.score, 0);
@@ -182,11 +182,7 @@ export function TeamsHub({
       <div className={styles.page}>
       <header className={styles.hero} aria-labelledby="teams-title">
         <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}>Proteção coletiva · {teamName}</span>
           <h1 id="teams-title">Escudo do setor</h1>
-          <p className={styles.heroLead}>
-            Veja o que já protege a loja — e qual é a próxima decisão que fortalece o conjunto.
-          </p>
           <div className={styles.privacyNote} role="note">
             <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
@@ -195,11 +191,8 @@ export function TeamsHub({
             <span>Somente dados agregados. Respostas e erros individuais permanecem privados.</span>
           </div>
           <div className={styles.heroActions}>
-            <button type="button" className="primary-button" onClick={onOpenChallenge}>
+            <button type="button" className="learning-button" onClick={onOpenChallenge}>
               {latestResult ? "Ver ou refazer desafio" : "Fortalecer o escudo"}
-            </button>
-            <button type="button" className="text-button light" onClick={onBackToOverview}>
-              Voltar à visão geral
             </button>
           </div>
         </div>
@@ -416,6 +409,8 @@ type TeamChallengeProps = {
   onComplete: (answer: TeamChallengeAnswer) => Promise<TeamChallengeResult>;
   onBackToTeams: () => void;
   onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 export function TeamChallenge({
@@ -427,7 +422,10 @@ export function TeamChallenge({
   onComplete,
   onBackToTeams,
   onOpenProfile,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: TeamChallengeProps) {
+  const celebration = usePostSubmitCelebration("Caixa de Entrada Segura", "var(--learn-yellow)");
   const initialActions = useMemo(
     () =>
       Object.fromEntries(
@@ -476,6 +474,7 @@ export function TeamChallenge({
     if (!allAnswered || isSubmitting) return;
     setIsSubmitting(true);
     setError("");
+    const beforeIds = getUnlockedAchievementIds();
     try {
       const nextResult = await onComplete({
         activityId: "team:secure-inbox",
@@ -490,6 +489,7 @@ export function TeamChallenge({
       setCountedOnThisAttempt(!aggregateAlreadyCounted);
       setStage("result");
       window.scrollTo({ top: 0, behavior: "smooth" });
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setError("Não foi possível registrar o desafio agora. Tente novamente.");
     } finally {
@@ -504,8 +504,11 @@ export function TeamChallenge({
     setCountedOnThisAttempt(false);
     setActiveCaseId(TEAM_CHALLENGE_CASES[0].id);
     setStage("briefing");
+    celebration.reset();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  if (celebration.screen) return celebration.screen;
 
   if (stage === "briefing") {
     return (
@@ -523,9 +526,9 @@ export function TeamChallenge({
             <button type="button" className="primary-button" onClick={() => setStage("challenge")}>Abrir a caixa de entrada</button>
           </div>
           <aside>
-            <span>Recompensa</span>
-            <strong>{POINT_RULES.teamOperation}</strong>
-            <p>pontos-base na primeira conclusão, mais bônus de desempenho</p>
+            <span>{rewardAlreadyClaimed ? "Pontos já recebidos" : "Recompensa"}</span>
+            <strong>{rewardAlreadyClaimed ? claimedPoints : POINT_RULES.teamOperation}</strong>
+            <p>{rewardAlreadyClaimed ? "Você pode refazer a atividade, mas os pontos são concedidos uma vez." : "pontos-base na primeira conclusão, mais bônus de desempenho"}</p>
             <small>8–10 minutos · sem cronômetro</small>
           </aside>
         </section>
@@ -549,8 +552,8 @@ export function TeamChallenge({
 
         <section className="team-result-summary">
           <article><span>Decisões corretas</span><strong>{result.correctDecisions}/{result.totalDecisions}</strong></article>
+          <article><span>Pontos da atividade</span><strong>{claimedPoints || result.potentialReward}</strong><small>concedidos na primeira conclusão</small></article>
           <article><span>Falsos positivos</span><strong>{result.falsePositives}</strong></article>
-          <article><span>Pontos gerais</span><strong>{rewardAlreadyClaimed && !countedOnThisAttempt ? claimedPoints : result.potentialReward}</strong><small>{rewardAlreadyClaimed && !countedOnThisAttempt ? "já confirmados" : "confirmados agora"}</small></article>
           <article><span>Agregado do setor</span><strong>{aggregateAlreadyCounted && !countedOnThisAttempt ? "Sem alteração" : "Atualizado"}</strong><small>contribuição única</small></article>
         </section>
 
@@ -585,12 +588,11 @@ export function TeamChallenge({
         </details>
 
         <section className="team-result-actions">
-          <div><span className="section-kicker">Próximo passo</span><h2>Veja o efeito coletivo sem expor seu resultado</h2></div>
-          <div>
-            <button type="button" className="primary-button" onClick={onBackToTeams}>Ver placar atualizado</button>
-            <button type="button" className="text-button" onClick={onOpenProfile}>Abrir Meu perfil</button>
-            <button type="button" className="text-button" onClick={restart}>Refazer para praticar</button>
-          </div>
+          <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={restart}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToTeams}>Voltar às equipes</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div>
         </section>
       </div>
     );

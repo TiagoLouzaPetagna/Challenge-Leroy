@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Inbox } from "lucide-react";
 
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { ActivityAnswerReview } from "@/features/activities/primitives/ActivityAnswerReview";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import {
   findWorkdayTriageV2Package,
   WORKDAY_ACTION_OPTIONS,
@@ -18,6 +19,7 @@ import {
   type WorkdayActionId,
   type WorkdayDraftQueueId,
 } from "@/lib/content/activities/workday-triage/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
 import { POINT_RULES } from "@/lib/domain/rules";
 import type {
   SimulationResult,
@@ -42,6 +44,8 @@ type WorkdayTriageSimulationProps = {
   onOpenProfile: () => void;
   onOpenPhishLab: () => void;
   onOpenTeamChallenge: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
 };
 
 const queueOptions: readonly {
@@ -126,7 +130,10 @@ export function WorkdayTriageSimulation({
   onOpenProfile,
   onOpenPhishLab,
   onOpenTeamChallenge,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
 }: WorkdayTriageSimulationProps) {
+  const celebration = usePostSubmitCelebration("Uma manhã comum", "var(--learn-coral)");
   const initialPackageId =
     existingAttempt?.casePackageId ?? WORKDAY_TRIAGE_CANONICAL_PACKAGE_ID;
   const [casePackageId, setCasePackageId] = useState(initialPackageId);
@@ -154,7 +161,7 @@ export function WorkdayTriageSimulation({
   const [rewardGrantedInAttempt, setRewardGrantedInAttempt] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const stageTitleRef = useActivityStageFocus(stage);
+  const stageTitleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
 
   const selectedItem =
     content.items.find((item) => item.id === selectedItemId) ?? content.items[0];
@@ -213,6 +220,7 @@ export function WorkdayTriageSimulation({
     setDisplayResult(null);
     setRewardGrantedInAttempt(false);
     setError("");
+    celebration.reset();
     goToStage(0);
   };
 
@@ -221,6 +229,7 @@ export function WorkdayTriageSimulation({
     setIsSubmitting(true);
     setError("");
     const grantsFirstReward = !rewardAlreadyClaimed;
+    const beforeIds = getUnlockedAchievementIds();
     try {
       const result = await onComplete({
         activityId: WORKDAY_TRIAGE_ACTIVITY_ID,
@@ -239,6 +248,7 @@ export function WorkdayTriageSimulation({
       setDisplayResult(result);
       setRewardGrantedInAttempt(grantsFirstReward);
       goToStage(4);
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
     } catch {
       setError("Não foi possível registrar esta Simulação. Suas escolhas continuam na tela.");
     } finally {
@@ -249,6 +259,8 @@ export function WorkdayTriageSimulation({
   const bonusPoints = displayResult
     ? displayResult.potentialReward - POINT_RULES.simulation
     : 0;
+
+  if (celebration.screen) return celebration.screen;
 
   if (stage === 6 && existingResult && !existingAttempt) {
     return (
@@ -317,7 +329,7 @@ export function WorkdayTriageSimulation({
 
               <div className="mission-navigation workday-opening-actions">
                 <button type="button" className="primary-button learning-button" onClick={() => goToStage(1)}>
-                  Começar a triagem <ArrowRight size={17} aria-hidden="true" />
+                  Começar a triagem <span aria-hidden="true">→</span>
                 </button>
                 <button type="button" className="text-button" onClick={onBackToHub}>
                   Voltar às Simulações
@@ -405,7 +417,7 @@ export function WorkdayTriageSimulation({
 
             <article className="workday-v2-reader">
               <div className="workday-v2-mail-toolbar">
-                <span><Inbox size={16} aria-hidden="true" /> Caixa de entrada</span>
+                <span>Caixa de entrada</span>
                 <strong>E-mail {selectedItemIndex + 1} de {content.items.length}</strong>
               </div>
               <header>
@@ -478,7 +490,7 @@ export function WorkdayTriageSimulation({
                   disabled={selectedItemIndex === 0}
                   onClick={() => setSelectedItemId(content.items[selectedItemIndex - 1].id)}
                 >
-                  <ArrowLeft size={16} aria-hidden="true" /> E-mail anterior
+                  ← E-mail anterior
                 </button>
                 <p>
                   <strong>{selectedItemIndex + 1} de {content.items.length}</strong>
@@ -490,7 +502,7 @@ export function WorkdayTriageSimulation({
                   disabled={selectedItemIndex === content.items.length - 1}
                   onClick={() => setSelectedItemId(content.items[selectedItemIndex + 1].id)}
                 >
-                  Próximo e-mail <ArrowRight size={16} aria-hidden="true" />
+                  Próximo e-mail →
                 </button>
               </nav>
             </article>
@@ -525,7 +537,7 @@ export function WorkdayTriageSimulation({
               ))}
             </div>
             <div className="mission-navigation">
-              <button type="button" className="text-button" onClick={() => goToStage(1)}><ArrowLeft size={16} aria-hidden="true" /> Voltar à triagem</button>
+              <button type="button" className="text-button" onClick={() => goToStage(1)}>← Voltar à triagem</button>
               <button type="button" className="primary-button dark" onClick={() => goToStage(3)}>Aplicar em outro canal</button>
             </div>
           </div>
@@ -556,7 +568,7 @@ export function WorkdayTriageSimulation({
             </fieldset>
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <div className="mission-navigation">
-              <button type="button" className="text-button" onClick={() => goToStage(2)}><ArrowLeft size={16} aria-hidden="true" /> Voltar à revisão</button>
+              <button type="button" className="text-button" onClick={() => goToStage(2)}>← Voltar à revisão</button>
               <button type="button" className="primary-button dark" disabled={!transferActionId || !transferEvidenceId || isSubmitting} onClick={finish}>
                 {isSubmitting ? "Avaliando…" : "Concluir Simulação"}
               </button>
@@ -579,11 +591,9 @@ export function WorkdayTriageSimulation({
               <article><span>Ação</span><strong>{displayResult.actionPoints}/30</strong><p>{displayResult.correctActions}/{displayResult.totalItems} ações proporcionais.</p></article>
               <article><span>Evidências</span><strong>{displayResult.evidencePoints}/25</strong><p>{displayResult.inspectedEvidence}/{displayResult.requiredEvidence} fatos relevantes consultados.</p></article>
               <article><span>Calibração</span><strong>{displayResult.calibrationPoints}/15</strong><p>{displayResult.falsePositives} falso(s) positivo(s).</p></article>
-              <article className="reward-result-card"><span>Pontos gerais</span><strong>{rewardGrantedInAttempt ? `+${displayResult.potentialReward}` : `${claimedPoints} registrados`}</strong><p>Base {POINT_RULES.simulation} + bônus de {bonusPoints}. A recompensa é única.</p></article>
             </div>
             <ActivityAnswerReview
               title="O que você acertou e o que precisa revisar no lote"
-              description="Cada item mostra seu destino, sua ação e a resposta mais adequada aos fatos do pacote."
               items={content.items.map((entry) => {
                 const draft = drafts[entry.id];
                 const expectedQueue = allowlists.correctQueueByItemId[entry.id];
@@ -606,7 +616,6 @@ export function WorkdayTriageSimulation({
             />
             <ActivityAnswerReview
               title="Aplicação em outro canal"
-              description="A repetição do pedido não vale como confirmação independente."
               items={[{
                 id: "transfer",
                 title: content.transfer.title,
@@ -616,34 +625,15 @@ export function WorkdayTriageSimulation({
                 explanation: "O processo precisa de uma fonte obtida fora da solicitação, mesmo quando a mesma narrativa aparece em outro canal.",
               }]}
             />
-            <div className="mission-navigation">
-              <button type="button" className="primary-button dark" onClick={() => goToStage(5)}>Ver o que aprendeu</button>
-            </div>
+            <ActivityNextStep area="Equipes" title="Mudança bancária sem atalho" onOpen={onOpenTeamChallenge} />
+            <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={() => choosePackage(contentPackage.casePackageId)}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToHub}>Voltar às Simulações</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div>
           </div>
         ) : null}
 
-        {stage === 5 && displayResult ? (
-          <div className="workday-v2-stage workday-v2-debrief foundation-stage">
-            <span className="section-kicker">O que levar para o trabalho</span>
-            <h2 ref={stageTitleRef} tabIndex={-1}>{contentPackage.debrief.title}</h2>
-            <p>{contentPackage.debrief.body}</p>
-            <div className="workday-v2-task"><strong>Leve para a rotina</strong><p>Um item pode ser urgente e legítimo, familiar e perigoso ou simplesmente inconclusivo. A ação correta nasce dos fatos e do processo, não da aparência.</p></div>
-            <div className="adaptive-next-panel">
-              <div><span className="section-kicker inverse">Próxima atividade</span><h2>Mudança bancária sem atalho</h2><p>Aplique confirmação independente e controle de processo em uma solicitação financeira.</p></div>
-              <button type="button" className="primary-button light" onClick={onOpenTeamChallenge}>Abrir atividade de Equipes</button>
-            </div>
-            <div className="result-actions">
-              <button type="button" className="text-button" onClick={onOpenProfile}>Ver no Meu perfil</button>
-              <button type="button" className="text-button" onClick={() => choosePackage(contentPackage.casePackageId)}>Refazer este pacote</button>
-              <button type="button" className="text-button" onClick={() => {
-                const currentIndex = WORKDAY_TRIAGE_V2_PACKAGES.findIndex((entry) => entry.casePackageId === contentPackage.casePackageId);
-                choosePackage(WORKDAY_TRIAGE_V2_PACKAGES[(currentIndex + 1) % WORKDAY_TRIAGE_V2_PACKAGES.length].casePackageId);
-              }}>Praticar outro pacote</button>
-              {displayResult.needsReview ? <button type="button" className="text-button" onClick={onOpenPhishLab}>Revisar no PhishLab</button> : null}
-              <button type="button" className="text-button" onClick={onBackToHub}>Voltar às Simulações</button>
-            </div>
-          </div>
-        ) : null}
         </div>
       </section>
     </ActivityShell>
