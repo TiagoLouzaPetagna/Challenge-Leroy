@@ -1,0 +1,1099 @@
+"use client";
+
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type PointerEvent,
+} from "react";
+
+import { ActivityShell } from "@/features/activities/ActivityShell";
+import {
+  ActivityAnswerReview,
+  type ActivityAnswerReviewItem,
+} from "@/features/activities/primitives/ActivityAnswerReview";
+import { ActivityError } from "@/features/activities/primitives/ActivityError";
+import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
+import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
+import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
+import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
+import {
+  DOMAIN_ANALYZER_V2_ACTIVITY_ID,
+  DOMAIN_ANALYZER_V2_ACTIVITY_VERSION,
+  DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES,
+  URL_ANATOMY_MECHANIC_ID,
+  type DomainAnalyzerSafeRouteId,
+  type DomainAnalyzerSegment,
+  type DomainAnalyzerV2Package,
+  type UrlSegmentRoleId,
+} from "@/lib/content/activities/domain-under-magnifier/v2";
+import type { AchievementDefinition } from "@/lib/content/achievement-catalog";
+import { DOMAIN_UNDER_MAGNIFIER_V1_PACKAGE } from "@/lib/content/activities/domain-under-magnifier/v1";
+import { POINT_RULES } from "@/lib/domain/rules";
+import type {
+  DomainAnalyzerV2Answer,
+  DomainAnalyzerV2Result,
+  LinkVerdict,
+  PhishLabResult,
+} from "@/lib/domain/types";
+
+const steps = [
+  "Começar",
+  "Separar",
+  "Decidir",
+  "Efeito",
+  "Revisar",
+  "Confirmar",
+  "Outro link",
+  "Resultado",
+] as const;
+
+type PreviousResult = PhishLabResult | DomainAnalyzerV2Result;
+
+type DomainUnderMagnifierLabProps = {
+  existingResult: PreviousResult | null;
+  existingCasePackageId: string | null;
+  rewardAlreadyClaimed: boolean;
+  claimedPoints: number;
+  onComplete: (
+    answer: DomainAnalyzerV2Answer,
+  ) => Promise<DomainAnalyzerV2Result>;
+  onBackToHub: () => void;
+  onOpenNextActivity: () => void;
+  onOpenProfile: () => void;
+  getUnlockedAchievementIds: () => Set<string>;
+  getNewlyUnlockedAchievements: (beforeIds: Set<string>) => AchievementDefinition[];
+};
+
+function packageById(casePackageId: string): DomainAnalyzerV2Package {
+  return (
+    DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES.find(
+      (contentPackage) => contentPackage.casePackageId === casePackageId,
+    ) ?? DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES[0]
+  );
+}
+
+function SegmentDragBoard({
+  segments,
+  assignments,
+  roleOptions,
+  onAssign,
+}: {
+  segments: readonly DomainAnalyzerSegment[];
+  assignments: Readonly<Record<string, UrlSegmentRoleId>>;
+  roleOptions: DomainAnalyzerV2Package["content"]["roleOptions"];
+  onAssign: (segmentId: string, roleId: UrlSegmentRoleId) => void;
+}) {
+  const [heldRoleId, setHeldRoleId] = useState<UrlSegmentRoleId | null>(null);
+  const [dragOverSegmentId, setDragOverSegmentId] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState(
+    "Arraste uma etiqueta até a parte do link.",
+  );
+  const pointerStartRef = useRef<{
+    pointerId: number;
+    roleId: UrlSegmentRoleId;
+    x: number;
+    y: number;
+  } | null>(null);
+  const pointerMovedRef = useRef(false);
+  const suppressClickRef = useRef(false);
+
+  const roleLabel = (roleId: UrlSegmentRoleId) =>
+    roleOptions.find((role) => role.id === roleId)?.label ?? "Função";
+
+  const placeRole = (segmentId: string, roleId: UrlSegmentRoleId) => {
+    onAssign(segmentId, roleId);
+    const segment = segments.find((candidate) => candidate.id === segmentId);
+    setHeldRoleId(null);
+    setDragOverSegmentId(null);
+    setAnnouncement(
+      `${roleLabel(roleId)} foi colocado em ${segment?.value || "parte vazia"}.`,
+    );
+  };
+
+  const roleFromDrag = (event: DragEvent<HTMLElement>) =>
+    (event.dataTransfer.getData("application/x-url-role") ||
+      event.dataTransfer.getData("text/plain")) as UrlSegmentRoleId;
+
+  const segmentUnderPointer = (clientX: number, clientY: number) =>
+    document
+      .elementFromPoint(clientX, clientY)
+      ?.closest<HTMLElement>("[data-url-drop-segment]")
+      ?.dataset.urlDropSegment ?? null;
+
+  const beginTouchDrag = (
+    event: PointerEvent<HTMLButtonElement>,
+    roleId: UrlSegmentRoleId,
+  ) => {
+    if (event.pointerType === "mouse") return;
+    pointerStartRef.current = {
+      pointerId: event.pointerId,
+      roleId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    pointerMovedRef.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setHeldRoleId(roleId);
+  };
+
+  const moveTouchDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    const start = pointerStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) {
+      pointerMovedRef.current = true;
+    }
+    if (!pointerMovedRef.current) return;
+    event.preventDefault();
+    setDragOverSegmentId(segmentUnderPointer(event.clientX, event.clientY));
+  };
+
+  const finishTouchDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    const start = pointerStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const segmentId = segmentUnderPointer(event.clientX, event.clientY);
+    if (pointerMovedRef.current) {
+      suppressClickRef.current = true;
+      if (segmentId) placeRole(segmentId, start.roleId);
+      else {
+        setHeldRoleId(null);
+        setDragOverSegmentId(null);
+        setAnnouncement("A etiqueta voltou para a lista. Tente arrastá-la até uma parte do link.");
+      }
+    }
+    pointerStartRef.current = null;
+    pointerMovedRef.current = false;
+  };
+
+  return (
+    <div className="url-drag-board" aria-describedby="url-drag-instructions">
+      <div className="url-drag-board__heading">
+        <div>
+          <span className="pare-step-badge">Arraste e solte</span>
+          <h3>Diga o que é cada parte do link</h3>
+        </div>
+        <p id="url-drag-instructions">
+          Arraste cada etiqueta até a parte certa. Também dá para tocar na
+          etiqueta e depois na parte do link.
+        </p>
+      </div>
+
+      <section className="url-role-palette" aria-label="Etiquetas disponíveis">
+        <span>Etiquetas</span>
+        <div>
+          {roleOptions.map((role) => {
+            const assignedSegment = segments.find(
+              (segment) => assignments[segment.id] === role.id,
+            );
+            const isHeld = heldRoleId === role.id;
+            return (
+              <button
+                key={role.id}
+                type="button"
+                draggable
+                className={`${isHeld ? "is-held" : ""} ${assignedSegment ? "is-assigned" : ""}`.trim()}
+                aria-pressed={isHeld}
+                onClick={() => {
+                  if (suppressClickRef.current) {
+                    suppressClickRef.current = false;
+                    return;
+                  }
+                  setHeldRoleId((current) => (current === role.id ? null : role.id));
+                  setAnnouncement(
+                    isHeld
+                      ? `${role.label} voltou para a bandeja.`
+                      : `${role.label} selecionado. Agora escolha uma parte do link.`,
+                  );
+                }}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("application/x-url-role", role.id);
+                  event.dataTransfer.setData("text/plain", role.id);
+                  setHeldRoleId(role.id);
+                  setAnnouncement(`${role.label} em movimento.`);
+                }}
+                onDragEnd={() => {
+                  setHeldRoleId(null);
+                  setDragOverSegmentId(null);
+                }}
+                onPointerDown={(event) => beginTouchDrag(event, role.id)}
+                onPointerMove={moveTouchDrag}
+                onPointerUp={finishTouchDrag}
+                onPointerCancel={() => {
+                  pointerStartRef.current = null;
+                  pointerMovedRef.current = false;
+                  setHeldRoleId(null);
+                  setDragOverSegmentId(null);
+                }}
+              >
+                <span aria-hidden="true">⋮⋮</span>
+                <strong>{role.label}</strong>
+                <small>
+                  {assignedSegment
+                    ? `Em ${assignedSegment.value || "parte vazia"}`
+                    : "Disponível"}
+                </small>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="url-segment-drop-grid" aria-label="Partes do link">
+        {segments.map((segment, index) => {
+          const assignedRoleId = assignments[segment.id];
+          const isOver = dragOverSegmentId === segment.id;
+          return (
+            <button
+              key={segment.id}
+              type="button"
+              data-url-drop-segment={segment.id}
+              className={`${assignedRoleId ? "has-role" : ""} ${isOver ? "is-over" : ""}`.trim()}
+              onClick={() => {
+                if (heldRoleId) placeRole(segment.id, heldRoleId);
+              }}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragOverSegmentId(segment.id);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  setDragOverSegmentId(null);
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const roleId = roleFromDrag(event);
+                if (roleOptions.some((role) => role.id === roleId)) {
+                  placeRole(segment.id, roleId);
+                }
+              }}
+              aria-label={`Parte ${index + 1}, ${segment.value || "parte vazia"}. ${
+                assignedRoleId
+                  ? `Função ${roleLabel(assignedRoleId)} atribuída.`
+                  : "Sem função atribuída."
+              }`}
+            >
+              <span>Parte {String(index + 1).padStart(2, "0")}</span>
+              <code>{segment.value || "(esta parte não existe neste link)"}</code>
+              <strong>
+                {assignedRoleId ? roleLabel(assignedRoleId) : "Solte uma função aqui"}
+              </strong>
+            </button>
+          );
+        })}
+      </section>
+      <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
+    </div>
+  );
+}
+
+function SegmentChoice({
+  legend,
+  segments,
+  value,
+  onChange,
+}: {
+  legend: string;
+  segments: readonly DomainAnalyzerSegment[];
+  value: string;
+  onChange: (segmentId: string) => void;
+}) {
+  return (
+    <fieldset className="url-anatomy-choice-group">
+      <legend>{legend}</legend>
+      {segments.map((segment, index) => (
+        <label key={segment.id} className={value === segment.id ? "selected" : ""}>
+          <input
+            type="radio"
+            name={legend}
+            checked={value === segment.id}
+            onChange={() => onChange(segment.id)}
+          />
+          <span>
+            <strong>Parte {index + 1}</strong>
+            <code>{segment.value || "(esta parte não existe neste link)"}</code>
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function VerdictChoice({
+  legend,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string;
+  options: DomainAnalyzerV2Package["content"]["verdictOptions"];
+  value: LinkVerdict | "";
+  onChange: (verdictId: LinkVerdict) => void;
+}) {
+  return (
+    <fieldset className="url-anatomy-choice-group">
+      <legend>{legend}</legend>
+      {options.map((option) => (
+        <label key={option.id} className={value === option.id ? "selected" : ""}>
+          <input
+            type="radio"
+            name={legend}
+            checked={value === option.id}
+            onChange={() => onChange(option.id)}
+          />
+          <span>{option.label}</span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+export function DomainUnderMagnifierLab({
+  existingResult,
+  existingCasePackageId,
+  rewardAlreadyClaimed,
+  claimedPoints,
+  onComplete,
+  onBackToHub,
+  onOpenNextActivity,
+  onOpenProfile,
+  getUnlockedAchievementIds,
+  getNewlyUnlockedAchievements,
+}: DomainUnderMagnifierLabProps) {
+  const celebration = usePostSubmitCelebration(
+    "Domínio sob a lupa",
+    "var(--learn-teal)",
+  );
+  const [stage, setStage] = useState(existingResult ? 7 : 0);
+  const [casePackageId, setCasePackageId] = useState(
+    packageById(
+      existingCasePackageId ??
+        DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES[0].casePackageId,
+    ).casePackageId,
+  );
+  const [calibrationAcknowledged, setCalibrationAcknowledged] = useState(false);
+  const [segmentRoleById, setSegmentRoleById] = useState<
+    Record<string, UrlSegmentRoleId>
+  >({});
+  const [registeredDomainSelectionId, setRegisteredDomainSelectionId] =
+    useState("");
+  const [verdictId, setVerdictId] = useState<LinkVerdict | "">("");
+  const [safeRouteId, setSafeRouteId] =
+    useState<DomainAnalyzerSafeRouteId | "">("");
+  const [transferRegisteredDomainSelectionId, setTransferDomainId] =
+    useState("");
+  const [transferVerdictId, setTransferVerdictId] =
+    useState<LinkVerdict | "">("");
+  const [usedHelpIds, setUsedHelpIds] = useState<string[]>([]);
+  const [displayResult, setDisplayResult] = useState<PreviousResult | null>(
+    existingResult,
+  );
+  const [rewardGrantedInAttempt, setRewardGrantedInAttempt] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const stageTitleRef = useActivityStageFocus(stage, Boolean(celebration.screen));
+  const calibrationTitleRef = useRef<HTMLHeadingElement>(null);
+  const contentPackage = packageById(casePackageId);
+  const { content } = contentPackage;
+  const mainAssignmentsComplete = content.mainCase.segments.every(
+    (segment) => Boolean(segmentRoleById[segment.id]),
+  );
+  const mainDecisionComplete = Boolean(
+    registeredDomainSelectionId && verdictId && safeRouteId,
+  );
+  const transferComplete = Boolean(
+    transferRegisteredDomainSelectionId && transferVerdictId,
+  );
+  const isV2Result = Boolean(
+    displayResult && "anatomyPoints" in displayResult,
+  );
+
+  const goTo = (nextStage: number) => {
+    setStage(nextStage);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  };
+
+  const selectPackage = (nextPackageId: string) => {
+    setCasePackageId(nextPackageId);
+    setCalibrationAcknowledged(false);
+    setSegmentRoleById({});
+    setRegisteredDomainSelectionId("");
+    setVerdictId("");
+    setSafeRouteId("");
+    setTransferDomainId("");
+    setTransferVerdictId("");
+    setUsedHelpIds([]);
+  };
+
+  const assignRole = (segmentId: string, roleId: UrlSegmentRoleId) => {
+    setSegmentRoleById((current) => {
+      const next = Object.fromEntries(
+        Object.entries(current).filter(
+          ([currentSegmentId, currentRoleId]) =>
+            currentSegmentId === segmentId || currentRoleId !== roleId,
+        ),
+      ) as Record<string, UrlSegmentRoleId>;
+      next[segmentId] = roleId;
+      return next;
+    });
+  };
+
+  const openRoleReference = () => {
+    setUsedHelpIds((current) =>
+      current.includes("role-reference")
+        ? current
+        : [...current, "role-reference"],
+    );
+  };
+
+  const finish = async () => {
+    if (!mainAssignmentsComplete || !mainDecisionComplete || !transferComplete) {
+      setError("Complete a análise principal e a transferência antes de enviar.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    const grantsFirstReward = !rewardAlreadyClaimed;
+    const beforeIds = getUnlockedAchievementIds();
+
+    try {
+      const result = await onComplete({
+        activityId: DOMAIN_ANALYZER_V2_ACTIVITY_ID,
+        activityVersion: DOMAIN_ANALYZER_V2_ACTIVITY_VERSION,
+        casePackageId,
+        mechanicId: URL_ANATOMY_MECHANIC_ID,
+        answerPayload: {
+          segmentRoleById,
+          registeredDomainSelectionId,
+          inspectedSegmentIds: Object.keys(segmentRoleById),
+          verdictId: verdictId as LinkVerdict,
+          safeRouteId,
+          transferRegisteredDomainSelectionId,
+          transferVerdictId: transferVerdictId as LinkVerdict,
+          usedHelpIds,
+        },
+      });
+      setDisplayResult(result);
+      setRewardGrantedInAttempt(grantsFirstReward);
+      goTo(7);
+      celebration.begin(getNewlyUnlockedAchievements(beforeIds));
+    } catch {
+      setError("Não foi possível registrar o laboratório. Revise e tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const reset = () => {
+    selectPackage(casePackageId);
+    setDisplayResult(null);
+    setRewardGrantedInAttempt(false);
+    setError("");
+    celebration.reset();
+    goTo(0);
+  };
+
+  const practiceAnotherCase = () => {
+    const currentIndex = DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES.findIndex(
+      (candidate) => candidate.casePackageId === casePackageId,
+    );
+    const nextPackage =
+      DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES[
+        (currentIndex + 1) % DOMAIN_UNDER_MAGNIFIER_V2_PACKAGES.length
+      ];
+    selectPackage(nextPackage.casePackageId);
+    setDisplayResult(null);
+    setRewardGrantedInAttempt(false);
+    setError("");
+    celebration.reset();
+    goTo(0);
+  };
+
+  const bonusPoints =
+    displayResult && rewardGrantedInAttempt
+      ? displayResult.potentialReward - POINT_RULES.phishLab
+      : 0;
+  const hasCurrentAttemptAnswers =
+    Object.keys(segmentRoleById).length === content.mainCase.segments.length &&
+    Boolean(
+      registeredDomainSelectionId &&
+        verdictId &&
+        safeRouteId &&
+        transferRegisteredDomainSelectionId &&
+        transferVerdictId,
+    );
+  const answerReviewItems: ActivityAnswerReviewItem[] =
+    displayResult && isV2Result && hasCurrentAttemptAnswers
+      ? [
+          ...content.mainCase.segments.map((segment, index) => {
+            const selectedRoleId = segmentRoleById[segment.id];
+            return {
+              id: `segment-${segment.id}`,
+              title: `Parte ${index + 1}: ${segment.value || "parte vazia"}`,
+              status:
+                selectedRoleId === segment.roleId
+                  ? ("correct" as const)
+                  : ("review" as const),
+              userAnswer:
+                content.roleOptions.find((role) => role.id === selectedRoleId)
+                  ?.label ?? "Não respondido",
+              expectedAnswer:
+                content.roleOptions.find((role) => role.id === segment.roleId)
+                  ?.label ?? "Etiqueta não encontrada",
+              explanation:
+                segment.roleId === "registeredDomain"
+                  ? "Esta é a parte que diz de quem é o site."
+                  : "Esta parte ajuda a ler o link, mas não diz de quem ele é.",
+            };
+          }),
+          {
+            id: "registered-domain",
+            title: "O site de verdade do primeiro link",
+            status:
+              registeredDomainSelectionId ===
+              content.mainCase.correctRegisteredDomainSegmentId
+                ? "correct"
+                : "review",
+            userAnswer:
+              content.mainCase.segments.find(
+                (segment) => segment.id === registeredDomainSelectionId,
+              )?.value ?? "Não respondido",
+            expectedAnswer:
+              content.mainCase.segments.find(
+                (segment) =>
+                  segment.id ===
+                  content.mainCase.correctRegisteredDomainSegmentId,
+              )?.value ?? "Site não encontrado",
+            explanation:
+              "Um nome conhecido pode aparecer em qualquer parte do link. O site é a parte logo antes da primeira barra.",
+          },
+          {
+            id: "main-verdict",
+            title: "Sua decisão sobre o primeiro link",
+            status:
+              verdictId === content.mainCase.correctVerdictId
+                ? "correct"
+                : "review",
+            userAnswer:
+              content.verdictOptions.find((option) => option.id === verdictId)
+                ?.label ?? "Não respondido",
+            expectedAnswer:
+              content.verdictOptions.find(
+                (option) => option.id === content.mainCase.correctVerdictId,
+              )?.label ?? "Decisão não encontrada",
+            explanation:
+              "A decisão junta duas coisas: de quem é o site e se você esperava esse link.",
+          },
+          {
+            id: "safe-route",
+            title: "Como você continuaria",
+            status:
+              safeRouteId === contentPackage.allowlists.correctSafeRouteId
+                ? "correct"
+                : "review",
+            userAnswer:
+              content.safeRouteOptions.find((option) => option.id === safeRouteId)
+                ?.label ?? "Não respondido",
+            expectedAnswer:
+              content.safeRouteOptions.find(
+                (option) =>
+                  option.id === contentPackage.allowlists.correctSafeRouteId,
+              )?.label ?? "Caminho não encontrado",
+            explanation:
+              "O caminho seguro nunca é o próprio link que você está desconfiando.",
+          },
+          {
+            id: "transfer-domain",
+            title: "O site de verdade do segundo link",
+            status:
+              transferRegisteredDomainSelectionId ===
+              content.transferCase.correctRegisteredDomainSegmentId
+                ? "correct"
+                : "review",
+            userAnswer:
+              content.transferCase.segments.find(
+                (segment) =>
+                  segment.id === transferRegisteredDomainSelectionId,
+              )?.value ?? "Não respondido",
+            expectedAnswer:
+              content.transferCase.segments.find(
+                (segment) =>
+                  segment.id ===
+                  content.transferCase.correctRegisteredDomainSegmentId,
+              )?.value ?? "Site não encontrado",
+            explanation:
+              "Quando a aparência muda, vale procurar o site de novo, do zero.",
+          },
+          {
+            id: "transfer-verdict",
+            title: "Sua decisão sobre o segundo link",
+            status:
+              transferVerdictId === content.transferCase.correctVerdictId
+                ? "correct"
+                : "review",
+            userAnswer:
+              content.verdictOptions.find(
+                (option) => option.id === transferVerdictId,
+              )?.label ?? "Não respondido",
+            expectedAnswer:
+              content.verdictOptions.find(
+                (option) =>
+                  option.id === content.transferCase.correctVerdictId,
+              )?.label ?? "Decisão não encontrada",
+            explanation:
+              "O mesmo jeito de olhar serve para os dois lados: reconhecer o golpe e reconhecer o link verdadeiro.",
+          },
+        ]
+      : displayResult && isV2Result
+        ? [
+            ["anatomy", "As partes do link", (displayResult as DomainAnalyzerV2Result).anatomyPoints, 30, "Cada parte do link conta uma coisa diferente."],
+            ["conclusion", "Site e decisão", (displayResult as DomainAnalyzerV2Result).domainConclusionPoints, 25, "A decisão se apoia em de quem é o site e no que você esperava."],
+            ["route", "Como continuar", (displayResult as DomainAnalyzerV2Result).safeRoutePoints, 20, "O caminho seguro vem de fora do link que você desconfia."],
+            ["transfer", "O segundo link", (displayResult as DomainAnalyzerV2Result).transferPoints, 25, "O mesmo jeito de olhar precisa funcionar quando a aparência muda."],
+          ].map(([id, title, earned, maximum, explanation]) => ({
+            id: String(id),
+            title: String(title),
+            status:
+              Number(earned) === Number(maximum) ? "correct" : "review",
+            userAnswer: `${earned} de ${maximum} pontos`,
+            explanation: String(explanation),
+          }))
+        : [];
+
+  if (celebration.screen) return celebration.screen;
+
+  return (
+    <ActivityShell
+      className="activity-workspace page-stack lab-player-page url-anatomy-page"
+      activityId={DOMAIN_ANALYZER_V2_ACTIVITY_ID}
+    >
+      <section className="lab-player-shell url-anatomy-shell foundation-shell">
+        <header className="lab-player-header foundation-header">
+          <div>
+            <span className="section-badge">PhishLab</span>
+            <h1>Domínio sob a lupa</h1>
+            <p>
+              Separe as partes de um endereço e descubra qual delas identifica o site.
+            </p>
+          </div>
+          <div className="lab-player-meta">
+            <span>Tempo estimado</span>
+            <strong>8 a 10 minutos</strong>
+            <small>60 pontos-base · sem cronômetro</small>
+          </div>
+        </header>
+
+        <ActivityProgress
+          steps={steps}
+          currentStep={stage}
+          className="url-foundation-progress"
+          ariaLabel="Progresso de Domínio sob a lupa"
+        />
+
+        <div className="url-anatomy-workspace foundation-workspace" aria-live="polite">
+          {stage === 0 ? (
+            <div className="url-anatomy-opening domain-foundation-opening">
+              <div className="url-anatomy-opening__heading foundation-opening__copy">
+                <span className="section-kicker">Antes de começar</span>
+                <h2 ref={stageTitleRef} tabIndex={-1}>
+                  Qual parte identifica o site?
+                </h2>
+                <p>
+                  Veja um exemplo e depois separe as partes de um link de verdade.
+                </p>
+
+                <div className="lab-player-actions domain-opening-actions">
+                  <button
+                    type="button"
+                    className="primary-button learning-button"
+                    onClick={() => goTo(1)}
+                  >
+                    Ver o exemplo <span aria-hidden="true">→</span>
+                  </button>
+                  <button type="button" className="text-button" onClick={onBackToHub}>
+                    Voltar ao PhishLab
+                  </button>
+                </div>
+              </div>
+              <div className="domain-opening-visual">
+                <div className="domain-opening-browser" aria-hidden="true">
+                  <div><span /><span /><span /></div>
+                  <p>
+                    <span>https://</span>
+                    <b>leroymerlin.conta.</b>
+                    <strong>seguranca-contas.example</strong>
+                    <em>/confirmar</em>
+                  </p>
+                  <small>Qual parte é o site de verdade?</small>
+                </div>
+                <aside className="url-anatomy-assigned-case">
+                  <span>Seu caso</span>
+                  <strong>{content.pathLabel}</strong>
+                  <p>{content.summary}</p>
+                  
+                </aside>
+              </div>
+              <div className="url-anatomy-briefing-grid">
+                
+                <article><span>O que aconteceu</span><p>{content.situation}</p></article>
+                <article><span>Sua tarefa</span><p>{content.task}</p></article>
+                
+              </div>
+            </div>
+          ) : null}
+
+          {stage === 1 ? (
+            <div className="url-anatomy-investigation foundation-stage">
+              {!calibrationAcknowledged ? (
+                <section className="url-calibration-card">
+                  <span className="section-kicker">Veja um exemplo</span>
+                  <h2 ref={stageTitleRef} tabIndex={-1}>
+                    Um endereço, cinco partes
+                  </h2>
+                  <p>{content.calibration.context}</p>
+                  <p className="safe-url">{content.calibration.url}</p>
+                  <ol className="calibration-segments">
+                    {content.calibration.segments.map((segment) => (
+                      <li key={segment.id}>
+                        <code>{segment.value}</code>
+                        <strong>
+                          {
+                            content.roleOptions.find(
+                              (role) => role.id === segment.roleId,
+                            )?.label
+                          }
+                        </strong>
+                      </li>
+                    ))}
+                  </ol>
+                  <button
+                    type="button"
+                    className="primary-button dark"
+                    onClick={() => {
+                      setCalibrationAcknowledged(true);
+                      window.requestAnimationFrame(() =>
+                        calibrationTitleRef.current?.focus(),
+                      );
+                    }}
+                  >
+                    Agora é a sua vez
+                  </button>
+                </section>
+              ) : (
+                <section>
+                  <span className="section-kicker">Caso principal · {content.pathLabel}</span>
+                  <h2 ref={calibrationTitleRef} tabIndex={-1}>
+                    {content.mainCase.title}
+                  </h2>
+                  <p>{content.mainCase.context}</p>
+
+                  <div className="url-reference-row">
+                    <p className="safe-url">{content.mainCase.url}</p>
+                    <p>
+                      Você esperava o site <strong>{content.mainCase.expectedOrigin}</strong>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="hint-button"
+                    aria-pressed={usedHelpIds.includes("role-reference")}
+                    onClick={openRoleReference}
+                  >
+                    {usedHelpIds.includes("role-reference")
+                      ? "O site de verdade fica logo antes da primeira barra."
+                      : "Não sei qual é qual"}
+                  </button>
+                  <SegmentDragBoard
+                    segments={content.mainCase.segments}
+                    assignments={segmentRoleById}
+                    roleOptions={content.roleOptions}
+                    onAssign={assignRole}
+                  />
+                  <div className="lab-player-actions">
+                    <button
+                      type="button"
+                      className="primary-button dark"
+                      disabled={!mainAssignmentsComplete}
+                      onClick={() => goTo(2)}
+                    >
+                      Analisar o endereço montado
+                    </button>
+                    <button type="button" className="text-button" onClick={() => goTo(0)}>
+                      Voltar ao contexto do caso
+                    </button>
+                  </div>
+                </section>
+              )}
+            </div>
+          ) : null}
+
+          {stage === 2 ? (
+            <div className="url-anatomy-decision foundation-stage">
+              <span className="section-kicker">Decisão inicial</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>
+                O que dá para concluir?
+              </h2>
+              <p className="safe-url">{content.mainCase.url}</p>
+              <div className="url-decision-grid">
+                <SegmentChoice
+                  legend="Qual parte é o site de verdade?"
+                  segments={content.mainCase.segments}
+                  value={registeredDomainSelectionId}
+                  onChange={setRegisteredDomainSelectionId}
+                />
+                <VerdictChoice
+                  legend={`Você esperava o site ${content.mainCase.expectedOrigin}. E agora?`}
+                  options={content.verdictOptions}
+                  value={verdictId}
+                  onChange={setVerdictId}
+                />
+                <fieldset className="url-anatomy-choice-group">
+                  <legend>Como você continuaria?</legend>
+                  {content.safeRouteOptions.map((option) => (
+                    <label
+                      key={option.id}
+                      className={safeRouteId === option.id ? "selected" : ""}
+                    >
+                      <input
+                        type="radio"
+                        name="safe-route"
+                        checked={safeRouteId === option.id}
+                        onChange={() => setSafeRouteId(option.id)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              </div>
+              <div className="lab-player-actions">
+                <button
+                  type="button"
+                  className="primary-button dark"
+                  disabled={!mainDecisionComplete}
+                  onClick={() => goTo(3)}
+                >
+                  Continuar
+                </button>
+                <button type="button" className="text-button" onClick={() => goTo(1)}>
+                  Voltar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {stage === 3 ? (
+            <div className="url-anatomy-consequence foundation-stage">
+              <span className="section-kicker">O efeito da sua escolha</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>
+                O que a sua escolha faria
+              </h2>
+              <p>
+                {safeRouteId === "analyzed-address"
+                  ? "Você usaria o próprio link suspeito para conferir se ele é confiável. É o golpe confirmando a si mesmo. Nada foi aberto de verdade."
+                  : "Você usaria um caminho que já existia antes do link chegar. Assim o link não confirma a si mesmo. Nada foi aberto de verdade."}
+              </p>
+              <button
+                type="button"
+                className="primary-button dark"
+                onClick={() => goTo(4)}
+              >
+                Continuar
+              </button>
+            </div>
+          ) : null}
+
+          {stage === 4 ? (
+            <div className="url-anatomy-review foundation-stage">
+              <span className="section-kicker">Revisão</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>
+                Confira suas respostas
+              </h2>
+              <dl>
+                <div>
+                  <dt>Partes com etiqueta</dt>
+                  <dd>{Object.keys(segmentRoleById).length}/{content.mainCase.segments.length}</dd>
+                </div>
+                <div>
+                  <dt>Site que você marcou</dt>
+                  <dd>
+                    {content.mainCase.segments.find(
+                      (segment) => segment.id === registeredDomainSelectionId,
+                    )?.value ?? "Não selecionado"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Conclusão</dt>
+                  <dd>
+                    {content.verdictOptions.find((option) => option.id === verdictId)?.label}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Como continuar</dt>
+                  <dd>
+                    {content.safeRouteOptions.find((option) => option.id === safeRouteId)?.label}
+                  </dd>
+                </div>
+              </dl>
+              <div className="lab-player-actions">
+                <button type="button" className="text-button" onClick={() => goTo(1)}>
+                  Mudar as etiquetas
+                </button>
+                <button type="button" className="text-button" onClick={() => goTo(2)}>
+                  Mudar a decisão
+                </button>
+                <button
+                  type="button"
+                  className="primary-button dark"
+                  onClick={() => goTo(5)}
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {stage === 5 ? (
+            <div className="url-anatomy-final foundation-stage">
+              <span className="section-kicker">Quase lá</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>
+                Agora um segundo link
+              </h2>
+              <p>
+                Você vai usar o mesmo raciocínio em um link parecido. Sua nota
+                aparece só no fim.
+              </p>
+              <div className="lab-player-actions">
+                <button
+                  type="button"
+                  className="primary-button dark"
+                  onClick={() => goTo(6)}
+                >
+                  Continuar
+                </button>
+                <button type="button" className="text-button" onClick={() => goTo(4)}>
+                  Voltar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {stage === 6 ? (
+            <div className="url-anatomy-transfer foundation-stage">
+              <span className="section-kicker">Segundo link</span>
+              <h2 ref={stageTitleRef} tabIndex={-1}>
+                {content.transferCase.title}
+              </h2>
+              <p>{content.transferCase.context}</p>
+              <p className="url-anatomy-instruction">
+                A aparência mudou. Ache o site de verdade outra vez.
+              </p>
+              <p className="safe-url">{content.transferCase.url}</p>
+              <div className="url-decision-grid two-columns">
+                <SegmentChoice
+                  legend="Qual parte é o site de verdade?"
+                  segments={content.transferCase.segments}
+                  value={transferRegisteredDomainSelectionId}
+                  onChange={setTransferDomainId}
+                />
+                <VerdictChoice
+                  legend="E agora, o que você faz?"
+                  options={content.verdictOptions}
+                  value={transferVerdictId}
+                  onChange={setTransferVerdictId}
+                />
+              </div>
+              <ActivityError className="form-error" message={error} />
+              <div className="lab-player-actions">
+                <button
+                  type="button"
+                  className="primary-button dark"
+                  disabled={!transferComplete || isSubmitting}
+                  onClick={finish}
+                >
+                  {isSubmitting ? "Salvando…" : "Concluir"}
+                </button>
+                <button type="button" className="text-button" onClick={() => goTo(4)}>
+                  Voltar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {stage === 7 && displayResult ? (
+            <div className="lab-result-view">
+              <div className="result-hero compact-result">
+                <div>
+                  <span className="section-badge">
+                    {isV2Result ? "Concluído" : "Resultado antigo"}
+                  </span>
+                  <h2 ref={stageTitleRef} tabIndex={-1}>
+                    {displayResult.score}/100
+                  </h2>
+                  <p>
+                    {displayResult.needsReview
+                      ? "Você chegou ao fim. Vale rever algumas respostas."
+                      : "Você achou o site de verdade nos dois links."}
+                  </p>
+                </div>
+                <div
+                  className="score-ring"
+                  style={{ "--score": displayResult.score } as CSSProperties}
+                >
+                  <strong>{displayResult.score}</strong>
+                  <span>desempenho</span>
+                </div>
+              </div>
+              {isV2Result ? (
+                <><div className="lab-result-grid">
+                  <article>
+                    <span>Etiquetas</span>
+                    <strong>{(displayResult as DomainAnalyzerV2Result).anatomyPoints}/30</strong>
+                    <p>As cinco partes do link.</p>
+                  </article>
+                  <article>
+                    <span>Site e decisão</span>
+                    <strong>{(displayResult as DomainAnalyzerV2Result).domainConclusionPoints}/25</strong>
+                    <p>Achar o site certo e decidir.</p>
+                  </article>
+                  <article>
+                    <span>Como continuar</span>
+                    <strong>{(displayResult as DomainAnalyzerV2Result).safeRoutePoints}/20</strong>
+                    <p>Sem usar o próprio link como prova.</p>
+                  </article>
+                  <article>
+                    <span>Segundo link</span>
+                    <strong>{(displayResult as DomainAnalyzerV2Result).transferPoints}/25</strong>
+                    <p>O mesmo método em outro link.</p>
+                  </article>
+                </div>
+                <details className="activity-review-disclosure"><summary>Rever minhas respostas</summary><ActivityAnswerReview items={answerReviewItems} /></details></>
+              ) : (
+                <div className="legacy-result-notice">
+                  <strong>Sua tentativa anterior foi mantida.</strong>
+                  <p>
+                    Refazer abre a versão nova. Os pontos que você já ganhou
+                    continuam valendo e não são contados de novo.
+                  </p>
+                </div>
+              )}
+              <ActivityNextStep area="Missões" title="A conversa já estava acontecendo" onOpen={onOpenNextActivity} />
+              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+                <button type="button" className="activity-completion-button" onClick={practiceAnotherCase}>Praticar novamente</button>
+                <button type="button" className="activity-completion-button" onClick={onBackToHub}>Voltar ao PhishLab</button>
+                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+              </div>
+            </div>
+          ) : null}
+
+        </div>
+      </section>
+    </ActivityShell>
+  );
+}

@@ -1,0 +1,204 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  background: #f5f2e8;
+  color: #173f35;
+}
+
+.story {
+  padding: clamp(2rem, 7vw, 7rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4rem;
+  background:
+    radial-gradient(circle at 80% 15%, rgba(120, 190, 32, 0.24), transparent 34%),
+    #173f35;
+  color: #fff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand strong,
+.brand span {
+  display: block;
+}
+
+.brand strong {
+  font-size: 1.08rem;
+}
+
+.brand span {
+  margin-top: 0.1rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+}
+
+.storyCopy {
+  max-width: 680px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 1rem;
+  color: #c8ef8f;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.story h1 {
+  max-width: 760px;
+  margin: 0;
+  font-family: var(--font-display, "Fraunces Variable", serif);
+  font-size: clamp(2.7rem, 6vw, 5.7rem);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+}
+
+.storyCopy p {
+  max-width: 570px;
+  margin: 1.5rem 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.7;
+}
+
+.principles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.principles div {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.principles dt {
+  font-weight: 800;
+}
+
+.principles dd {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.access {
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 6vw, 6rem);
+}
+
+.card {
+  width: min(100%, 500px);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid rgba(23, 63, 53, 0.12);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 30px 90px rgba(23, 63, 53, 0.12);
+}
+
+.card h2 {
+  margin: 0;
+  font-family: var(--font-display, "Fraunces Variable", serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.035em;
+}
+
+.intro {
+  margin: 0.75rem 0 1.8rem;
+  color: #567068;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form label {
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 800;
+}
+
+.form input {
+  min-height: 50px;
+  padding: 0 0.95rem;
+  border: 1px solid #b9c6c1;
+  border-radius: 12px;
+  background: #fff;
+  color: #173f35;
+  font: inherit;
+}
+
+.form input:focus-visible {
+  outline: 3px solid rgba(120, 190, 32, 0.35);
+  outline-offset: 2px;
+  border-color: #4f7f17;
+}
+
+.form button {
+  min-height: 52px;
+  margin-top: 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: #78be20;
+  color: #173f35;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.form button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.error {
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: #fff0ed;
+  color: #8d2d24;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.securityNote {
+  margin: 1.4rem 0 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(23, 63, 53, 0.12);
+  color: #60756f;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 850px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .story {
+    padding: 2rem 1.25rem 2.5rem;
+    gap: 3rem;
+  }
+
+  .principles {
+    grid-template-columns: 1fr;
+  }
+
+  .access {
+    padding: 1.25rem;
+  }
+}

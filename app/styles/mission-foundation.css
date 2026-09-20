@@ -1,0 +1,644 @@
+/* Fase 2 · Onda 1 — representação contextual da missão piloto. */
+
+.foundation-question-card:has(.foundation-choice-scene) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.foundation-choice-group.foundation-choice-scene {
+  gap: 14px;
+}
+
+.foundation-choice-scene legend {
+  width: 100%;
+  margin-bottom: 12px;
+  color: var(--learn-forest);
+  text-align: center;
+}
+
+.foundation-choice-group.foundation-choice-scene label {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  align-items: center;
+  cursor: pointer;
+}
+
+.foundation-choice-scene input[type="radio"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.foundation-choice-visual {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  border-radius: 22px;
+  color: var(--learn-forest);
+  background: rgb(255 253 247 / 82%);
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    background var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.foundation-choice-visual svg {
+  width: 43px;
+  height: 43px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.foundation-choice-scene label.selected::after,
+.foundation-choice-scene label:has(input:checked)::after {
+  content: "✓";
+  position: absolute;
+  z-index: 2;
+  top: 13px;
+  right: 13px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 2px solid var(--learn-paper);
+  border-radius: 50%;
+  color: #fff;
+  background: var(--learn-green);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.foundation-choice-group.foundation-choice-scene label:hover .foundation-choice-visual,
+.foundation-choice-group.foundation-choice-scene label:has(input:focus-visible) .foundation-choice-visual,
+.foundation-choice-group.foundation-choice-scene label.selected .foundation-choice-visual {
+  color: #fff;
+  background: var(--learn-forest);
+  transform: translateY(-2px) rotate(-2deg);
+}
+
+/* Pedido: controles representados como pequenas ações, não como uma lista. */
+.foundation-choice-scene--action,
+.foundation-choice-scene--object {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.foundation-choice-scene--action legend,
+.foundation-choice-scene--object legend {
+  grid-column: 1 / -1;
+}
+
+.foundation-choice-group.foundation-choice-scene--action label {
+  grid-template-columns: 1fr;
+  align-content: end;
+  justify-items: start;
+  min-height: 190px;
+  padding: 24px;
+  border: 0;
+  border-radius: 34px 34px 10px;
+  background: #dff2f0;
+  box-shadow: none;
+}
+
+.foundation-choice-group.foundation-choice-scene--action label:nth-of-type(2) {
+  border-radius: 10px 34px 34px;
+  background: #fff0bd;
+}
+
+.foundation-choice-group.foundation-choice-scene--action label:nth-of-type(3) {
+  border-radius: 34px 10px 34px 34px;
+  background: #e7f4c9;
+}
+
+.foundation-choice-scene--action label > span:last-child,
+.foundation-choice-scene--object label > span:last-child {
+  margin-top: 12px;
+}
+
+.foundation-choice-scene--action label strong,
+.foundation-choice-scene--object label strong {
+  font-family: var(--learn-display);
+  font-size: 18px;
+  line-height: 1.18;
+}
+
+/* Ativo: os conceitos assumem formas de objetos sobre uma mesa editorial. */
+.foundation-choice-group.foundation-choice-scene--object label {
+  grid-template-columns: auto 1fr;
+  min-height: 132px;
+  padding: 22px;
+  border: 2px solid transparent;
+  background: #eeeee4;
+  box-shadow: none;
+}
+
+.foundation-choice-group.foundation-choice-scene--object label:nth-of-type(1) {
+  border-radius: 42% 58% 48% 52% / 52% 44% 56% 48%;
+  background: #dff2f0;
+}
+
+.foundation-choice-group.foundation-choice-scene--object label:nth-of-type(2) {
+  border-radius: 25px 25px 8px 25px;
+  background: #fff0bd;
+}
+
+.foundation-choice-group.foundation-choice-scene--object label:nth-of-type(3) {
+  border-radius: 8px 25px 25px;
+  background: #ece7f7;
+}
+
+/* Consequência: cada linha mostra uma relação, em vez de empilhar caixas. */
+.foundation-choice-scene--relation {
+  grid-template-columns: 1fr;
+  max-width: 810px;
+  margin-inline: auto;
+}
+
+.foundation-choice-group.foundation-choice-scene--relation label {
+  grid-template-columns: 92px minmax(0, 1fr);
+  min-height: 104px;
+  padding: 13px 58px 13px 8px;
+  border: 0;
+  border-bottom: 2px solid #d9dfd5;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.foundation-choice-scene--relation .foundation-choice-visual {
+  position: relative;
+  border-radius: 50%;
+  background: #ffe5dc;
+}
+
+.foundation-choice-scene--relation .foundation-choice-visual::after {
+  content: "→";
+  position: absolute;
+  right: -23px;
+  color: var(--learn-coral);
+  font-family: var(--learn-display);
+  font-size: 25px;
+}
+
+/* Pare: decisões como caminhos curtos partindo do mesmo ponto. */
+.foundation-choice-scene--pause,
+.foundation-choice-scene--analysis {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.foundation-choice-scene--pause legend,
+.foundation-choice-scene--analysis legend {
+  grid-column: 1 / -1;
+}
+
+.foundation-choice-group.foundation-choice-scene--pause label {
+  grid-template-columns: 1fr;
+  align-content: start;
+  justify-items: center;
+  min-height: 178px;
+  padding: 22px 18px;
+  border: 0;
+  border-top: 7px solid #b8d8d2;
+  border-radius: 7px 7px 26px 26px;
+  background: #f2f1e8;
+  box-shadow: none;
+  text-align: center;
+}
+
+.foundation-choice-scene--pause label:nth-of-type(2) {
+  border-top-color: #f3c56b;
+}
+
+.foundation-choice-scene--pause label:nth-of-type(3) {
+  border-top-color: #e9a28f;
+}
+
+.foundation-choice-scene--pause label > span:last-child {
+  margin-top: 13px;
+}
+
+/* Avaliação: pequenas relações visuais, com ritmo horizontal. */
+.foundation-choice-group.foundation-choice-scene--analysis label {
+  grid-template-columns: 76px 1fr;
+  min-height: 122px;
+  padding: 18px;
+  border: 0;
+  border-radius: 26px 8px 26px 8px;
+  background: #e7f2ef;
+  box-shadow: none;
+}
+
+.foundation-choice-group.foundation-choice-scene--analysis label:nth-of-type(2) {
+  background: #fff0bd;
+}
+
+.foundation-choice-group.foundation-choice-scene--analysis label:nth-of-type(3) {
+  background: #ffe6df;
+}
+
+/* Reconfirmar: cada opção é uma rota com origem e destino legíveis. */
+.foundation-choice-scene--route,
+.foundation-choice-scene--response,
+.foundation-choice-scene--transfer,
+.foundation-choice-scene--verdict {
+  grid-template-columns: 1fr;
+  max-width: 860px;
+  margin-inline: auto;
+}
+
+.foundation-choice-group.foundation-choice-scene--route label {
+  grid-template-columns: 82px minmax(0, 1fr);
+  min-height: 94px;
+  padding: 14px 54px 14px 18px;
+  border: 0;
+  border-left: 6px solid #b9d8ce;
+  border-radius: 0 22px 22px 0;
+  background: #f2f1e8;
+  box-shadow: none;
+}
+
+.foundation-choice-scene--route label:nth-of-type(2) {
+  border-left-color: #f3c56b;
+}
+
+.foundation-choice-scene--route label:nth-of-type(3),
+.foundation-choice-scene--route label:nth-of-type(4) {
+  border-left-color: #e9a28f;
+}
+
+.foundation-choice-scene--route .foundation-choice-visual {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+}
+
+/* Conclusão: aparência de veredito, sem simular um formulário administrativo. */
+.foundation-choice-group.foundation-choice-scene--verdict label {
+  grid-template-columns: 74px minmax(0, 1fr);
+  min-height: 92px;
+  padding: 12px 52px 12px 8px;
+  border: 0;
+  border-bottom: 2px solid #d9dfd5;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.foundation-choice-scene--verdict .foundation-choice-visual {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #fff0bd;
+}
+
+/* Resposta e transferência: rotas de ação com pesos visuais diferentes. */
+.foundation-choice-group.foundation-choice-scene--response label,
+.foundation-choice-group.foundation-choice-scene--transfer label {
+  grid-template-columns: 76px minmax(0, 1fr);
+  min-height: 96px;
+  padding: 14px 52px 14px 18px;
+  border: 2px solid #dfe4da;
+  border-radius: 20px;
+  background: var(--learn-paper);
+  box-shadow: none;
+}
+
+.foundation-choice-group.foundation-choice-scene--response label:first-of-type,
+.foundation-choice-group.foundation-choice-scene--transfer label:first-of-type {
+  border-color: #a8cfae;
+  background: #e7f4c9;
+}
+
+.foundation-choice-group.foundation-choice-scene--response label:not(:first-of-type),
+.foundation-choice-group.foundation-choice-scene--transfer label:not(:first-of-type) {
+  border-style: dashed;
+}
+
+.foundation-result .section-kicker {
+  color: var(--learn-forest);
+}
+
+/* A mesma identidade observada se transforma no endereço e, por fim, no domínio. */
+.foundation-sender-diagram__node:first-of-type {
+  animation: foundation-sender-display var(--motion-medium) var(--motion-ease) both;
+}
+
+.foundation-sender-diagram svg path {
+  animation-delay: 140ms;
+}
+
+.foundation-sender-diagram__node.emphasis {
+  animation: foundation-sender-address var(--motion-slow) var(--motion-ease) 260ms both;
+}
+
+.foundation-sender-diagram__node.emphasis strong span,
+.foundation-sender-diagram__node.emphasis strong mark {
+  display: inline;
+}
+
+.foundation-sender-diagram__node.emphasis mark {
+  padding: 2px 4px;
+  border-radius: 6px;
+  color: var(--learn-forest);
+  background: var(--learn-lime);
+  box-decoration-break: clone;
+}
+
+/* O controle visto origina a linha; o destino surge apenas depois dela. */
+.foundation-button-route__message {
+  animation: foundation-source-settle var(--motion-medium) var(--motion-ease) both;
+}
+
+.foundation-button-route svg path {
+  animation-delay: 180ms;
+}
+
+.foundation-button-route__destination {
+  animation: foundation-destination-arrive var(--motion-slow) var(--motion-ease) 430ms both;
+}
+
+.foundation-route-compare .known-route {
+  animation: foundation-destination-arrive var(--motion-slow) var(--motion-ease) 260ms both;
+}
+
+@keyframes foundation-sender-display {
+  from { opacity: 0; transform: translateY(18px) scale(1.04); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes foundation-sender-address {
+  from { opacity: 0; transform: translateY(-16px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes foundation-source-settle {
+  from { opacity: 0; transform: translateX(-20px) scale(1.04); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes foundation-destination-arrive {
+  from { opacity: 0; transform: translateX(-18px) scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 900px) {
+  .foundation-choice-scene--action,
+  .foundation-choice-scene--object,
+  .foundation-choice-scene--pause,
+  .foundation-choice-scene--analysis {
+    grid-template-columns: 1fr;
+  }
+
+  .foundation-choice-scene--action legend,
+  .foundation-choice-scene--object legend,
+  .foundation-choice-scene--pause legend,
+  .foundation-choice-scene--analysis legend {
+    grid-column: auto;
+  }
+
+  .foundation-choice-group.foundation-choice-scene--action label,
+  .foundation-choice-group.foundation-choice-scene--pause label {
+    grid-template-columns: 74px 1fr;
+    align-content: center;
+    justify-items: start;
+    min-height: 112px;
+    text-align: left;
+  }
+
+  .foundation-choice-scene--action label > span:last-child,
+  .foundation-choice-scene--pause label > span:last-child {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 540px) {
+  .foundation-choice-group.foundation-choice-scene label {
+    grid-template-columns: 58px minmax(0, 1fr);
+    min-height: 92px;
+    padding: 12px 44px 12px 12px;
+    border-radius: 18px;
+  }
+
+  .foundation-choice-visual,
+  .foundation-choice-scene--route .foundation-choice-visual,
+  .foundation-choice-scene--verdict .foundation-choice-visual {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+  }
+
+  .foundation-choice-visual svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .foundation-choice-scene--relation .foundation-choice-visual::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foundation-sender-diagram__node:first-of-type,
+  .foundation-sender-diagram__node.emphasis,
+  .foundation-button-route__message,
+  .foundation-button-route__destination,
+  .foundation-route-compare .known-route {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .foundation-choice-group.foundation-choice-scene label {
+    border: 2px solid CanvasText;
+    background: Canvas;
+    box-shadow: none;
+  }
+
+  .foundation-choice-group.foundation-choice-scene label:has(input:checked) {
+    border-color: Highlight;
+  }
+
+  .foundation-choice-scene label.selected::after,
+  .foundation-choice-scene label:has(input:checked)::after {
+    border-color: HighlightText;
+    color: HighlightText;
+    background: Highlight;
+  }
+
+  .foundation-choice-visual,
+  .foundation-sender-diagram__node.emphasis mark {
+    color: CanvasText;
+    background: Canvas;
+  }
+}
+
+/* Celebração e conquista: tela inteira, sem números, sem barra de progresso. */
+.activity-celebration,
+.activity-achievement {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  gap: 24px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--learn-forest-deep);
+}
+.activity-celebration {
+  background: var(--celebration-color, var(--learn-lime));
+}
+.activity-achievement {
+  background: var(--learn-yellow);
+}
+
+/* O botão lime sobre o fundo lime/amarelo some. Um contorno fino na cor
+   escura da marca devolve a borda sem mudar o botão padrão. */
+.activity-celebration .primary-button,
+.activity-achievement .primary-button {
+  border: 2px solid var(--learn-forest-deep);
+}
+
+/* GLOBAL-017 (resultado-debrief.md §15): "a cor de modo cheia vira papel
+   com borda grossa e uma faixa fina na cor." A cor de modo/conquista some
+   do preenchimento e sobrevive só como acento. */
+.app-shell[data-high-contrast="true"] .activity-celebration {
+  background: var(--learn-paper);
+  color: var(--learn-forest-deep);
+  border: 6px solid var(--learn-forest);
+  box-shadow: inset 0 8px 0 0 var(--celebration-color, var(--learn-lime));
+}
+.app-shell[data-high-contrast="true"] .activity-achievement {
+  background: var(--learn-paper);
+  color: var(--learn-forest-deep);
+  border: 6px solid var(--learn-forest);
+  box-shadow: inset 0 8px 0 0 var(--learn-yellow);
+}
+.app-shell[data-high-contrast="true"] .activity-achievement__list li {
+  border: 2px solid var(--learn-forest);
+  background: var(--learn-paper);
+}
+.activity-celebration h1,
+.activity-achievement h1 {
+  margin: 0;
+  font-family: var(--learn-display);
+  font-size: clamp(34px, 4.5vw, 56px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+.activity-achievement__list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 520px;
+}
+.activity-achievement__list li {
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 55%);
+}
+.activity-achievement__list strong {
+  display: block;
+  font-family: var(--learn-display);
+  font-size: 20px;
+}
+.activity-achievement__list p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+.activity-achievement__list span {
+  font-size: 13px;
+  font-weight: 850;
+}
+
+/* Resultado: retorno compacto e sem rótulo textual, conforme o padrão editorial. */
+.activity-result-back {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin: 0 0 20px;
+  place-items: center;
+  border: 2px solid var(--learn-forest);
+  border-radius: 50%;
+  color: var(--learn-forest);
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+}
+.activity-result-back:hover { background: var(--learn-lime-pale); }
+.activity-result-back:focus-visible { outline: 3px solid var(--learn-focus); outline-offset: 3px; }
+
+
+/* Próximo passo da jornada em destaque, com ações secundárias discretas. */
+.activity-next-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid #c7dfb4;
+  border-left: 5px solid var(--learn-lime);
+  border-radius: 16px;
+  background: #f3f9eb;
+}
+.activity-next-step span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--learn-forest);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.activity-next-step h3 {
+  margin: 0;
+  color: var(--learn-forest-deep);
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  line-height: 1.25;
+}
+.activity-next-step .primary-button {
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.activity-completion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.activity-completion-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: 1px solid #ccd9ca;
+  border-radius: 14px;
+  color: var(--learn-forest-deep);
+  background: #fff;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform 160ms ease-out, filter 160ms ease-out, box-shadow 160ms ease-out;
+}
+.activity-completion-button:hover { background: var(--learn-lime-pale); transform: translateY(-1px); }
+.activity-completion-button:active { transform: translateY(1px); }
+.activity-completion-button:focus-visible { outline: 3px solid var(--learn-focus); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .activity-next-step { align-items: stretch; flex-direction: column; }
+  .activity-next-step .primary-button { width: 100%; }
+  .activity-completion-actions { display: grid; }
+  .activity-completion-button { width: 100%; }
+}
