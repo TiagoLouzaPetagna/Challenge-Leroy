@@ -81,6 +81,9 @@ let manifest,history,walls,grid,trophyMixer,trophyClip,structure,builder,buildGr
 let mimicMixer,mimicClip;
 let wallMode='auto',activeRoom='room-1',focusRoomId=null,buildCamera=null;
 let selected=null,mode='edit',moveMode=true,gridVisible=false,category='all',collapsed=false;
+let collectionScope='available',collectionStyle='all',collectionQuery='';
+const collectionStyleLabels={essential:'Essenciais',neutral:'Neutro',industrial:'Industrial','industrial-loft':'Industrial Loft',cyberpunk:'Cyberpunk',japanese:'Japonês'};
+const searchKey=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let frameMode='house',cameraInteraction=null;
 let gesture=null,cardDrag=null,pointerDown=null,lastPointer=null,suppressCardClick=0;
 let storage,lastRaw=null,saveBlocked=false,saveState='loading',saveTimer,toastTimer;
@@ -176,17 +179,30 @@ function updateUI() {
   $('focus').disabled=!placed;$('cancel').hidden=!gesture;
   $('collection').classList.toggle('collapsed',collapsed);$('studio').classList.toggle('collection-collapsed',collapsed);
   $('collection-content').hidden=collapsed;$('collapse').setAttribute('aria-expanded',String(!collapsed));
-  $('collapse').title=collapsed?'Abrir coleção':'Recolher coleção';
-  $('collapse-label').textContent=collapsed&&gesture?.kind==='drag'?'Solte para guardar':'Minha coleção';
+  $('collapse').title=collapsed?'Abrir catálogo':'Recolher catálogo';
+  $('collapse-label').textContent=collapsed&&gesture?.kind==='drag'?'Solte para guardar':'Catálogo de itens';
   $('placed-count').textContent=`${history.scene.items.length} objetos na casa`;
+  const placedIds=new Set(history.scene.items.map(item=>item.id));
+  let visibleCount=0;
   for(const item of CATALOG) {
-    const card=cards.get(item.id),onFloor=history.scene.items.some(v=>v.id===item.id);
-    card.hidden=category!=='all'&&item.category!==category;
+    const card=cards.get(item.id),onFloor=placedIds.has(item.id);
+    const style=item.collection??'essential';
+    const matchesScope=collectionScope==='all'||(collectionScope==='placed'&&onFloor)||(collectionScope==='available'&&!onFloor);
+    const matchesQuery=!collectionQuery||searchKey(`${item.name} ${collectionStyleLabels[style]}`).includes(collectionQuery);
+    card.hidden=!(matchesScope&&(category==='all'||item.category===category)&&(collectionStyle==='all'||style===collectionStyle)&&matchesQuery);
+    if(!card.hidden)visibleCount++;
     card.setAttribute('aria-pressed',String(item.id===selected));card.dataset.placed=String(onFloor);
-    card.querySelector('.item-state').textContent=onFloor?'Na casa':'Colocar';
+    card.querySelector('.item-state').textContent=onFloor?'Selecionar':'Colocar';
     card.setAttribute('aria-label',`${item.name}, ${onFloor?'na casa':'guardado, colocar na casa'}`);
   }
   document.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));
+  document.querySelectorAll('[data-scope]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.scope===collectionScope)));
+  $('collection-style').value=collectionStyle;
+  document.querySelector('[data-scope-count="available"]').textContent=CATALOG.length-placedIds.size;
+  document.querySelector('[data-scope-count="placed"]').textContent=placedIds.size;
+  $('collection-result-count').textContent=`${visibleCount} ${visibleCount===1?'item':'itens'}`;
+  $('collection-result-label').textContent={available:'para colocar',placed:'na casa',all:'no catálogo'}[collectionScope];
+  $('collection-empty').hidden=visibleCount!==0;
   $('hint').textContent=building?'Shift + arrastar gira a câmera':gesture?'R gira · Enter coloca · Esc cancela':'Arraste o espaço para explorar';
   grid.visible=editing&&gridVisible;
   buildGrid.visible=building;
@@ -253,10 +269,12 @@ function positionObjectTools() {
   const center=new THREE.Vector3(item.x,(bottom+top)/2,item.z).project(camera);
   if(center.z<-1||center.z>1||Math.max(...xs)<0||Math.min(...xs)>innerWidth||Math.max(...ys)<0||Math.min(...ys)>innerHeight){panel.style.visibility='hidden';return;}
   const w=panel.offsetWidth,h=panel.offsetHeight,ceiling=$('studio').querySelector('.room-nav').getBoundingClientRect().bottom+8;
-  const floor=collapsed?innerHeight-88:$('collection').getBoundingClientRect().top-8;
+  const dockedCatalog=!collapsed&&innerWidth>740;
+  const floor=collapsed||dockedCatalog?innerHeight-88:$('collection').getBoundingClientRect().top-8;
   let x=(Math.min(...xs)+Math.max(...xs)-w)/2,y=Math.min(...ys)-h-10;
   if(y<ceiling)y=Math.max(...ys)+10;
-  x=Math.max(12,Math.min(innerWidth-w-12,x));y=Math.max(ceiling,Math.min(floor-h,y));
+  const rightLimit=dockedCatalog?$('collection').getBoundingClientRect().left-12:innerWidth-12;
+  x=Math.max(12,Math.min(rightLimit-w,x));y=Math.max(ceiling,Math.min(floor-h,y));
   panel.style.left=`${Math.round(x)}px`;panel.style.top=`${Math.round(y)}px`;panel.style.visibility='visible';panel.dataset.dragging=String(gesture?.kind==='drag');
 }
 function commit(next,message) {
@@ -345,7 +363,11 @@ function setView(close=false,roomOnly=false) {
 function workspaceRect() {
   const compact=innerWidth<=740,rect={left:compact?16:88,right:innerWidth-(compact?16:30),top:compact?134:160,bottom:innerHeight-93};
   const collection=$('collection'),panel=$('build-panel');
-  if(mode==='edit'&&!collapsed)rect.bottom=collection.getBoundingClientRect().top-18;
+  if(mode==='edit'&&!collapsed){
+    const box=collection.getBoundingClientRect();
+    if(compact)rect.bottom=box.top-18;
+    else rect.right=box.left-22;
+  }
   if(mode==='build'){
     const box=panel.getBoundingClientRect();rect.top=compact?141:104;
     if(compact)rect.bottom=box.top-16;else rect.right=box.left-24;
@@ -517,11 +539,18 @@ function buildCards() {
     card.title=item.description??`${item.name} · uma unidade na coleção`;
     const img=document.createElement('img');img.src=finishThumbnail(item,finishMode);img.alt='';img.draggable=false;
     const name=document.createElement('span');name.className='item-name';name.textContent=item.name;
-    const status=document.createElement('span');status.className='item-state';const mark=document.createElement('span');mark.className='placed-mark';mark.append(icon('check'));mark.setAttribute('aria-hidden','true');card.append(mark,img,name,status);$('items').append(card);cards.set(item.id,card);
+    const status=document.createElement('span');status.className='item-state';
+    const style=document.createElement('span');style.className='item-style';style.textContent=collectionStyleLabels[item.collection??'essential'];
+    const preview=document.createElement('span');preview.className='item-preview';preview.append(img);
+    const details=document.createElement('span');details.className='item-details';details.append(style,name,status);
+    const mark=document.createElement('span');mark.className='placed-mark';mark.append(icon('check'));mark.setAttribute('aria-hidden','true');card.append(mark,preview,details);$('items').append(card);cards.set(item.id,card);
     card.onclick=()=>{
       if(performance.now()<suppressCardClick||mode!=='edit')return;
       selectItem(item.id);moveMode=true;
-      if(!currentItem())startGesture(item.id,'place');else updateUI();
+      if(!currentItem()){
+        if(innerWidth<=740){collapsed=true;updateUI();resize();}
+        startGesture(item.id,'place');
+      }else updateUI();
     };
     card.addEventListener('pointerdown',event=>{
       if(event.button!==0||mode!=='edit')return;
@@ -604,6 +633,9 @@ $('close-collection').onclick=()=>{collapsed=true;updateUI();resize();};
 new ResizeObserver(()=>{if(ready){resize();scheduleSave();}}).observe($('collection'));
 new ResizeObserver(()=>{if(ready&&mode==='build')resize();}).observe($('build-panel'));
 document.querySelectorAll('[data-category]').forEach(button=>button.onclick=()=>{category=button.dataset.category;updateUI();});
+document.querySelectorAll('[data-scope]').forEach(button=>button.onclick=()=>{collectionScope=button.dataset.scope;updateUI();});
+$('collection-style').onchange=event=>{collectionStyle=event.currentTarget.value;updateUI();};
+$('collection-search').oninput=event=>{collectionQuery=searchKey(event.currentTarget.value.trim());updateUI();};
 
 function makeGrid(cells) {
   const lines=new Map();

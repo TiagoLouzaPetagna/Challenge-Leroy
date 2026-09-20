@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email, Please</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      @font-face {
+        font-family: "BM Mini";
+        src: url("assets/fonts/bm-mini/BMmini.TTF") format("truetype");
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: "BM Germar";
+        src: url("assets/fonts/bm-germar/BM_germar/BMgermar.TTF") format("truetype");
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: "PixelPlay";
+        src: url("assets/fonts/pixelplay/pixelplay.ttf") format("truetype");
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: "Nokia Cellphone FC";
+        src: url("assets/fonts/nokia-cellphone/nokiafc22.ttf") format("truetype");
+        font-display: block;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #101311;
+        color: #f4ecd4;
+        font-family: "PixelPlay", "Nokia Cellphone FC", "Atari Small", "Fixedsys", "Terminal", "Lucida Console", "Courier New", ui-monospace, monospace;
+        -webkit-font-smoothing: none;
+        font-smooth: never;
+        overflow: hidden;
+      }
+
+      body {
+        padding: 0;
+      }
+
+      main {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      header {
+        display: none;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: end;
+        margin-bottom: 12px;
+      }
+
+      h1,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(1.25rem, 3vw, 2rem);
+        letter-spacing: 0;
+      }
+
+      p {
+        color: #cdbf96;
+        line-height: 1.45;
+      }
+
+      #game {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: #17130f;
+        display: grid;
+        place-items: center;
+      }
+
+      canvas {
+        display: block;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+
+      #start-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        background: #101311;
+      }
+
+      #start-screen.is-hidden {
+        display: none;
+      }
+
+      #start-button {
+        border: 3px solid #4a3425;
+        background: #c8b98e;
+        color: #2b221a;
+        padding: 14px 22px;
+        font: 16px "PixelPlay", "Nokia Cellphone FC", "Atari Small", monospace;
+        cursor: pointer;
+        image-rendering: pixelated;
+      }
+
+      #start-button:active {
+        transform: translate(2px, 2px);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Mesa de triagem anti-phishing</h1>
+          <p>Arraste o dossie de e-mail livremente pela mesa. Scanner, envelopes e carimbos ficam fixos.</p>
+        </div>
+      </header>
+      <div id="game"></div>
+    </main>
+    <div id="start-screen">
+      <button id="start-button" type="button">INICIAR TURNO</button>
+    </div>
+
+    <script src="phaser.min.js"></script>
+    <script src="src/email-content.js"></script>
+    <script src="src/email-generator.js"></script>
+    <script src="src/game-case-adapter.js"></script>
+    <script>
+      const startScreen = document.getElementById("start-screen");
+      const startButton = document.getElementById("start-button");
+
+      startButton.addEventListener("click", async () => {
+        const root = document.documentElement;
+        const requestFullscreen =
+          root.requestFullscreen?.bind(root) ||
+          root.webkitRequestFullscreen?.bind(root);
+
+        try {
+          if (!document.fullscreenElement && requestFullscreen) {
+            await requestFullscreen();
+          }
+        } catch (_error) {
+          // Some browsers block fullscreen; the game can still start normally.
+        }
+
+        startScreen.classList.add("is-hidden");
+        window.emailPleaseTurnRequested = true;
+        window.dispatchEvent(new CustomEvent("emailplease:start-turn"));
+        window.dispatchEvent(new Event("resize"));
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        window.dispatchEvent(new Event("resize"));
+      });
+
+      Promise.allSettled([
+        document.fonts.load('8px "BM Mini"'),
+        document.fonts.load('8px "BM Germar"'),
+        document.fonts.load('8px "PixelPlay"'),
+        document.fonts.load('8px "Nokia Cellphone FC"'),
+      ]).finally(() => {
+        const version = Date.now();
+        const script = document.createElement("script");
+        script.src = `src/phaser-passport-demo.js?v=${version}`;
+        document.body.appendChild(script);
+      });
+    </script>
+  </body>
+</html>

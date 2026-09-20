@@ -20,7 +20,7 @@ const mascotPoseFiles = {
   labs: "labs.webm",
   profile: "profile.png",
   protection: "protection.png",
-  radar: "radar.png",
+  radar: "radar-loop.webp",
   running: "running.png",
   sad: "sad.png",
   "security-phone": "securityphone.png",

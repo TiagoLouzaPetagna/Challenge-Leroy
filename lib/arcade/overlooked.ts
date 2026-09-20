@@ -3,7 +3,7 @@ export const OVERLOOKED_SESSION_SECONDS = 300;
 export const OVERLOOKED_MIN_CLASSIFIED_MESSAGES = 8;
 export const OVERLOOKED_MIN_SERVER_ELAPSED_SECONDS = 285;
 export const OVERLOOKED_MAX_SERVER_ELAPSED_SECONDS = 20 * 60;
-export const OVERLOOKED_VALIDATION_VERSION = 1;
+export const OVERLOOKED_VALIDATION_VERSION = 2;
 
 export const OVERLOOKED_EMAILS = {
   "sap-tigre": true,
@@ -18,6 +18,20 @@ export const OVERLOOKED_EMAILS = {
   "vpn-diretor": false,
   "tigre-ip": false,
   "lista-usuarios": false,
+  "desativacao-conta": true,
+  "troca-certificado": true,
+  "cadastro-inventario": true,
+  "backup-homologacao": true,
+  "codigo-mfa": false,
+  "acesso-remoto-scanner": false,
+  "vpn-renovacao-ana": true,
+  "perfil-temporario": true,
+  "driver-scanner-catalogo": true,
+  "caixa-compartilhada-leitura": true,
+  "driver-drive-pessoal": false,
+  "backup-nuvem-pessoal": false,
+  "acesso-fornecedor-admin": false,
+  "encaminhamento-caixa-compras": false,
 } as const;
 
 export type OverlookedEmailId = keyof typeof OVERLOOKED_EMAILS;
@@ -70,6 +84,20 @@ export type OverlookedLeaderboardResponse = {
   generatedAt: string;
   entries: OverlookedLeaderboardEntry[];
   currentBest: OverlookedLeaderboardEntry | null;
+};
+
+export type OverlookedDuoLeaderboardEntry = {
+  position: number;
+  players: [Pick<OverlookedLeaderboardEntry, "displayName" | "nickname" | "avatarUrl" | "animatedAvatarUrl" | "profileId" | "isCurrent">, Pick<OverlookedLeaderboardEntry, "displayName" | "nickname" | "avatarUrl" | "animatedAvatarUrl" | "profileId" | "isCurrent">];
+  score: number;
+  completedAt: string;
+  isCurrent: boolean;
+};
+
+export type OverlookedDuoLeaderboardResponse = {
+  generatedAt: string;
+  entries: OverlookedDuoLeaderboardEntry[];
+  currentBest: OverlookedDuoLeaderboardEntry | null;
 };
 
 export class OverlookedValidationError extends Error {
@@ -130,7 +158,7 @@ export function validateOverlookedCompletion(
   ) {
     throw new OverlookedValidationError("A duração da sessão não pôde ser validada.");
   }
-  if (!Array.isArray(input.outcomes) || input.outcomes.length > 12) {
+  if (!Array.isArray(input.outcomes) || input.outcomes.length > Object.keys(OVERLOOKED_EMAILS).length) {
     throw new OverlookedValidationError("A lista de mensagens da partida é inválida.");
   }
 

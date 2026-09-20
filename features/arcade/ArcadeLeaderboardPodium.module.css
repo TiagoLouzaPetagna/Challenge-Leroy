@@ -194,6 +194,43 @@
   filter: drop-shadow(3px 0 0 #efff9d) drop-shadow(-3px 0 0 #efff9d);
 }
 
+.duoCard {
+  width: 31%;
+}
+
+.duoAvatars {
+  position: absolute;
+  z-index: 3;
+  inset: 0 4% 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.duoAvatars .avatar,
+.duoCard[data-position="1"] .duoAvatars .avatar {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 50%;
+  height: 100%;
+  flex: 0 0 50%;
+}
+
+.duoIdentity {
+  max-width: 110%;
+}
+
+.duoIdentity strong {
+  white-space: normal;
+}
+
+.duoIdentity strong span {
+  color: #f5c75a;
+  font-size: inherit;
+}
+
 @media (max-width: 760px) {
   .stage {
     height: 360px;
@@ -234,6 +271,23 @@
 
   .visitHint {
     display: none;
+  }
+
+  .duoStage {
+    height: 370px;
+  }
+
+  .duoCard {
+    width: 34%;
+  }
+
+  .duoIdentity {
+    min-width: 90px;
+    max-width: 120%;
+  }
+
+  .duoIdentity strong {
+    font-size: 8px;
   }
 }
 

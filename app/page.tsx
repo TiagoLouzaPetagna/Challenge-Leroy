@@ -23,7 +23,6 @@ import {
   RECOVERY_MISSION_ID,
   SENDER_INSPECTOR_ACTIVITY_ID,
   SIMULATION_ACTIVITY_ID,
-  RADAR_ACTIVITY_ID,
   TEAM_CHALLENGE_ACTIVITY_ID,
 } from "@/lib/domain/rules";
 import { findRadarArticleBySlug } from "@/lib/content/radar-catalog";
@@ -1524,12 +1523,17 @@ export default function Home() {
 
   useEffect(() => {
     if (isAuthLoading || account || pathname === "/login") return;
-    const returnTo = pathname && pathname !== "/" ? pathname : "/";
+    const isOfficeInvite = pathname === "/arcade/overlooked" &&
+      /^[A-Z2-9]{8}$/.test(new URLSearchParams(window.location.search).get("officeRoom") ?? "");
+    const returnTo = pathname && pathname !== "/"
+      ? `${pathname}${isOfficeInvite ? window.location.search : ""}` : "/";
     router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
   }, [account, isAuthLoading, pathname, router]);
 
   useEffect(() => {
-    if (requiredTutorialActive && pathname !== "/") {
+    const isOfficeInvite = pathname === "/arcade/overlooked" &&
+      /^[A-Z2-9]{8}$/.test(new URLSearchParams(window.location.search).get("officeRoom") ?? "");
+    if (requiredTutorialActive && pathname !== "/" && !isOfficeInvite) {
       router.replace("/");
     }
   }, [pathname, requiredTutorialActive, router]);
@@ -1725,13 +1729,6 @@ export default function Home() {
     () =>
       Object.values(state.learning.rewardClaims).find(
         (claim) => claim.sourceId === SIMULATION_ACTIVITY_ID,
-      ) ?? null,
-    [state.learning.rewardClaims],
-  );
-  const radarRewardClaim = useMemo(
-    () =>
-      Object.values(state.learning.rewardClaims).find(
-        (claim) => claim.sourceId === RADAR_ACTIVITY_ID,
       ) ?? null,
     [state.learning.rewardClaims],
   );
@@ -1941,7 +1938,7 @@ export default function Home() {
       {
         id: "arcade:overlooked",
         categoryLabel: "Arcade",
-        title: "Overlooked",
+        title: "Office Defenders",
         summary:
           "Jogo cooperativo para reconhecer phishing e processar solicitações legítimas.",
         rewardLabel: "Ranking próprio · até 155 pontos",
@@ -2626,13 +2623,14 @@ export default function Home() {
                 key={`${radarArticle.id}:${isHydrated ? "hydrated" : "hydrating"}`}
                 article={radarArticle}
                 isCompleted={completedRadarIds.includes(radarArticle.id)}
-                claimedPoints={radarRewardClaim?.points ?? 0}
+                claimedPoints={state.learning.rewardClaims[`${radarArticle.id}:first-completion`]?.points ?? 0}
                 onComplete={submitRadar}
                 onBackToRadar={() => router.push("/radar")}
                 onOpenPhishLab={() =>
                   router.push("/phishlab/analisador-de-links")
                 }
                 onOpenMission={() => navigate("missoes")}
+                onOpenRelatedActivity={(href) => router.push(href)}
               />
             ) : (
               <RadarHub

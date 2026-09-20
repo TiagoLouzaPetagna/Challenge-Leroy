@@ -10,6 +10,7 @@ import {
   type TrueSenderV2Submission,
   type WorkdayTriageV2Submission,
   type BankProcessV2Submission,
+  type RadarSubmission,
 } from "../domain/types";
 import { createDemoState } from "../content/demo-seed";
 import { grantEarnedAchievements } from "../domain/achievements";
@@ -22,6 +23,7 @@ import {
   isValidTrueSenderV2Submission,
   isValidWorkdayTriageV2Submission,
   isValidBankProcessV2Submission,
+  isValidRadarSubmission,
 } from "../domain/rules";
 
 export const STORAGE_KEY = "casa-digital-segura:mvp:v1";
@@ -113,11 +115,6 @@ const LINK_EVIDENCE = new Set([
   "display-name-proof",
 ]);
 const SIMULATION_ACTIONS = new Set(["keep", "verify", "report", "delete"]);
-const RADAR_OPTIONS = new Set([
-  "scan-and-trust",
-  "inspect-and-confirm",
-  "avoid-all-qr",
-]);
 const BANK_CHANGE_INITIAL_ACTIONS = new Set([
   "pause-and-preserve",
   "reply-and-hold",
@@ -774,7 +771,7 @@ function isRadarAttempt(value: unknown): boolean {
     isNonEmptyString(value.activityId) &&
     Number.isInteger(value.activityVersion) &&
     isIsoDate(value.completedAt) &&
-    RADAR_OPTIONS.has(value.selectedOptionId as string) &&
+    isValidRadarSubmission(value as unknown as RadarSubmission) &&
     value.status === "evaluated" &&
     isRadarResult(value.result)
   );

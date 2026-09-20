@@ -500,6 +500,13 @@
   background: var(--learn-yellow);
 }
 
+/* O botão lime sobre o fundo lime/amarelo some. Um contorno fino na cor
+   escura da marca devolve a borda sem mudar o botão padrão. */
+.activity-celebration .primary-button,
+.activity-achievement .primary-button {
+  border: 2px solid var(--learn-forest-deep);
+}
+
 /* GLOBAL-017 (resultado-debrief.md §15): "a cor de modo cheia vira papel
    com borda grossa e uma faixa fina na cor." A cor de modo/conquista some
    do preenchimento e sobrevive só como acento. */

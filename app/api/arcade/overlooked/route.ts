@@ -1,6 +1,7 @@
 import {
   completeOverlookedRun,
   getOverlookedLeaderboard,
+  getOverlookedDuoLeaderboard,
   OverlookedRunError,
   startOverlookedRun,
 } from "@/lib/arcade/repository";
@@ -18,12 +19,15 @@ export async function GET(request: Request) {
   try {
     const account = await findAccountBySessionToken(readSessionToken(request));
     if (!account) return errorResponse("Sessão necessária.", 401);
-    return Response.json(await getOverlookedLeaderboard(account), {
+    const mode = new URL(request.url).searchParams.get("mode");
+    return Response.json(mode === "online"
+      ? await getOverlookedDuoLeaderboard(account)
+      : await getOverlookedLeaderboard(account), {
       status: 200,
       headers: NO_STORE,
     });
   } catch {
-    return errorResponse("Não foi possível carregar o ranking do Overlooked.", 503);
+    return errorResponse("Não foi possível carregar o ranking do Office Defenders.", 503);
   }
 }
 

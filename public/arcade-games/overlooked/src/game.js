@@ -29,6 +29,15 @@ const BRIDGE_VERSION = 1;
 const isEmbedded = window.parent !== window;
 let activeRunId = null;
 let awaitingSession = false;
+const onlineParams = new URLSearchParams(window.location.search);
+const onlineCode = onlineParams.get("mode") === "online" && /^[A-Z2-9]{8}$/.test(onlineParams.get("code") || "")
+  ? onlineParams.get("code") : null;
+let onlineSocket = null;
+let onlineRole = null;
+let onlineRoomStatus = "waiting";
+let onlineGuestConnected = false;
+let onlineSnapshotAt = 0;
+const remoteKeys = new Set();
 
 const BASE_TILE = 128;
 const TILE = 48;
@@ -45,9 +54,9 @@ setCanvasSmoothing(false);
 const SESSION_LENGTH = 300;
 const MAX_QUEUE = 3;
 const READ_LIMIT = 28;
-const FIRST_EMAIL_ID = "gerente-campinas";
-const EMAIL_ARRIVAL_MIN_SECONDS = 4;
-const EMAIL_ARRIVAL_MAX_SECONDS = 7;
+const PLAYER_SPEED = world(280);
+const EMAIL_ARRIVAL_MIN = 12;
+const EMAIL_ARRIVAL_VARIATION = 6;
 const ACTION_RANGE = world(70);
 const PLAYER_SPRITE_SIZE = 48;
 // The layered character art is centered at (27, 24), with its ground anchor at y = 36.
@@ -96,183 +105,425 @@ const emails = [
   {
     id: "sap-tigre",
     legitimate: true,
-    title: "Abertura de porta - Integracao SAP Tigre",
+    title: "Homologação da integração Tigre",
     sender: "infraestrutura@leroymerlin.com.br",
-    subject: "Solicitacao de abertura de porta - Integracao SAP Fornecedor Tigre",
-    body:
-      "Conforme aprovacao do projeto de integracao com o fornecedor Tigre (ticket #LM-7823), solicito a abertura da porta 443 no servidor de homologacao 10.10.5.22. Janela de implementacao: quinta-feira 22h-00h. Aprovacao do gestor Fabio Monteiro (matricula LM-3341, ramal 4412) registrada no sistema.\n\nCarlos Eduardo Pinto, Infra e Redes, Mat. LM-2209 | Ramal 4401",
-    flow: ["printer", "signature", "scanner", "computer"],
-    signs: [
-      "Dominio oficial da empresa.",
-      "Ticket, aprovador, matricula e ramal verificaveis.",
-      "Porta 443 com justificativa tecnica e janela especifica.",
+    subject: "Integração Tigre | teste no ambiente de homologação",
+    body: "Olá, equipe. A integração com a Tigre está pronta para o teste. Peço que encaminhem a abertura da porta 443 apenas no servidor de homologação, conforme o chamado LM-7823. Se a aprovação não constar no chamado, deixem a mudança pendente. Produção fica fora deste pedido.\n\nCarlos Eduardo | Infra e Redes",
+    flow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"Apenas no servidor de homologação\" delimita o alcance da mudança.",
+      "\"Se a aprovação não constar no chamado, deixem a mudança pendente\" mantém o processo; citar um chamado não prova aprovação."
+    ]
   },
   {
     id: "gerente-campinas",
     legitimate: true,
-    title: "Criacao de usuario - Gerente Campinas",
+    title: "Cadastro da gerente de Campinas",
     sender: "rh.corporativo@leroymerlin.com.br",
-    subject: "Onboarding - Criacao de perfil de acesso - Gerente Loja Campinas",
-    body:
-      "Informamos a contratacao de Renata Souza para Gerente de Loja Campinas, inicio 18/11. Solicito criacao do perfil GL-03 com acesso ao Totvs e pasta \\\\lm-files\\lojas\\campinas. Formulario RH-2024-1147 assinado pelo diretor regional anexo. Duvidas: ramal 3001.\n\nFernanda Alves, Analista de RH, Mat. LM-1892",
-    flow: ["printer", "deposit"],
-    signs: [
-      "Remetente corporativo oficial.",
-      "Perfil, sistemas e formulario com referencia especifica.",
-      "Ramal e matricula disponiveis para confirmacao.",
+    subject: "Admissão de Renata Souza | perfil de acesso da loja",
+    body: "Bom dia. Renata Souza inicia na loja de Campinas na próxima semana. Solicito abrir o cadastro do perfil GL-03 pelo processo de admissão RH-1147. O formulário está no sistema de RH; se faltar alguma aprovação, devolvam o pedido por lá. Não enviem a senha inicial em resposta a este e-mail.\n\nFernanda Alves | RH",
+    flow: [
+      "printer",
+      "signature",
+      "deposit"
     ],
+    signs: [
+      "\"Pelo processo de admissão\" e \"devolvam o pedido por lá\" preservam o registro interno.",
+      "\"Não enviem a senha inicial\" evita compartilhar credenciais por e-mail."
+    ]
   },
   {
     id: "reset-marcos",
     legitimate: true,
-    title: "Reset de senha - Marcos Vinicius",
+    title: "Recuperação de acesso de Marcos Vinícius",
     sender: "suporte.interno@leroymerlin.com.br",
-    subject: "Reset de senha - Marcos Vinicius - Loja BH Shopping",
-    body:
-      "O colaborador Marcos Vinicius da Costa (matricula LM-5503, loja BH Shopping) esta bloqueado apos viagem. Confirmei a identidade pelo cracha presencialmente. Solicito reset conforme procedimento GOV-RESET-02.\n\nJuliana Ferraz, Supervisora de Loja, Ramal: (31) 3344-5500 r.201",
-    flow: ["computer"],
-    signs: [
-      "Identidade confirmada presencialmente.",
-      "Procedimento interno referenciado.",
-      "Matricula e ramal fisico para verificacao.",
+    subject: "Atendimento GOV-RESET-02 | acesso de Marcos Vinícius",
+    body: "Pessoal, Marcos Vinícius, da loja BH Shopping, perdeu acesso após trocar de telefone. Registrei a identificação presencial no atendimento GOV-RESET-02. Podem iniciar o reset pelo fluxo padrão? A senha provisória deve ser entregue pelo canal do atendimento, não nesta conversa.\n\nJuliana Freitas | Suporte Interno",
+    flow: [
+      "computer",
+      "printer",
+      "stamp",
+      "deposit"
     ],
+    signs: [
+      "\"Iniciar o reset pelo fluxo padrão\" não pede exceção ao processo.",
+      "\"Não nesta conversa\" evita expor a senha provisória por e-mail."
+    ]
   },
   {
     id: "autocad",
     legitimate: true,
-    title: "Whitelist AutoCAD - Obras e Reformas",
+    title: "AutoCAD para a equipe de Obras",
     sender: "ti.corporativo@leroymerlin.com.br",
-    subject: "Whitelist - AutoCAD 2025 - Equipe de Obras e Reformas",
-    body:
-      "O AutoCAD 2025 foi homologado pelo comite de seguranca em 05/11 (ata LM-SEC-2024-38, disponivel em /governanca/atas na intranet). Licencas adquiridas via LM-PC-4421. Solicito adicao na whitelist nos 12 computadores da equipe de Obras e Reformas (hostnames LM-OBR-001 a LM-OBR-012).\n\nRenato Carvalho, TI Corporativo, Mat. LM-0934 | Ramal 4388",
-    flow: ["computer"],
-    signs: [
-      "Ata de homologacao e processo de compra citados.",
-      "Hostnames especificos em vez de pedido amplo.",
-      "Remetente com matricula e ramal.",
+    subject: "Instalação do AutoCAD nos notebooks de Obras",
+    body: "A equipe de Obras vai receber 12 notebooks novos. Podem conferir a homologação do AutoCAD no catálogo de TI e, se estiver válida, incluir a aplicação no pacote padrão dos ativos LM-OBR-001 a LM-OBR-012? Se houver divergência, não distribuam o instalador até corrigirmos o cadastro.\n\nRenato Carvalho | TI Corporativa",
+    flow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"Conferir a homologação do AutoCAD no catálogo de TI\" pede checagem pelo canal interno.",
+      "\"Não distribuam o instalador\" se houver divergência evita contornar o controle."
+    ]
   },
   {
     id: "vpn-pedro",
     legitimate: true,
-    title: "VPN - Pedro Henrique Lemos",
+    title: "VPN para equipamento corporativo",
     sender: "rh.corporativo@leroymerlin.com.br",
-    subject: "Liberacao VPN - Acordo de Trabalho Remoto - Analista BI",
-    body:
-      "Conforme acordo de trabalho remoto aprovado em 01/11 (documento TR-2024-0892), solicito liberacao de acesso VPN para Pedro Henrique Lemos (matricula LM-4471, analista de BI). Equipamento passou pela checagem de seguranca (certificado SEC-LM-2024-4471 emitido em 08/11).\n\nFernanda Alves, Analista de RH, Mat. LM-1892 | Ramal 3001",
-    flow: ["printer", "signature", "deposit"],
-    signs: [
-      "Documento formal e certificado de seguranca.",
-      "Matricula do colaborador e da solicitante.",
-      "Ramal corporativo para duvidas.",
+    subject: "Trabalho remoto de Pedro Lemos | notebook LM-NB-4471",
+    body: "Olá. Pedro Henrique Lemos iniciará trabalho remoto na próxima semana. Solicito abrir a etapa de VPN para o notebook corporativo LM-NB-4471. O cadastro do equipamento e o certificado precisam ser conferidos no sistema antes da liberação. Caso falte algum deles, deixem o acesso pendente.\n\nFernanda Alves | RH",
+    flow: [
+      "printer",
+      "signature",
+      "deposit"
     ],
+    signs: [
+      "\"Notebook corporativo\" delimita qual equipamento receberá acesso.",
+      "\"Conferidos no sistema antes da liberação\" condiciona o acesso à verificação."
+    ]
   },
   {
     id: "rdp-typo",
     legitimate: false,
-    title: "Porta 3389 - dominio 1eroymerlin",
+    title: "Acesso remoto sem chamado",
     sender: "infraestrutura@1eroymerlin.com.br",
-    subject: "Urgente - Liberar acesso remoto para manutencao",
-    body:
-      "Precisamos que a porta 3389 seja aberta no servidor principal ainda hoje para que nosso parceiro tecnico realize uma manutencao emergencial. O sistema de vendas esta apresentando lentidao critica e impactando todas as lojas. Por favor confirmar quando estiver feito.\n\nEquipe de Infraestrutura",
-    fakeFlow: ["computer"],
-    signs: [
-      "Dominio usa numero 1 no lugar do L em leroymerlin.",
-      "Porta 3389 (RDP) abre acesso remoto de alto risco.",
-      "Sem ticket, matricula, fornecedor ou contato verificavel.",
+    subject: "Acesso remoto para suporte ao servidor de vendas",
+    body: "Bom dia. A equipe de loja precisa de suporte no servidor de vendas. Liberem hoje o acesso remoto pela porta 3389 para que o técnico entre sem esperar o chamado; depois regularizamos a mudança. Assim conseguimos atender antes da abertura da loja.\n\nEquipe de Infraestrutura",
+    fakeFlow: [
+      "printer",
+      "stamp",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"Sem esperar o chamado; depois regularizamos\" pede acesso antes da autorização.",
+      "O remetente usa o número 1 em \"1eroymerlin\", imitando o nome da empresa."
+    ]
   },
   {
     id: "admin-gmail",
     legitimate: false,
-    title: "Usuario admin - dominio gmail.com",
+    title: "Conta administrativa fora do processo",
     sender: "diretoria.ti@leroymerlin.com.br.gmail.com",
-    subject: "Criacao de usuario - Projeto Confidencial",
-    body:
-      'Preciso que criem hoje um usuario chamado "svc_auditoria_ext" com perfil de administrador de dominio. E para um projeto de auditoria externa que comeca amanha. Nao registrem ticket por enquanto, a diretoria prefere manter discreto nessa fase inicial. Conto com voces.\n\nDiretor de TI',
-    fakeFlow: ["computer"],
-    signs: [
-      "Dominio real termina em gmail.com.",
-      "Administrador de dominio nunca deve ser criado sem processo formal.",
-      "Pedido para nao registrar ticket e manter sigilo.",
+    subject: "Conta temporária para revisão reservada",
+    body: "Equipe, preciso da conta svc_auditoria_ext com perfil de administrador para uma revisão reservada. Enviem o usuário e a senha provisória em resposta a este e-mail; a diretoria fará o registro do chamado amanhã. Peço discrição porque o relatório ainda não circulou.\n\nDiretoria de TI",
+    fakeFlow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"Enviem o usuário e a senha provisória\" pede credenciais por e-mail.",
+      "O endereço termina em \"gmail.com\", apesar de exibir o nome da empresa antes."
+    ]
   },
   {
     id: "microsoft-falso",
     legitimate: false,
-    title: "Microsoft 365 - suporte falso",
+    title: "Renovação falsa do Microsoft 365",
     sender: "renovacao@microsoft-leroymerlin.support",
-    subject: "Acao obrigatoria - Licencas Microsoft 365 expiram em 48h",
-    body:
-      "Identificamos que as licencas Microsoft 365 da sua organizacao entrarao em carencia em 48 horas. Para evitar bloqueio dos servicos de e-mail e Teams em toda a empresa, acesse o portal abaixo e valide os dados de contrato:\n\nhttps://ms365-renewal.leroymerlin.support/validate\n\nMicrosoft Partner Support",
-    fakeFlow: ["computer"],
-    signs: [
-      "Dominio .support nao pertence a Microsoft nem a Leroy Merlin.",
-      "Link externo pede validacao de dados de contrato.",
-      "Urgencia e ameaca de bloqueio para criar panico.",
+    subject: "Confirmação pendente da renovação Microsoft 365",
+    body: "Olá. A renovação do Microsoft 365 da unidade aguarda confirmação. Antes que as licenças sejam suspensas, abram https://ms365-renewal.leroymerlin.support/validate e entrem com uma conta administrativa para validar o contrato. Leva dois minutos; não é necessário abrir um chamado interno.\n\nEquipe de Licenças",
+    fakeFlow: [
+      "computer",
+      "printer",
+      "deposit"
     ],
+    signs: [
+      "\"Entrem com uma conta administrativa\" pede login sensível em um link recebido por e-mail.",
+      "\"Não é necessário abrir um chamado interno\" tenta afastar a conferência normal."
+    ]
   },
   {
     id: "rh-falso",
     legitimate: false,
-    title: "RH - revalidacao de credenciais",
+    title: "Revalidação falsa do RH",
     sender: "rh-notificacoes@leroymerlin-support.com.br",
-    subject: "Atualizacao obrigatoria de cadastro - Prazo: hoje",
-    body:
-      "O departamento de RH informa que todos os perfis de acesso precisam ser revalidados ate o final do dia de hoje como parte da auditoria anual de acessos. Caso nao seja feito, seu acesso aos sistemas sera suspenso preventivamente. Acesse o portal de revalidacao com suas credenciais corporativas:\n\nhttps://portal-rh.leroymerlin-support.com.br/revalidacao\n\nRH Corporativo, Leroy Merlin",
-    fakeFlow: ["computer"],
-    signs: [
-      "Dominio leroymerlin-support.com.br nao e oficial.",
-      "Nenhum processo interno pede credenciais por e-mail.",
-      "Prazo 'hoje' sem data concreta e link externo de login.",
+    subject: "Revalidação do acesso aos sistemas de RH",
+    body: "Estamos atualizando os cadastros de acesso. Para evitar suspensão, abram https://portal-rh.leroymerlin-support.com.br/revalidacao e digitem usuário, senha e o código do autenticador. O formulário fecha hoje; depois da confirmação não será preciso contatar o RH.\n\nNotificações de RH",
+    fakeFlow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"Digitem usuário, senha e o código do autenticador\" tenta capturar credenciais e o segundo fator.",
+      "O link leva a \"leroymerlin-support.com.br\", domínio diferente do nome corporativo."
+    ]
   },
   {
     id: "vpn-diretor",
     legitimate: false,
-    title: "VPN diretor - notebook pessoal",
+    title: "VPN para notebook particular",
     sender: "f.rodrigues@leroymerlin.com.br",
-    subject: "VPN urgente - estou em Sao Paulo",
-    body:
-      "Pessoal, estou em SP para uma reuniao com a matriz francesa e preciso de acesso VPN liberado agora no meu notebook pessoal. Nao consigo ligar, estou em reuniao o dia todo. O notebook e um Dell XPS, Windows 11. Podem liberar? Fico no aguardo.\n\nFelipe Rodrigues, Diretor Regional",
-    fakeFlow: ["computer"],
-    signs: [
-      "Notebook pessoal nao possui certificado corporativo.",
-      "Desculpa explicita para impedir verificacao por telefone.",
-      "Sem ticket, matricula ou certificado do equipamento.",
+    subject: "Acesso VPN durante a viagem",
+    body: "Pessoal, estou viajando e preciso entrar na VPN pelo meu notebook particular hoje. Ele ainda não tem o certificado da empresa, mas liberem meu usuário mesmo assim; aviso ao suporte para registrar o pedido quando voltar. Não consigo atender ligação agora.\n\nFelipe Rodrigues | Diretor Regional",
+    fakeFlow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"Notebook particular\" e \"não tem o certificado\" descrevem equipamento sem a checagem exigida.",
+      "\"Liberem meu usuário mesmo assim\" pede contornar a validação antes do registro."
+    ]
   },
   {
     id: "tigre-ip",
     legitimate: false,
-    title: "Tigre - IP suspeito",
+    title: "Mudança na integração fora do chamado",
     sender: "suporte@tigre.com.br",
-    subject: "Atualizacao de endpoint - Integracao NF-e",
-    body:
-      "Bom dia equipe Leroy Merlin. Precisamos atualizar o endpoint de integracao de NF-e para o novo endereco. Por favor atualizem nas configuracoes de firewall para liberar tambem a porta 8443 para o IP 185.220.101.47. Qualquer duvida estou a disposicao.\n\nSuporte Tecnico, Tigre",
-    fakeFlow: ["printer", "stamp", "scanner", "computer"],
-    signs: [
-      "Nao referencia o ticket de integracao existente.",
-      "IP publico suspeito sem processo formal de atualizacao.",
-      "Sem nome do contato tecnico habitual.",
+    subject: "Ajuste rápido no endpoint de produção",
+    body: "Pessoal, a integração NF-e precisa de um ajuste antes do fechamento. Troquem o endpoint de produção para 185.220.101.47 e liberem a porta 8443 hoje. O chamado atual cobre só homologação, então registrem a exceção depois da troca para não atrasar o lote.\n\nSuporte Técnico | Tigre",
+    fakeFlow: [
+      "printer",
+      "stamp",
+      "scanner",
+      "computer"
     ],
+    signs: [
+      "\"O chamado atual cobre só homologação\" admite que produção está fora da autorização.",
+      "\"Registrem a exceção depois da troca\" pede executar antes da aprovação; o IP sozinho não prova fraude."
+    ]
   },
   {
     id: "lista-usuarios",
     legitimate: false,
-    title: "TI - lista de usuarios ativos",
+    title: "Exportação de usuários por e-mail",
     sender: "ti.corporativo@leroymerlin.com.br",
-    subject: "Procedimento de rotina - Verificacao de contas inativas",
-    body:
-      "Bom dia. Como parte do processo trimestral de higiene de acessos, precisamos que a equipe de governanca nos envie a lista completa de usuarios ativos com seus respectivos perfis de acesso e datas de ultimo login. O relatorio pode ser enviado diretamente para este e-mail.\n\nRenato Carvalho, TI Corporativo, Mat. LM-0934 | Ramal 4388",
-    fakeFlow: ["computer"],
-    signs: [
-      "O remetente parece correto, mas o pedido e o problema.",
-      "Lista de usuarios e perfis por e-mail seria vazamento de dados.",
-      "Nao ha ticket ou referencia formal do processo.",
+    subject: "Revisão trimestral de contas inativas",
+    body: "Bom dia. Para a revisão trimestral, preciso da lista completa de usuários ativos, perfis e última data de login. Exportem a planilha e respondam com o arquivo neste e-mail; assim evitamos pedir acesso ao painel de auditoria. Pode ir sem senha, pois a conversa é interna.\n\nRenato Carvalho | TI Corporativa",
+    fakeFlow: [
+      "computer",
+      "printer",
+      "deposit"
     ],
+    signs: [
+      "\"Respondam com o arquivo neste e-mail\" expõe lista de acessos fora do painel de auditoria.",
+      "\"Assim evitamos pedir acesso ao painel de auditoria\" revela a tentativa de contornar o canal controlado."
+    ]
   },
+  {
+    id: "desativacao-conta",
+    legitimate: true,
+    title: "Desativação programada de acesso",
+    sender: "rh.corporativo@leroymerlin.com.br",
+    subject: "Desligamento programado | registro RH-2216",
+    body: "Boa tarde. O contrato de Ana Ribeiro termina no fim do expediente. Peço que programem a desativação da conta para o horário registrado no processo RH-2216. A lista de sistemas está no cadastro interno; não copiem os dados pessoais para esta conversa. Se o horário mudar, aguardem a atualização do RH.\n\nFernanda Alves | RH",
+    flow: [
+      "computer",
+      "printer",
+      "stamp",
+      "deposit"
+    ],
+    signs: [
+      "\"Para o horário registrado no processo\" evita desativação fora do fluxo.",
+      "\"Não copiem os dados pessoais\" mantém as informações no sistema interno."
+    ]
+  },
+  {
+    id: "troca-certificado",
+    legitimate: true,
+    title: "Renovação de certificado em teste",
+    sender: "seguranca.ti@leroymerlin.com.br",
+    subject: "Certificado do serviço de inventário | preparação",
+    body: "Olá, o certificado do serviço de inventário vence na próxima janela de manutenção. Podem preparar a renovação no ambiente de testes e registrar o resultado no change SEC-318? A chave privada continua no cofre de TI; não a compartilhem por e-mail. A implantação em produção deve esperar a aprovação do change.\n\nMarina Costa | Segurança de TI",
+    flow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
+    ],
+    signs: [
+      "\"Ambiente de testes\" limita esta etapa da mudança.",
+      "\"A chave privada continua no cofre\" e \"produção deve esperar\" evitam atalhos arriscados."
+    ]
+  },
+  {
+    id: "cadastro-inventario",
+    legitimate: true,
+    title: "Correção no inventário de notebook",
+    sender: "suporte.interno@leroymerlin.com.br",
+    subject: "Notebook LM-NB-2048 voltou do reparo",
+    body: "O notebook LM-NB-2048 voltou do reparo, mas ainda aparece como \"em manutenção\" no inventário. Podem atualizar o status para \"disponível\" pelo processo de ativos e registrar a alteração no histórico? Não precisamos de acesso remoto ao equipamento nem de dados do usuário anterior.\n\nCamila Rocha | Suporte Interno",
+    flow: [
+      "computer",
+      "printer",
+      "deposit"
+    ],
+    signs: [
+      "\"Pelo processo de ativos\" e \"registrar a alteração no histórico\" pedem alteração rastreável.",
+      "\"Não precisamos de acesso remoto ao equipamento nem de dados\" mantém o pedido limitado ao cadastro."
+    ]
+  },
+  {
+    id: "backup-homologacao",
+    legitimate: true,
+    title: "Teste de restauração em homologação",
+    sender: "infraestrutura@leroymerlin.com.br",
+    subject: "Backup semanal | teste de restauração",
+    body: "Equipe, vamos testar a restauração do backup semanal no servidor de homologação. Solicito preparar o registro e executar o teste apenas nesse ambiente, sem substituir dados de produção. Publiquem o resultado no change INF-204; se o ambiente não estiver isolado, adiem o teste.\n\nCarlos Eduardo | Infra e Redes",
+    flow: [
+      "printer",
+      "signature",
+      "scanner",
+      "computer"
+    ],
+    signs: [
+      "\"Apenas nesse ambiente\" e \"sem substituir dados de produção\" delimitam o teste.",
+      "\"Se o ambiente não estiver isolado, adiem\" prioriza a segurança sobre a pressa."
+    ]
+  },
+  {
+    id: "codigo-mfa",
+    legitimate: false,
+    title: "Pedido de código do autenticador",
+    sender: "suporte.interno@leroymerlin.com.br",
+    subject: "Confirmação do bloqueio de autenticação",
+    body: "Estamos conferindo um bloqueio de autenticação do seu setor. Quando o código de verificação chegar ao celular, respondam a este e-mail com os seis dígitos para concluirmos o teste. Não é necessário abrir chamado; o alerta já veio do sistema.\n\nSuporte Interno",
+    fakeFlow: [
+      "computer",
+      "printer",
+      "deposit"
+    ],
+    signs: [
+      "\"Respondam a este e-mail com os seis dígitos\" pede o código de uso único, que não deve ser compartilhado.",
+      "O endereço familiar não torna seguro o pedido de enviar o segundo fator por e-mail."
+    ]
+  },
+  {
+    id: "acesso-remoto-scanner",
+    legitimate: false,
+    title: "Manutenção remota sem acompanhamento",
+    sender: "monitoramento@leroymerlin.com.br",
+    subject: "Lentidão nos scanners da área de entrada",
+    body: "Olá, os scanners da área de entrada estão lentos. Desativem temporariamente a proteção do computador e liberem acesso remoto sem acompanhamento para eu aplicar o ajuste. Depois aviso o que foi alterado; não abram incidente agora para evitar duplicidade.\n\nMonitoramento de TI",
+    fakeFlow: [
+      "printer",
+      "stamp",
+      "scanner",
+      "computer"
+    ],
+    signs: [
+      "\"Desativem temporariamente a proteção\" enfraquece o equipamento para a suposta manutenção.",
+      "\"Acesso remoto sem acompanhamento\" e \"não abram incidente\" eliminam supervisão e registro."
+    ]
+  },
+  {
+    id: "vpn-renovacao-ana",
+    legitimate: true,
+    title: "Renovação de VPN em notebook corporativo",
+    sender: "suporte.interno@leroymerlin.com.br",
+    subject: "Certificado renovado | notebook LM-NB-3290",
+    body: "O notebook corporativo LM-NB-3290 de Ana Nunes passou por troca de certificado. Podem atualizar o acesso VPN usando o registro aberto no sistema de ativos? Confirmem o novo certificado antes de reativar a conexão. Se a conferência falhar, mantenham o acesso suspenso e registrem a pendência.\n\nCamila Rocha | Suporte Interno",
+    flow: ["printer", "signature", "deposit"],
+    signs: [
+      "\"Confirmem o novo certificado antes de reativar a conexão\" exige a checagem do equipamento.",
+      "\"Mantenham o acesso suspenso\" evita liberar VPN se a conferência falhar."
+    ]
+  },
+  {
+    id: "perfil-temporario",
+    legitimate: true,
+    title: "Perfil temporário para inventário",
+    sender: "rh.corporativo@leroymerlin.com.br",
+    subject: "Acesso temporário de Lucas Moraes | inventário",
+    body: "Lucas Moraes vai apoiar o inventário por duas semanas. Solicito criar um perfil temporário apenas para leitura, com encerramento na data do contrato registrada no RH. Se a aprovação não estiver no processo, deixem a conta pendente. A senha inicial deve seguir o canal de entrega habitual.\n\nFernanda Alves | RH",
+    flow: ["computer", "printer", "stamp", "deposit"],
+    signs: [
+      "\"Apenas para leitura\" limita a permissão ao trabalho descrito.",
+      "\"Deixem a conta pendente\" condiciona a criação à aprovação no processo."
+    ]
+  },
+  {
+    id: "driver-scanner-catalogo",
+    legitimate: true,
+    title: "Atualização controlada dos scanners",
+    sender: "ti.corporativo@leroymerlin.com.br",
+    subject: "Driver dos scanners | teste antes da distribuição",
+    body: "As estações de digitalização do setor fiscal precisam da nova versão do driver. Podem conferir o pacote no catálogo interno antes de distribuir? O teste deve começar em uma máquina de homologação; se houver falha, mantenham a versão atual. Não usem instaladores enviados por e-mail.\n\nRenato Carvalho | TI Corporativa",
+    flow: ["printer", "signature", "scanner", "computer"],
+    signs: [
+      "\"Catálogo interno\" indica onde conferir o pacote antes da instalação.",
+      "\"Não usem instaladores enviados por e-mail\" evita executar arquivos de origem incerta."
+    ]
+  },
+  {
+    id: "caixa-compartilhada-leitura",
+    legitimate: true,
+    title: "Leitura temporária de caixa compartilhada",
+    sender: "suporte.interno@leroymerlin.com.br",
+    subject: "Cobertura de férias | caixa de atendimento da loja",
+    body: "Beatriz Lima vai cobrir as férias no atendimento da loja. Solicito adicionar somente permissão de leitura à caixa compartilhada pelo processo ACC-541, com remoção no fim do período. Se o gestor não constar como aprovador no processo, não ativem o acesso.\n\nJuliana Freitas | Suporte Interno",
+    flow: ["computer", "printer", "deposit"],
+    signs: [
+      "\"Somente permissão de leitura\" limita o acesso à necessidade descrita.",
+      "\"Não ativem o acesso\" se faltar aprovação mantém a etapa de controle."
+    ]
+  },
+  {
+    id: "driver-drive-pessoal",
+    legitimate: false,
+    title: "Driver enviado por armazenamento pessoal",
+    sender: "suporte.interno@leroymerlin.com.br",
+    subject: "Correção rápida para os scanners do fiscal",
+    body: "O driver do scanner do setor fiscal está falhando. Usem o instalador que enviei pelo meu drive pessoal, pois o catálogo interno ainda não foi atualizado. Se o Windows bloquear, desliguem a verificação de assinatura por alguns minutos e executem o arquivo mesmo assim. Depois registro a alteração.\n\nSuporte Interno",
+    fakeFlow: ["printer", "stamp", "scanner", "computer"],
+    signs: [
+      "\"Meu drive pessoal\" substitui o catálogo interno por uma origem não controlada.",
+      "\"Desliguem a verificação de assinatura\" pede reduzir a proteção para executar o arquivo."
+    ]
+  },
+  {
+    id: "backup-nuvem-pessoal",
+    legitimate: false,
+    title: "Backup enviado para conta pessoal",
+    sender: "infraestrutura@leroymerlin.com.br",
+    subject: "Cópia do backup para auditoria semanal",
+    body: "Para a auditoria semanal, exportem uma cópia do backup do cadastro de clientes e enviem para meu armazenamento pessoal. O portal interno está lento; apago a cópia assim que eu terminar a conferência. Não registrem a movimentação agora para não atrasar a janela.\n\nEquipe de Infraestrutura",
+    fakeFlow: ["computer", "printer", "deposit"],
+    signs: [
+      "\"Meu armazenamento pessoal\" tiraria o backup de clientes do ambiente controlado.",
+      "\"Não registrem a movimentação agora\" pede transferir dados sem rastreabilidade."
+    ]
+  },
+  {
+    id: "acesso-fornecedor-admin",
+    legitimate: false,
+    title: "Acesso administrativo para fornecedor",
+    sender: "suporte@tigre.com.br",
+    subject: "Consulta de logs da integração em produção",
+    body: "Nosso técnico precisa conferir os logs da integração em produção. Criem um login temporário com perfil de administrador e me mandem a senha por e-mail; ele usará a conta só até o fim do dia. Podemos registrar a aprovação depois do atendimento para não perder a janela.\n\nSuporte Técnico | Tigre",
+    fakeFlow: ["printer", "signature", "scanner", "computer"],
+    signs: [
+      "\"Me mandem a senha por e-mail\" pede compartilhar uma credencial privilegiada.",
+      "\"Registrar a aprovação depois do atendimento\" tenta inverter a ordem da autorização."
+    ]
+  },
+  {
+    id: "encaminhamento-caixa-compras",
+    legitimate: false,
+    title: "Encaminhamento externo da caixa de compras",
+    sender: "gestao.ti@leroymerlin.com.br",
+    subject: "Migração temporária da caixa de compras",
+    body: "Durante a migração, configurem o encaminhamento automático de todas as mensagens da caixa de compras para arquivo-compras@consultoria-mail.net por uma semana. Assim a equipe externa acompanha os chamados sem pedir acesso formal. Não avisem os usuários ainda para evitar dúvidas antes da reunião.\n\nGestão de TI",
+    fakeFlow: ["computer", "printer", "deposit"],
+    signs: [
+      "\"Encaminhamento automático de todas as mensagens\" enviaria também dados que não fazem parte da migração.",
+      "\"Sem pedir acesso formal\" deixa uma equipe externa fora do controle de permissões."
+    ]
+  }
 ];
 
 const COUNTER_COLOR = "#748079";
@@ -295,6 +546,7 @@ let game;
 
 const PLAYER1_WALK_LEFT_SEQUENCE = [0, 2, 4, 2, 0, 1, 3, 5, 3, 1];
 const PLAYER2_WALK_LEFT_SEQUENCE = [1, 3, 5, 3, 1, 0, 2, 4, 2, 0];
+const PLAYER1_HOLD_PAPER_FOOT_SEQUENCE = ["rightStart", "rightMid", "rightFinal", "rightMid", "rightStart", "leftStart", "leftMid", "leftFinal", "leftMid", "leftStart"];
 const EMAIL_NOTIFICATION_SEQUENCE = [0, 1, 2, 1];
 const SIGNATURE_WRITE_SEQUENCE = [2, 3, 4, 3];
 const SCANNER_SCAN_SEQUENCE = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1];
@@ -463,6 +715,22 @@ const sprites = {
     body: loadSprite("assets/sprites/player1-idle-left-body.png"),
     foot: loadSprite("assets/sprites/player1-idle-left-foot.png"),
   },
+  player1HoldPaper: {
+    bodies: {
+      normal: loadSprite("assets/sprites/player1-hold-paper-body.png"),
+      signed: loadSprite("assets/sprites/player1-hold-paper-body-signed.png"),
+      stamped: loadSprite("assets/sprites/player1-hold-paper-body-stamped.png"),
+    },
+    feet: {
+      idle: loadSprite("assets/sprites/player1-hold-paper-foot-idle.png"),
+      rightStart: loadSprite("assets/sprites/player1-hold-paper-foot-right-start.png"),
+      rightMid: loadSprite("assets/sprites/player1-hold-paper-foot-right-mid.png"),
+      rightFinal: loadSprite("assets/sprites/player1-hold-paper-foot-right-final.png"),
+      leftStart: loadSprite("assets/sprites/player1-hold-paper-foot-left-start.png"),
+      leftMid: loadSprite("assets/sprites/player1-hold-paper-foot-left-mid.png"),
+      leftFinal: loadSprite("assets/sprites/player1-hold-paper-foot-left-final.png"),
+    },
+  },
   player1WalkLeftLayers: PLAYER1_WALK_LEFT_SEQUENCE.map((frame) => ({
     body: loadSprite(`assets/sprites/player1-walk-left-body-${frame}.png`),
     foot: loadSprite(`assets/sprites/player1-walk-left-foot-${frame}.png`),
@@ -583,20 +851,21 @@ function createCounters() {
     decor: null,
     decorPhase: 0,
   }));
-  const decorCandidates = shuffle(
-    counters.filter((counter) => counter.group === "middle" && !counter.stationId),
-  );
-  const cradleCounter = decorCandidates[0];
+  // Keep the Newton cradle on the top perimeter instead of the center island.
+  const cradleCounter = counters.find((counter) => counter.x === TILE * 3 && counter.y === 0);
   if (cradleCounter) {
     cradleCounter.decor = "newtonCradle";
     cradleCounter.decorPhase = Math.floor(Math.random() * NEWTON_CRADLE_SEQUENCE.length);
   }
-  const coffeeCounter = decorCandidates[1];
+  const decorCandidates = shuffle(
+    counters.filter((counter) => counter.group === "middle" && !counter.stationId),
+  );
+  const coffeeCounter = decorCandidates[0];
   if (coffeeCounter) {
     coffeeCounter.decor = "hotCoffee";
     coffeeCounter.decorPhase = Math.floor(Math.random() * HOT_COFFEE_SEQUENCE.length);
   }
-  const aquariumCounter = decorCandidates[2];
+  const aquariumCounter = decorCandidates[1];
   if (aquariumCounter) {
     aquariumCounter.decor = "miniAquarium";
     aquariumCounter.decorPhase = Math.floor(Math.random() * MINI_AQUARIUM_SEQUENCE.length);
@@ -606,7 +875,7 @@ function createCounters() {
 }
 
 function freshGame() {
-  const deck = buildEmailDeck();
+  const deck = shuffle([...emails]);
   return {
     mode: "playing",
     timeLeft: SESSION_LENGTH,
@@ -630,7 +899,7 @@ function freshGame() {
         y: TILE * 2,
         r: world(22),
         hitbox: { w: world(44), h: world(40), offsetY: world(-18) },
-        speed: world(220),
+        speed: PLAYER_SPEED,
         color: "#2368a2",
         direction: "down",
         visualDirection: "down",
@@ -644,7 +913,7 @@ function freshGame() {
         y: TILE * 5 + TILE / 2,
         r: world(22),
         hitbox: { w: world(54), h: world(42), offsetY: world(-10) },
-        speed: world(220),
+        speed: PLAYER_SPEED,
         color: "#d66b22",
         direction: "down",
         visualDirection: "down",
@@ -660,15 +929,6 @@ function freshGame() {
       legitDiscarded: 0,
     },
   };
-}
-
-function buildEmailDeck() {
-  const firstEmail = emails.find((email) => email.id === FIRST_EMAIL_ID);
-  const remainingEmails = shuffle(
-    emails.filter((email) => email.id !== FIRST_EMAIL_ID),
-  );
-  if (firstEmail) remainingEmails.push(firstEmail);
-  return remainingEmails;
 }
 
 function shuffle(values) {
@@ -775,7 +1035,7 @@ function startGame() {
   ui.gameScreen.classList.remove("hidden");
   ui.emailModal.classList.add("hidden");
   fitCanvasToViewport();
-  requestGameFullscreen();
+  if (!onlineCode) requestGameFullscreen();
   lastFrame = performance.now();
   requestAnimationFrame(loop);
 }
@@ -796,7 +1056,15 @@ function loop(now) {
   lastFrame = now;
 
   if (game && game.mode === "playing") {
-    update(dt);
+    if (onlineCode && onlineRole === "guest") {
+      game.timeLeft = Math.max(0, game.timeLeft - dt);
+    } else {
+      update(dt);
+      if (onlineCode && onlineRole === "host" && game.mode === "playing" && now - onlineSnapshotAt >= 100) {
+        onlineSnapshotAt = now;
+        sendOnline({ type: "snapshot", state: onlineGameState() });
+      }
+    }
     draw();
     requestAnimationFrame(loop);
   }
@@ -832,9 +1100,7 @@ function updateEmailArrival(dt) {
         points: 0,
       });
     }
-    game.nextEmailIn =
-      EMAIL_ARRIVAL_MIN_SECONDS +
-      Math.random() * (EMAIL_ARRIVAL_MAX_SECONDS - EMAIL_ARRIVAL_MIN_SECONDS);
+    game.nextEmailIn = EMAIL_ARRIVAL_MIN + Math.random() * EMAIL_ARRIVAL_VARIATION;
   }
 }
 
@@ -845,13 +1111,16 @@ function updatePlayers(dt) {
   ];
 
   game.players.forEach((player, index) => {
-    const input = bindings[index];
+    const input = onlineCode && index === 1
+      ? { up: "w", down: "s", left: "a", right: "d" }
+      : bindings[index];
+    const pressed = onlineCode && index === 1 ? remoteKeys : keys;
     let dx = 0;
     let dy = 0;
-    if (keys.has(input.up)) dy -= 1;
-    if (keys.has(input.down)) dy += 1;
-    if (keys.has(input.left)) dx -= 1;
-    if (keys.has(input.right)) dx += 1;
+    if (pressed.has(input.up)) dy -= 1;
+    if (pressed.has(input.down)) dy += 1;
+    if (pressed.has(input.left)) dx -= 1;
+    if (pressed.has(input.right)) dx += 1;
 
     const wantsToMove = dx !== 0 || dy !== 0;
     player.moving = false;
@@ -987,9 +1256,14 @@ function completeStationProcess(station) {
   }
 
   const nextStep = task.flow[task.stepIndex];
-  if (station.id === "scanner" && nextStep === "computer") {
-    game.stations.computer.queue.push(task.id);
-    task.status = "Arquivo digital no computador";
+  // Digital files reach the computer after scanning; computer records can go
+  // straight to the printer queue without creating a carryable paper first.
+  if (
+    (station.id === "scanner" && nextStep === "computer") ||
+    (station.id === "computer" && nextStep === "printer")
+  ) {
+    game.stations[nextStep].queue.push(task.id);
+    task.status = `Aguardando ${FLOW_LABELS[nextStep]}`;
     return;
   }
 
@@ -1023,14 +1297,14 @@ function handleAction(player) {
     return;
   }
 
+  if (pickUpFromFloor(player)) return;
+
+  if (station && pickUpFromStation(player, station)) return;
+  if (counter && pickUpFromCounter(player, counter)) return;
   if (station?.id === "email") {
     openEmail();
     return;
   }
-
-  if (station && pickUpFromStation(player, station)) return;
-  if (counter && pickUpFromCounter(player, counter)) return;
-  if (pickUpFromFloor(player)) return;
   if (station && startQueuedWork(player, station)) return;
 }
 
@@ -1099,7 +1373,6 @@ function canUseCarriedItemAtStation(player, station) {
 
 function canPlaceCarriedItemOnCounter(player, counter) {
   if (!player?.carrying || !counter) return false;
-
   const station = counter.stationId ? game.stations[counter.stationId] : null;
   return counter.stationId !== "email" && !counter.surfaceItem && !station?.processing && !station?.output;
 }
@@ -1116,6 +1389,8 @@ function pickUpFromStation(player, station) {
 
 function pickUpFromCounter(player, counter) {
   if (!counter.surfaceItem) return false;
+  const station = counter.stationId ? game.stations[counter.stationId] : null;
+  if (station?.processing) return false;
   player.carrying = counter.surfaceItem;
   counter.surfaceItem = null;
   const task = game.tasks[player.carrying];
@@ -1124,7 +1399,9 @@ function pickUpFromCounter(player, counter) {
 }
 
 function pickUpFromFloor(player) {
-  const index = game.floorItems.findIndex((item) => distance(player, item) < world(42));
+  const index = game.floorItems.findIndex((item) =>
+    distanceToRect(player, { x: item.x, y: item.y, w: PAPER_SIZE, h: PAPER_SIZE }) < world(42),
+  );
   if (index < 0) return false;
   const [item] = game.floorItems.splice(index, 1);
   player.carrying = item.taskId;
@@ -1134,11 +1411,31 @@ function pickUpFromFloor(player) {
 }
 
 function dropOnFloor(player) {
+  const offsets = [
+    [world(12), world(12)],
+    [-PAPER_SIZE / 2, -PAPER_SIZE / 2],
+    [-PAPER_SIZE - world(8), -PAPER_SIZE / 2],
+    [world(8), -PAPER_SIZE / 2],
+    [-PAPER_SIZE / 2, -PAPER_SIZE - world(8)],
+    [-PAPER_SIZE / 2, world(8)],
+  ];
+  const position = offsets
+    .map(([dx, dy]) => ({ x: player.x + dx, y: player.y + dy }))
+    .find(({ x, y }) => {
+      const paper = { x, y, w: PAPER_SIZE, h: PAPER_SIZE };
+      return (
+        x >= 0 && y >= 0 && x + PAPER_SIZE <= WIDTH && y + PAPER_SIZE <= HEIGHT &&
+        Object.values(game.counters).every((counter) => !rectsOverlap(paper, counter))
+      );
+    });
+  if (!position) return false;
+
   const taskId = player.carrying;
-  game.floorItems.push({ taskId, x: player.x + world(12), y: player.y + world(12) });
+  game.floorItems.push({ taskId, ...position });
   const task = game.tasks[taskId];
   if (task) task.status = "No chao";
   player.carrying = null;
+  return true;
 }
 
 function startQueuedWork(player, station) {
@@ -1257,7 +1554,19 @@ function finishGame() {
   ui.emailModal.classList.add("hidden");
   ui.resultScreen.classList.remove("hidden");
   renderResults();
-  if (activeRunId) {
+  if (onlineCode) {
+    if (onlineRole === "host") {
+      setIntegrationStatus(ui.resultIntegrationStatus, "Validando o resultado da dupla...");
+      sendOnline({
+        type: "complete",
+        durationSeconds: SESSION_LENGTH - game.timeLeft,
+        outcomes: game.appeared.map((email) => ({ id: email.id, outcome: email.outcome })),
+        state: onlineGameState(),
+      });
+    } else {
+      setIntegrationStatus(ui.resultIntegrationStatus, "Resultado da dupla registrado.", "success");
+    }
+  } else if (activeRunId) {
     setIntegrationStatus(ui.resultIntegrationStatus, "Validando o resultado na plataforma...");
     postToPlatform("overlooked:completed", {
       runId: activeRunId,
@@ -1297,7 +1606,8 @@ function renderResults() {
         <h2>${escapeHtml(email.title)}</h2>
         <p><strong>${email.legitimate ? "Legitimo" : "Phishing"}</strong> - ${escapeHtml(email.outcome)} (${email.points > 0 ? "+" : ""}${email.points} pts)</p>
         <p>${escapeHtml(email.subject)}</p>
-        ${mistake || !email.legitimate ? `<ul>${signs}</ul>` : ""}
+        <p class="result-list__evidence-title">Pistas no e-mail</p>
+        <ul>${signs}</ul>
       </article>`;
     })
     .join("");
@@ -1329,6 +1639,14 @@ function postToPlatform(type, payload = {}) {
 }
 
 function requestIntegratedStart() {
+  if (onlineCode) {
+    if (onlineRole === "host" && onlineRoomStatus === "waiting" && onlineGuestConnected) {
+      ui.startButton.disabled = true;
+      setIntegrationStatus(ui.integrationStatus, "Iniciando a partida da dupla...");
+      sendOnline({ type: "start" });
+    }
+    return;
+  }
   requestGameFullscreen();
   if (!isEmbedded) {
     activeRunId = null;
@@ -1343,6 +1661,140 @@ function requestIntegratedStart() {
   setIntegrationStatus(ui.resultIntegrationStatus, "Abrindo uma nova sessão válida...");
   postToPlatform("overlooked:start-request");
 }
+
+function sendOnline(payload) {
+  if (onlineSocket?.readyState === WebSocket.OPEN) {
+    onlineSocket.send(JSON.stringify(payload));
+  }
+}
+
+function onlineGameState() {
+  if (!game) return null;
+  const { timeLeft, score, queue, appeared, currentEmail, readTime,
+    stations, counters, tasks, floorItems, players, stats } = game;
+  return { timeLeft, score, queue, appeared, currentEmail, readTime,
+    stations, counters, tasks, floorItems, players, stats };
+}
+
+function applyOnlineState(state) {
+  if (!game || !state || typeof state !== "object") return;
+  Object.assign(game, state);
+  if (game.currentEmail) {
+    ui.emailSubject.textContent = game.currentEmail.subject;
+    ui.emailSender.textContent = game.currentEmail.sender;
+    ui.emailBody.textContent = game.currentEmail.body;
+    ui.readTimerBar.style.transform = `scaleX(${Math.max(0, game.readTime / READ_LIMIT)})`;
+    ui.emailModal.classList.remove("hidden");
+  } else {
+    ui.emailModal.classList.add("hidden");
+  }
+}
+
+function onlineError(message) {
+  setIntegrationStatus(ui.integrationStatus, message, "error");
+  setIntegrationStatus(ui.resultIntegrationStatus, message, "error");
+  postToPlatform("overlooked:room-error", { message });
+}
+
+function sendGuestInput() {
+  if (onlineRole !== "guest" || !game || game.mode !== "playing") return;
+  sendOnline({ type: "input", keys: ["w", "a", "s", "d"].filter((key) => keys.has(key)) });
+}
+
+function connectOnline() {
+  if (!onlineCode) return;
+  ui.startButton.disabled = true;
+  ui.restartButton.classList.add("hidden");
+  setIntegrationStatus(ui.integrationStatus, "Conectando à sala online...");
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  onlineSocket = new WebSocket(`${protocol}//${window.location.host}/api/arcade/overlooked/room/socket?code=${onlineCode}`);
+  onlineSocket.addEventListener("message", (event) => {
+    let message;
+    try { message = JSON.parse(event.data); } catch { return; }
+    if (message.type === "connected") {
+      onlineRole = message.role;
+      document.getElementById("playerOneLabel").textContent = onlineRole === "host" ? "Jogador 1 · você" : "Jogador 1 · dupla";
+      document.getElementById("playerTwoLabel").textContent = onlineRole === "guest" ? "Jogador 2 · você" : "Jogador 2 · dupla";
+      document.getElementById("playerTwoMovement").textContent = "W A S D";
+      document.getElementById("playerTwoAction").textContent = "E";
+      if (onlineRole === "guest") {
+        ui.startButton.textContent = "Aguardando início";
+        setIntegrationStatus(ui.integrationStatus, "Você é o jogador 2. Aguarde o início da partida.");
+      }
+      return;
+    }
+    if (message.type === "room") {
+      onlineRoomStatus = message.status;
+      onlineGuestConnected = message.guestConnected === true;
+      if (onlineRole === "host" && game?.mode !== "playing") {
+        ui.startButton.disabled = message.status !== "waiting" || !onlineGuestConnected;
+        setIntegrationStatus(ui.integrationStatus, onlineGuestConnected
+          ? "Sua dupla entrou. Inicie a partida quando estiverem prontos."
+          : "Aguardando a outra pessoa entrar...");
+      }
+      if (onlineRole === "host" && !onlineGuestConnected) remoteKeys.clear();
+      postToPlatform("overlooked:room-update", {
+        roomPhase: message.status,
+        roomStatus: message.status === "completed" ? "Partida concluída. Crie outra sala para jogar novamente."
+          : message.status === "abandoned" ? "Partida interrompida. Crie outra sala."
+          : message.status === "playing" && !onlineGuestConnected
+            ? "A conexão da dupla caiu. Ela pode voltar pelo mesmo convite antes do fim."
+          : onlineGuestConnected ? "Dupla conectada." : "Aguardando a dupla...",
+        guestName: message.guestName,
+        guestConnected: onlineGuestConnected,
+      });
+      return;
+    }
+    if (message.type === "started") {
+      startGame();
+      if (onlineRole === "guest") sendGuestInput();
+      return;
+    }
+    if (message.type === "snapshot" && onlineRole === "guest" && game?.mode === "playing") {
+      applyOnlineState(message.state);
+      return;
+    }
+    if (message.type === "input" && onlineRole === "host") {
+      remoteKeys.clear();
+      for (const key of message.keys || []) remoteKeys.add(key);
+      return;
+    }
+    if (message.type === "action" && onlineRole === "host" && game?.mode === "playing") {
+      handleAction(game.players[1]);
+      return;
+    }
+    if (message.type === "decision" && onlineRole === "host" && game?.mode === "playing") {
+      if (message.value === "close") closeEmail();
+      else decideEmail(message.value);
+      return;
+    }
+    if (message.type === "completed") {
+      if (onlineRole === "guest" && game?.mode === "playing") {
+        applyOnlineState(message.state);
+        game.timeLeft = 0;
+        finishGame();
+      }
+      const score = message.result?.rawScore;
+      setIntegrationStatus(ui.resultIntegrationStatus,
+        `Resultado da dupla validado: ${score} pontos.`, "success");
+      postToPlatform("overlooked:online-completed", { result: message.result });
+      return;
+    }
+    if (message.type === "error") {
+      onlineError(message.message || "Não foi possível concluir a partida online.");
+      if (onlineRole === "host" && onlineRoomStatus === "waiting") ui.startButton.disabled = false;
+    }
+  });
+  onlineSocket.addEventListener("close", () => {
+    if (onlineRoomStatus !== "completed") onlineError(onlineRole === "guest"
+      ? "A conexão caiu. Atualize a página para voltar à sala."
+      : "A conexão da sala foi encerrada. Crie uma nova sala para jogar.");
+  });
+  onlineSocket.addEventListener("error", () => onlineError("Não foi possível conectar à sala online."));
+  window.setInterval(sendGuestInput, 500);
+}
+
+connectOnline();
 
 window.addEventListener("message", (event) => {
   if (
@@ -1483,7 +1935,7 @@ function drawCounter(counter) {
     drawStationIcon(counter, station);
   }
 
-  if (!station && !counter.surfaceItem) {
+  if (!station) {
     drawCounterDecoration(counter);
   }
 
@@ -2023,6 +2475,16 @@ function drawPlayerFootLayer(player) {
   const transform = transformForDirection(player.visualDirection);
 
   if (player.id === 1) {
+    if (player.carrying) {
+      const foot = player.moving
+        ? player1HoldPaperWalkFootFrame(player)
+        : sprites.player1HoldPaper.feet.idle;
+      if (foot.complete) {
+        drawPlayerSprite(player, foot, transform);
+      }
+      return;
+    }
+
     const foot = player.moving
       ? player1LayeredWalkFrame(player).foot
       : sprites.player1IdleLeftLayers.foot;
@@ -2053,6 +2515,14 @@ function drawPlayer(player) {
   const transform = transformForDirection(player.visualDirection);
 
   if (player.id === 1) {
+    if (player.carrying) {
+      const body = player1HoldPaperBodyForTask(player.carrying);
+      if (body.complete) {
+        drawPlayerSprite(player, body, transform);
+        return;
+      }
+    }
+
     const body = player.moving
       ? player1LayeredWalkFrame(player).body
       : sprites.player1IdleLeftLayers.body;
@@ -2096,6 +2566,16 @@ function player1LayeredWalkFrame(player) {
   const frames = sprites.player1WalkLeftLayers;
   const frame = Math.floor(player.animTime * 8) % frames.length;
   return frames[frame];
+}
+
+function player1HoldPaperWalkFootFrame(player) {
+  const frame = Math.floor(player.animTime * 8) % PLAYER1_HOLD_PAPER_FOOT_SEQUENCE.length;
+  const key = PLAYER1_HOLD_PAPER_FOOT_SEQUENCE[frame];
+  return sprites.player1HoldPaper.feet[key];
+}
+
+function player1HoldPaperBodyForTask(taskId) {
+  return sprites.player1HoldPaper.bodies[paperStateForTask(taskId)] ?? sprites.player1HoldPaper.bodies.normal;
 }
 
 function player2LayeredWalkFrame(player) {
@@ -2173,6 +2653,18 @@ function drawPaper(x, y, taskId = null) {
   ctx.fillRect(5, 9, 7, 1);
   ctx.fillRect(5, 12, 5, 1);
   ctx.restore();
+}
+
+function roundRect(x, y, w, h, r, color) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
 }
 
 function nearestStation(player, range) {
@@ -2267,6 +2759,18 @@ window.addEventListener("keydown", (event) => {
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", "enter", " "].includes(key)) {
     event.preventDefault();
   }
+  if (onlineCode && onlineRole === "guest") {
+    if (game?.currentEmail) {
+      if (!event.repeat && key === "a") sendOnline({ type: "decision", value: "accept" });
+      if (!event.repeat && key === "r") sendOnline({ type: "decision", value: "report" });
+      if (!event.repeat && key === "escape") sendOnline({ type: "decision", value: "close" });
+    } else if (!event.repeat && key === "e") {
+      sendOnline({ type: "action" });
+    }
+    keys.add(key);
+    if (["w", "a", "s", "d"].includes(key)) sendGuestInput();
+    return;
+  }
   if (game?.currentEmail) {
     if (key === "a") decideEmail("accept");
     if (key === "r") decideEmail("report");
@@ -2275,12 +2779,13 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (key === "e" && !keys.has("e")) handleAction(game?.players[0]);
-  if (key === "enter" && !keys.has("enter")) handleAction(game?.players[1]);
+  if (!onlineCode && key === "enter" && !keys.has("enter")) handleAction(game?.players[1]);
   keys.add(key);
 });
 
 window.addEventListener("keyup", (event) => {
   keys.delete(event.key.toLowerCase());
+  if (onlineCode && onlineRole === "guest") sendGuestInput();
 });
 
 window.addEventListener("resize", fitCanvasToViewport);
@@ -2288,9 +2793,18 @@ document.addEventListener("fullscreenchange", fitCanvasToViewport);
 
 ui.startButton.addEventListener("click", requestIntegratedStart);
 ui.restartButton.addEventListener("click", requestIntegratedStart);
-ui.closeEmailButton.addEventListener("click", closeEmail);
-ui.acceptButton.addEventListener("click", () => decideEmail("accept"));
-ui.reportButton.addEventListener("click", () => decideEmail("report"));
+ui.closeEmailButton.addEventListener("click", () => {
+  if (onlineCode && onlineRole === "guest") sendOnline({ type: "decision", value: "close" });
+  else closeEmail();
+});
+ui.acceptButton.addEventListener("click", () => {
+  if (onlineCode && onlineRole === "guest") sendOnline({ type: "decision", value: "accept" });
+  else decideEmail("accept");
+});
+ui.reportButton.addEventListener("click", () => {
+  if (onlineCode && onlineRole === "guest") sendOnline({ type: "decision", value: "report" });
+  else decideEmail("report");
+});
 
 fitCanvasToViewport();
 postToPlatform("overlooked:ready");

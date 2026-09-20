@@ -13748,6 +13748,92 @@ footer span {
   box-shadow: none;
 }
 
+.office-mode-picker {
+  display: inline-flex;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding: 5px;
+  border: 1px solid #cedfce;
+  border-radius: 15px;
+  background: #f5f8ee;
+}
+
+.office-mode-picker button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 10px;
+  color: #345448;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.office-mode-picker button.is-active {
+  color: #f7ffe8;
+  background: #185441;
+  box-shadow: 0 3px 0 #0b382b;
+}
+
+.office-room-lobby {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  margin-bottom: 14px;
+  padding: 19px 22px;
+  border: 1px solid #cbdcca;
+  border-radius: 18px;
+  background: #f7faef;
+}
+
+.office-room-lobby > div:first-child { min-width: 220px; }
+.office-room-lobby span { display: block; color: #527462; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+.office-room-lobby strong { display: block; margin-top: 3px; color: #173c2e; font-size: 21px; font-weight: 950; letter-spacing: .04em; }
+.office-room-lobby p { margin: 4px 0 0; color: #496455; font-size: 12px; }
+.office-room-lobby button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 10px;
+  color: #143d2c;
+  background: #b8ef3a;
+  box-shadow: 0 4px 0 #37713b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+}
+.office-room-lobby button:active { transform: translateY(3px); box-shadow: 0 1px 0 #37713b; }
+.office-room-lobby button:disabled { cursor: not-allowed; opacity: .55; }
+.office-room-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.office-room-actions input {
+  width: 105px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #9ab59d;
+  border-radius: 9px;
+  color: #173c2e;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.office-room-lobby .office-room-status { flex-basis: 100%; margin: 0; font-weight: 750; }
+
 .arcade-game-room .arcade-player-frame-shell {
   margin-top: 0;
   overflow: hidden;

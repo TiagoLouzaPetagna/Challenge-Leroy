@@ -1,0 +1,8 @@
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#191e1b}main{width:100%;height:100%}header,footer,.target,.box-tag,#toast,#overlay{display:none!important}#stage{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}#game{display:block;width:100%;height:100%;touch-action:none;outline:none}
+#allowed{position:fixed;right:24px;top:94px;z-index:5;width:234px;height:189px;padding:24px 33px 42px 29px;display:flex;flex-direction:column;align-items:center;gap:13px;background:url('assets/permission-terminal.svg') center/100% 100% no-repeat;pointer-events:none;transform:rotate(2deg);color:#24291a}
+#allowed small{font:bold 13px 'Courier New',monospace;letter-spacing:1.5px;line-height:15px;text-shadow:1px 1px #eddfa366}
+#allowed-list{width:100%;height:83px;display:flex;justify-content:center;align-items:center;gap:13px}
+.allowed-item{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
+.allowed-item img{display:block;width:64px;height:64px;image-rendering:pixelated;filter:sepia(.5) saturate(1.8) drop-shadow(0 0 3px #afc85070)}
+.allowed-item span{font:bold 10px 'Courier New',monospace;letter-spacing:.4px;color:#d0d88e;line-height:12px}
+@media(max-height:650px){#allowed{width:208px;height:168px;padding:20px 29px 34px 25px;gap:8px}.allowed-item img{width:55px;height:55px}}

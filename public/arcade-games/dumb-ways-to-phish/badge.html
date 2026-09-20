@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#4075CC"><meta name="description" content="Confira o crachá antes de liberar a entrada."><title>Crachá falso — Dumb Ways to Phish</title><link rel="icon" href="assets/ui/brand-mark.svg" type="image/svg+xml"><script src="campaign-entry.js"></script><link rel="stylesheet" href="base.css"><link rel="stylesheet" href="shell.css"><link rel="stylesheet" href="badge.css"></head>
+<body class="badge-scene">
+<main class="arcade">
+ <section class="game-shell" id="game" aria-label="Dumb Ways to Phish">
+  <header class="game-hud" id="game-hud" aria-label="Estado da partida">
+   <div class="hud-score"><span>PONTOS</span><strong id="score">0</strong></div>
+   <div class="lives" id="lives" role="img" aria-label="3 vidas"><b><img src="assets/ui/shield-full.svg" alt=""></b><b><img src="assets/ui/shield-full.svg" alt=""></b><b><img src="assets/ui/shield-full.svg" alt=""></b></div>
+   <button id="pause-button" class="pause-control" type="button" aria-label="Pausar jogo" disabled><img src="assets/ui/pause.svg" alt=""></button>
+  </header>
+
+  <div class="stage-wrap">
+   <div class="checkpoint" id="checkpoint">
+    <img class="scene-background" src="assets/badge/v4/scene-background.png" alt="">
+    <img id="door-sprite" class="door" src="assets/badge/v4/door.png" alt="Porta da portaria">
+    <img id="visitor-sprite" class="actor visitor" src="assets/badge/v4/visitor-01/present.png" alt="Visitante apresentando um crachá">
+    <img id="guard-sprite" class="actor guard" src="assets/badge/v4/guard/inspect.png" alt="Segurança da portaria">
+    <img id="alarm-sprite" class="alarm" src="assets/badge/v4/alarm-active.png" alt="">
+    <img class="counter" src="assets/badge/v4/counter.png" alt="">
+
+    <section id="record-card" class="record-card" aria-label="Cadastro do visitante">
+     <img class="record-panel-art" src="assets/badge/v4/record-monitor.png" alt="">
+     <img id="record-photo" class="record-photo" alt="Foto cadastrada">
+     <dl><div><dt>NOME</dt><dd id="record-name"></dd></div><div><dt>MATRÍCULA</dt><dd id="record-id"></dd></div><div><dt>SETOR</dt><dd id="record-department"></dd></div></dl>
+    </section>
+
+    <section id="presented-badge" class="presented-badge" role="group" tabindex="0" aria-roledescription="crachá arrastável" aria-label="Crachá apresentado. Arraste para a esquerda para barrar ou para a direita para liberar.">
+     <img class="badge-art" src="assets/badge/v4/badge-front.png" alt="">
+     <img id="badge-photo" class="badge-photo" alt="Foto do crachá">
+     <div class="badge-data">
+      <span class="badge-field"><small>NOME</small><strong id="badge-name"></strong></span>
+      <span class="badge-field"><small>MATRÍCULA</small><strong id="badge-id"></strong></span>
+      <span class="badge-field"><small>SETOR</small><strong id="badge-department"></strong></span>
+     </div>
+    </section>
+
+    <p id="command" class="stage-message command" aria-label="Confira!"><span class="command-letter" aria-hidden="true">C</span><span class="command-letter" aria-hidden="true">O</span><span class="command-letter" aria-hidden="true">N</span><span class="command-letter" aria-hidden="true">F</span><span class="command-letter" aria-hidden="true">I</span><span class="command-letter" aria-hidden="true">R</span><span class="command-letter" aria-hidden="true">A</span><span class="command-letter" aria-hidden="true">!</span></p>
+
+   </div>
+  </div>
+
+  <section id="start-overlay" class="shell-screen home-screen" aria-labelledby="home-title">
+   <div class="home-content"><img class="brand-mark" src="assets/ui/brand-mark.svg" alt="" draggable="false"><h1 id="home-title">Dumb Ways<br>to Phish<span class="phase-name">Crachá falso</span></h1>
+    <nav class="text-menu" aria-label="Menu principal"><button id="start-button" type="button" class="menu-item current">Jogar</button><button id="other-game" type="button" class="menu-item">Escolher jogo</button><button id="help-button" type="button" class="menu-item">Como jogar</button><button id="home-options" type="button" class="menu-item">Opções</button></nav>
+   </div>
+  </section>
+  <section id="pause-overlay" class="shell-screen pause-screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="screen-content"><h2 id="pause-title">Pausa</h2><nav class="text-menu" aria-label="Menu de pausa"><button id="resume-button" type="button" class="menu-item current">Continuar</button><button id="pause-options" type="button" class="menu-item">Opções</button><button id="exit-button" type="button" class="menu-item">Voltar ao menu</button></nav></div></section>
+  <section id="options-overlay" class="shell-screen home-screen" role="dialog" aria-modal="true" aria-labelledby="options-title" hidden><div class="screen-content"><h2 id="options-title">Opções</h2><div class="text-menu"><button id="sound-button" type="button" class="menu-item" aria-pressed="false">Som <span id="sound-state">desligado</span></button><button id="motion-button" type="button" class="menu-item" aria-pressed="false">Reduzir movimentos <span id="motion-state">não</span></button><button id="options-back" type="button" class="menu-item">Voltar</button></div></div></section>
+  <section id="help-overlay" class="shell-screen home-screen" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden><div class="screen-content help-content"><h2 id="help-title">Crachá falso</h2><p>Compare o crachá com o cadastro no monitor. Confira foto, nome, matrícula e setor.</p><p>Arraste o crachá para a direita quando tudo conferir. Se qualquer detalhe estiver diferente, arraste para a esquerda.</p><p>Cada decisão certa soma pontos. Um erro ou o fim do tempo custa um escudo. As rodadas continuam e o tempo diminui.</p><p class="keyboard-help"><strong>Teclado</strong><br>Seta esquerda ou A barra. Seta direita ou D libera. P ou Esc pausa.</p><div class="text-menu"><button id="help-back" type="button" class="menu-item">Voltar</button></div></div></section>
+  <section id="exit-overlay" class="shell-screen pause-screen" role="dialog" aria-modal="true" aria-labelledby="exit-title" hidden><div class="screen-content"><h2 id="exit-title">Sair da partida?</h2><p>O recorde fica salvo. Esta partida será encerrada.</p><nav class="text-menu" aria-label="Confirmar saída"><button id="exit-cancel" type="button" class="menu-item current">Continuar partida</button><button id="exit-confirm" type="button" class="menu-item">Voltar ao menu</button></nav></div></section>
+  <section id="gameover-overlay" class="shell-screen home-screen" role="dialog" aria-modal="true" aria-labelledby="end-title" hidden><div class="screen-content result-content"><span id="end-eyebrow" class="eyebrow">FIM DE JOGO</span><h2 id="end-title">Fim de jogo</h2><div class="result-score"><strong id="end-score">0</strong><span>pontos</span></div><p id="end-summary"></p><p class="record">Recorde <strong id="best">0</strong></p><nav class="text-menu" aria-label="Resultado"><button id="replay-button" type="button" class="menu-item current">Tentar de novo</button><button id="result-home" type="button" class="menu-item">Voltar ao menu</button></nav></div></section>
+  <section id="load-error" class="shell-screen home-screen" role="alertdialog" aria-modal="true" aria-labelledby="load-title" hidden><div class="screen-content"><h2 id="load-title">Não carregou.</h2><p>Uma imagem da fase não abriu. Tente novamente.</p><div class="text-menu"><button id="reload-button" type="button" class="menu-item">Tentar novamente</button></div></div></section>
+ </section>
+ <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+ <noscript>Ative o JavaScript para jogar.</noscript>
+</main>
+<script type="module" src="badge.js"></script>
+</body></html>
+

@@ -1,5 +1,6 @@
 import { createDemoState as createSeedState } from "../content/demo-seed";
 import { findLearningPathStepByActivityId } from "../content/curriculum-catalog";
+import { RADAR_ARTICLES } from "../content/radar-catalog";
 import { grantEarnedAchievements } from "../domain/achievements";
 import {
   createBankChangeCompetencyEvidence,
@@ -56,7 +57,7 @@ import {
   SIMULATION_ACTIVITY_ID,
   SIMULATION_REWARD_CLAIM,
   SIMULATION_TEAM_CLAIM,
-  RADAR_REWARD_CLAIM,
+  radarRewardClaimKey,
   TEAM_CHALLENGE_AGGREGATE_CLAIM,
   TEAM_CHALLENGE_REWARD_CLAIM,
 } from "../domain/rules";
@@ -1810,8 +1811,10 @@ function completeRadar(
   const evaluatedResult = evaluateRadar(submission);
   if (!evaluatedResult.correct) return state;
 
+  const rewardClaimKey = radarRewardClaimKey(submission.activityId);
+  const article = RADAR_ARTICLES.find((item) => item.id === submission.activityId);
   const alreadyRewarded = Boolean(
-    state.learning.rewardClaims[RADAR_REWARD_CLAIM],
+    state.learning.rewardClaims[rewardClaimKey],
   );
   const previousProgress = state.learning.activityProgress[submission.activityId];
 
@@ -1825,14 +1828,14 @@ function completeRadar(
     result: evaluatedResult,
   };
   const rewardClaim: RewardClaim = {
-    claimKey: RADAR_REWARD_CLAIM,
+    claimKey: rewardClaimKey,
     sourceId: submission.activityId,
     points: evaluatedResult.points,
     claimedAt: submission.completedAt,
   };
   const pointEntry: PointEntry = {
-    id: `points:${RADAR_REWARD_CLAIM}`,
-    claimKey: RADAR_REWARD_CLAIM,
+    id: `points:${rewardClaimKey}`,
+    claimKey: rewardClaimKey,
     sourceId: submission.activityId,
     category: "radar",
     points: evaluatedResult.points,
@@ -1868,7 +1871,7 @@ function completeRadar(
         ? state.learning.rewardClaims
         : {
             ...state.learning.rewardClaims,
-            [RADAR_REWARD_CLAIM]: rewardClaim,
+            [rewardClaimKey]: rewardClaim,
           },
       pointLedger: alreadyRewarded
         ? state.learning.pointLedger
@@ -1883,13 +1886,13 @@ function completeRadar(
           id: `history:${submission.attemptId}`,
           kind: "activityCompleted",
           sourceId: submission.activityId,
-          title: "Radar: Quishing concluído",
+          title: `Radar: ${article?.title ?? submission.activityId} concluído`,
           createdAt: submission.completedAt,
         },
         ...(!alreadyRewarded
           ? [
               {
-                id: `history:reward:${RADAR_REWARD_CLAIM}`,
+                id: `history:reward:${rewardClaimKey}`,
                 kind: "rewardGranted" as const,
                 sourceId: submission.activityId,
                 title: `${evaluatedResult.points} pontos do Radar concedidos`,

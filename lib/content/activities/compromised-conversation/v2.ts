@@ -119,27 +119,27 @@ const TRANSFER_DECISIONS = [
 const COMMON_REPORT_OPTIONS = [
   {
     id: "sender-and-time",
-    label: "Remetente aparente, canal e horário da solicitação",
+    label: "Quem pediu, por onde e a que horas",
   },
   {
     id: "observed-change",
-    label: "Mudança observada no pedido ou no processo",
+    label: "O que mudou no pedido",
   },
   {
     id: "verification-result",
-    label: "Rota usada para confirmar e resposta obtida",
+    label: "Como você conferiu e o que ouviu",
   },
   {
     id: "preserved-context",
-    label: "Referência ao contexto preservado da conversa",
+    label: "O histórico da conversa, guardado",
   },
   {
     id: "password-or-code",
-    label: "Senha, código ou segredo usado na conta",
+    label: "Sua senha ou código de acesso",
   },
   {
     id: "forward-to-team",
-    label: "Encaminhamento integral da mensagem para toda a equipe",
+    label: "A conversa inteira repassada para todo mundo",
   },
 ] as const satisfies readonly {
   id: ConversationReportDetailId;
@@ -149,23 +149,23 @@ const COMMON_REPORT_OPTIONS = [
 const COMMON_ACTION_OPTIONS = [
   {
     id: "pause-confirm-report",
-    label: "Manter a pausa e reportar pelo canal oficial",
-    detail: "Preservar o contexto e registrar a confirmação obtida sem acusar o titular da conta.",
+    label: "Não enviar e avisar a segurança",
+    detail: "Guardar a conversa e contar o que você conferiu, sem acusar a Marina.",
   },
   {
     id: "pause-confirm-normal-process",
-    label: "Confirmar e seguir somente pelo processo normal",
-    detail: "Retomar a solicitação apenas depois da confirmação e do registro exigido pelo fluxo comum.",
+    label: "Seguir só depois que entrar no portal",
+    detail: "Continuar a entrega apenas quando a mudança estiver registrada do jeito de sempre.",
   },
   {
     id: "refuse-check-official",
-    label: "Recusar o pedido e consultar a área oficial",
-    detail: "Não fornecer dados e reabrir o caso pelo sistema conhecido.",
+    label: "Recusar e abrir um chamado",
+    detail: "Não passar nada e levar o caso pelo sistema que você já conhece.",
   },
   {
     id: "continue-request",
-    label: "Atender o pedido pela conversa atual",
-    detail: "Usar a continuidade da conversa como autorização suficiente.",
+    label: "Fazer o que ele pediu, ali mesmo",
+    detail: "Tratar a conversa antiga como se fosse autorização.",
   },
 ] as const satisfies readonly {
   id: ConversationFinalActionId;
@@ -192,11 +192,11 @@ export const COMPROMISED_CONVERSATION_V2_PACKAGES = [
     content: {
       pathId: "p1-new-destination",
       pathLabel: "O novo destino",
-      summary: "Uma entrega rotineira muda de endereço dentro de uma conversa conhecida.",
-      role: "Você acompanha uma entrega da Lumen Suprimentos para a Casa Digital.",
+      summary: "Uma entrega de sempre muda de endereço no meio de uma conversa conhecida.",
+      role: "Você cuida de uma entrega da Lumen Suprimentos.",
       caseTitle: "Entrega 4821 · confirmação final",
       caseContext:
-        "As mensagens foram recuperadas fora de ordem. Reconstrua o que aconteceu antes de decidir sobre a alteração.",
+        "As mensagens chegaram embaralhadas. Coloque na ordem antes de decidir.",
       messages: [
         {
           id: "p1-order-opened",
@@ -252,43 +252,43 @@ export const COMPROMISED_CONVERSATION_V2_PACKAGES = [
       evidence: [
         {
           id: "p1-known-account",
-          title: "Conta conhecida",
-          source: "Cabeçalho da conversa",
-          detail: "O endereço é o mesmo usado nas mensagens anteriores.",
+          title: "É a conta de sempre",
+          source: "Topo da conversa",
+          detail: "O e-mail da Marina é o mesmo das mensagens anteriores.",
         },
         {
           id: "p1-registered-address",
-          title: "Destino cadastrado",
+          title: "O portal não mudou nada",
           source: "Pedido 4821",
-          detail: "O pedido ainda registra o endereço original e não contém alteração aprovada.",
+          detail: "No sistema, o endereço continua o antigo. Ninguém aprovou a troca.",
         },
         {
           id: "p1-process-change",
-          title: "Mudança de processo",
-          source: "Linha reconstruída",
-          detail: "A confirmação saiu do portal e passou a ser exigida dentro da conversa.",
+          title: "O caminho mudou",
+          source: "A conversa",
+          detail: "Antes tudo passava pelo portal. Agora querem resolver na conversa.",
         },
         {
           id: "p1-urgency",
-          title: "Pressão temporal",
-          source: "Última solicitação",
-          detail: "O prazo de 15 minutos reduz o tempo para confirmar.",
+          title: "Pressa demais",
+          source: "Última mensagem",
+          detail: "Quinze minutos é pouco tempo para conferir qualquer coisa.",
         },
         {
           id: "p1-compromise-hypothesis",
-          title: "Conta possivelmente comprometida",
-          source: "Hipótese de investigação",
-          detail: "A conta pode estar sob outro controle, mas a interface não comprova isso.",
+          title: "Alguém invadiu a conta dela",
+          source: "O que você imagina",
+          detail: "Pode ser. Mas nada na tela prova isso.",
         },
       ],
       consequence: {
-        title: "O contato cadastrado nega a mudança",
-        body: "Marina confirma pelo telefone do diretório fictício que não pediu outro destino e solicita o reporte da conversa.",
-        sourceLabel: "Confirmação pelo contato previamente cadastrado",
+        title: "A Marina diz que não pediu nada disso",
+        body: "Você ligou para o telefone que já estava salvo. A Marina atendeu e disse que não pediu troca de endereço nenhuma. E pediu que você avise a segurança.",
+        sourceLabel: "Ligação para o contato que já estava salvo",
       },
       transfer: {
-        title: "A mesma ruptura em outro canal",
-        context: "No chat corporativo fictício, uma conta conhecida pede que o material seja enviado a um novo local.",
+        title: "Agora a mesma coisa, mas no chat",
+        context: "Outro dia, no chat da empresa. Uma conta conhecida pede para mandar o material para um lugar novo.",
         message: "Mudamos o depósito agora. Responda por aqui e eu atualizo o sistema depois.",
       },
       finalActionOptions: COMMON_ACTION_OPTIONS,
@@ -347,8 +347,8 @@ export const COMPROMISED_CONVERSATION_V2_PACKAGES = [
     },
     criticalControlIds: ["turning-point", "independent-route", "safe-action", "safe-report"],
     feedback: {
-      success: "Você tratou a mudança como um novo pedido e confirmou fora da conversa.",
-      review: "O histórico explica a confiança, mas não autoriza uma mudança de processo.",
+      success: "Você tratou a mudança como um pedido novo e foi conferir por fora.",
+      review: "Conversa antiga explica a confiança. Mas não autoriza mudar o combinado.",
     },
     debrief: {
       title: "Conta correta não significa controle comprovado",

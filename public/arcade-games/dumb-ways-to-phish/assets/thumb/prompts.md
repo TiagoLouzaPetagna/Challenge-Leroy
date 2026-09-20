@@ -1,0 +1,15 @@
+# Assets — Dedão apressado
+
+Modo: ferramenta integrada image_gen, não CLI. Imagem de referência para as três chamadas: concept.png (arte de lápis aprovada pelo usuário). Originais preservados em C:/Users/Hayom/.codex/generated_images/01a096d1-69c0-7413-868d-932de705a213/.
+
+## phone.png — exec-20e52526-6f30-476c-b678-ef9943c81397.png
+
+Edit target: approved microgame scene. Production clean background plate for animating its hand separately. Preserve exact 1672x941 landscape composition and positions, same smartphone outline and colored pencil blue body. REMOVE the entire hand and all its motion marks, reconstruct the small phone part it overlaps, leaving pure white outside phone. REMOVE all text everywhere including top title and screen message and button label, leave screen empty white. KEEP the coral colored-pencil button rectangle in same position and size, without letters. Keep smartphone at EXACT original coordinates, same scale, same outline and all body details. No new objects, no additional hand, no frame, no typography, no shadows. Thin irregular partially broken black outlines and light colored-pencil texture remain exactly like reference. This is a clean plate for the approved scene, not a redesign.
+
+## hand.png — exec-bbcb2edb-d15f-401a-adc1-16e12af636e7.png
+
+Production sprite extraction. Isolate ONLY the existing huge hand and wrist from the reference, preserving its identical pose, shape, white/pale peach colored-pencil fills, pale pink thumbnail, fine partly broken black ink outline and sparse creases. Thumb extends to LEFT, four curled fingers at upper right, wrist extends downward-right. No new hand pose. Remove everything else: phone, all lettering, button, background, motion ticks. GENUINELY TRANSPARENT background with alpha. Keep hand interior opaque including all near-white pencil texture; only exterior is transparent. Frame this single hand closely with small transparent padding around top/left/right and extend wrist naturally down to bottom frame edge. Landscape image. No labels, no shadows, no decorations, no checkerboard painted into image.
+
+## mouth.png — exec-c94f221b-8021-4f6b-b002-c30684caeea8.png
+
+Create one small game reaction sprite matching the reference's fine imperfect black outlines and coral colored-pencil texture. A funny rectangular coral smartphone button has transformed into an open mouth, viewed straight on: wide horizontal rounded rectangle lips with coral colored-pencil scribbling, dark graphite colored-pencil interior, four irregular off-white square teeth along top and three along bottom, comical and absurd rather than scary. Simple economical sparse ink drawing. No eyes, no face, no words, no phone, no hand. Only this single open rectangular mouth sprite centered with a little padding, aspect ratio around 3:1 for the mouth. GENUINELY TRANSPARENT background with alpha, no background checkerboard painted into image. Flat 2D, no shading or realistic gums, no glossy highlights. Will replace the existing coral button during a brief bite animation.

@@ -92,6 +92,29 @@ const AUTH_SCHEMA_STATEMENTS = [
   "CREATE INDEX IF NOT EXISTS idx_arcade_runs_account_game_status ON arcade_runs(account_id, game_id, status)",
   "CREATE INDEX IF NOT EXISTS idx_arcade_runs_game_score ON arcade_runs(game_id, status, raw_score)",
   "CREATE INDEX IF NOT EXISTS idx_arcade_runs_expires_at ON arcade_runs(expires_at)",
+  `CREATE TABLE IF NOT EXISTS arcade_run_extensions (
+    run_id TEXT PRIMARY KEY NOT NULL REFERENCES arcade_runs(id) ON DELETE CASCADE,
+    actual_score INTEGER NOT NULL,
+    result_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS arcade_duo_matches (
+    id TEXT PRIMARY KEY NOT NULL,
+    host_run_id TEXT NOT NULL UNIQUE REFERENCES arcade_runs(id) ON DELETE CASCADE,
+    guest_run_id TEXT NOT NULL UNIQUE REFERENCES arcade_runs(id) ON DELETE CASCADE
+  )`,
+  "CREATE INDEX IF NOT EXISTS idx_arcade_duo_matches_guest_run ON arcade_duo_matches(guest_run_id)",
+  `CREATE TABLE IF NOT EXISTS arcade_game_results (
+    id TEXT PRIMARY KEY NOT NULL,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    game_id TEXT NOT NULL,
+    track_id TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL CHECK (status IN ('started', 'completed')),
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    score INTEGER CHECK (score IS NULL OR score BETWEEN 0 AND 1000000)
+  )`,
+  "CREATE INDEX IF NOT EXISTS idx_arcade_game_results_ranking ON arcade_game_results(game_id, track_id, status, score)",
+  "CREATE INDEX IF NOT EXISTS idx_arcade_game_results_account ON arcade_game_results(account_id, game_id, status)",
   "PRAGMA optimize",
 ] as const;
 

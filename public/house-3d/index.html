@@ -29,13 +29,23 @@
       <button id="walls" class="wall-toggle" aria-label="Paredes automáticas" title="Paredes automáticas · clique para alternar" disabled><span data-icon="wall"></span><span id="wall-mode-label">Auto</span></button>
       <div class="zoom-panel" aria-label="Câmera"><button id="zoom-out" class="icon-button" aria-label="Diminuir zoom" disabled data-icon="minus"></button><output id="zoom-value">100%</output><button id="zoom-in" class="icon-button" aria-label="Aumentar zoom" disabled data-icon="plus"></button><span class="divider"></span><button id="reset" class="icon-button" aria-label="Centralizar a casa" title="Centralizar a casa" disabled data-icon="focus"></button></div>
     </div>
-    <section class="collection edit-only" id="collection" aria-label="Minha coleção">
-      <div class="collection-header"><div><span class="eyebrow">CADA COISA, UM LUGAR</span><h2>Minha coleção <span id="collection-count">9</span></h2></div><div class="categories" aria-label="Categorias da coleção"><button data-category="all" aria-pressed="true">Tudo</button><button data-category="furniture" aria-pressed="false">Móveis</button><button data-category="decoration" aria-pressed="false">Objetos</button><button data-category="achievement" aria-pressed="false">Conquistas</button></div><button id="close-collection" class="icon-button" aria-label="Recolher coleção" data-icon="down"></button></div>
-
-      <div id="collection-content"><div class="items" id="items"></div><div class="collection-footer"><span>Arraste para decorar · clique para escolher</span><span id="placed-count"></span></div></div>
+    <section class="collection edit-only" id="collection" aria-label="Catálogo de decoração">
+      <div class="collection-header"><div><span class="eyebrow">DECORE DO SEU JEITO</span><h2>Catálogo da casa <span id="collection-count">9</span></h2></div><button id="close-collection" class="icon-button" aria-label="Recolher catálogo" data-icon="down"></button></div>
+      <div id="collection-content">
+        <div class="collection-controls">
+          <div class="collection-scopes" aria-label="Itens disponíveis ou colocados"><button type="button" data-scope="available" aria-pressed="true">Para colocar <span data-scope-count="available"></span></button><button type="button" data-scope="placed" aria-pressed="false">Na casa <span data-scope-count="placed"></span></button><button type="button" data-scope="all" aria-pressed="false">Todos</button></div>
+          <label class="collection-search"><span>Buscar item</span><input id="collection-search" type="search" placeholder="Nome do item" autocomplete="off"></label>
+          <div class="categories" aria-label="Tipo de item"><button data-category="all" aria-pressed="true">Todos os tipos</button><button data-category="furniture" aria-pressed="false">Móveis</button><button data-category="decoration" aria-pressed="false">Objetos</button><button data-category="achievement" aria-pressed="false">Conquistas</button></div>
+          <label class="collection-style"><span>Estilo</span><select id="collection-style"><option value="all">Todos</option><option value="essential">Essenciais</option><option value="neutral">Neutro</option><option value="industrial">Industrial</option><option value="industrial-loft">Industrial Loft</option><option value="cyberpunk">Cyberpunk</option><option value="japanese">Japonês</option></select></label>
+        </div>
+        <div class="collection-results" role="status"><strong id="collection-result-count">0 itens</strong><span id="collection-result-label">para colocar</span></div>
+        <div class="items" id="items"></div>
+        <p class="collection-empty" id="collection-empty" hidden>Nenhum item encontrado. Tente outro filtro ou nome.</p>
+        <div class="collection-footer"><span>Arraste um item para a casa ou clique para escolher.</span><span id="placed-count"></span></div>
+      </div>
       <div id="return-target" hidden><span data-icon="box"></span>Solte aqui para guardar</div>
     </section>
-    <button class="collection-toggle edit-only" id="collapse" aria-expanded="true" aria-controls="collection"><span class="box-badge" data-icon="box"></span><span id="collapse-label">Minha coleção</span><span class="toggle-chevron" data-icon="down"></span></button>
+    <button class="collection-toggle edit-only" id="collapse" aria-expanded="true" aria-controls="collection"><span class="box-badge" data-icon="box"></span><span id="collapse-label">Catálogo de itens</span><span class="toggle-chevron" data-icon="down"></span></button>
       <section id="selected-tools" class="selected-tools edit-only" aria-label="Objeto selecionado" hidden>
         <div class="selected-info"><strong id="selected-name"></strong><small id="selected-state"></small></div>
         <div class="object-actions"><button id="focus" aria-label="Focar objeto" title="Ver o objeto de perto" disabled><span data-icon="focus"></span><span>Focar</span></button><button id="rotate" aria-label="Girar objeto" title="Girar 45 graus (R)" disabled><span data-icon="rotate"></span><span>Girar</span></button><button id="remove" aria-label="Guardar objeto" title="Devolver à coleção (Delete)" disabled><span data-icon="box"></span><span>Guardar</span></button><button id="cancel" hidden>Cancelar</button></div>

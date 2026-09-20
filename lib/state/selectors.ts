@@ -4,6 +4,7 @@ import {
   MAIN_MISSION_JOURNEY,
 } from "../content/learning-catalog";
 import { findAchievement } from "../content/achievement-catalog";
+import { RADAR_ARTICLES } from "../content/radar-catalog";
 import {
   findLearningPathStepByActivityId,
   getCurriculumPresentation,
@@ -569,9 +570,8 @@ function activityHref(activityId: string): string {
   if (activityId === SIMULATION_ACTIVITY_ID) {
     return "/simulacoes/dia-de-trabalho";
   }
-  if (activityId === RADAR_ACTIVITY_ID) {
-    return "/radar/quishing";
-  }
+  const radarArticle = RADAR_ARTICLES.find((article) => article.id === activityId);
+  if (radarArticle) return `/radar/${radarArticle.slug}`;
   if (activityId === TEAM_CHALLENGE_ACTIVITY_ID) {
     return "/equipes/caixa-de-entrada-segura";
   }
@@ -688,7 +688,7 @@ function activityBasePoints(activityId: string): number | null {
   if (activityId === PILOT_MISSION_ID) return POINT_RULES.mainMission;
   if (activityId === PHISHLAB_ACTIVITY_ID) return POINT_RULES.phishLab;
   if (activityId === SIMULATION_ACTIVITY_ID) return POINT_RULES.simulation;
-  if (activityId === RADAR_ACTIVITY_ID) return POINT_RULES.radar;
+  if (RADAR_ARTICLES.some((article) => article.id === activityId)) return POINT_RULES.radar;
   if (activityId === TEAM_CHALLENGE_ACTIVITY_ID) {
     return POINT_RULES.teamOperation;
   }
@@ -1077,9 +1077,9 @@ export function selectRecentActivity(
   return selectActivityTimeline(state).slice(0, limit);
 }
 
-export function selectLatestRadarResult(state: AppState): RadarResult | null {
+export function selectLatestRadarResult(state: AppState, activityId = RADAR_ACTIVITY_ID): RadarResult | null {
   const lastAttemptId =
-    state.learning.activityProgress[RADAR_ACTIVITY_ID]?.lastAttemptId;
+    state.learning.activityProgress[activityId]?.lastAttemptId;
   const attempt = lastAttemptId ? state.learning.attempts[lastAttemptId] : null;
   return attempt && "selectedOptionId" in attempt ? attempt.result : null;
 }

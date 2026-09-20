@@ -86,36 +86,36 @@ export type RecoveryBuilderAllowlists = {
 export const RECOVERY_ACTION_GROUP_OPTIONS = [
   {
     id: "now",
-    label: "Primeiras ações seguras",
-    description: "Podem começar assim que o incidente é percebido: parar a interação, preservar fatos e avisar a equipe responsável.",
+    label: "Agora, sozinho",
+    description: "Dá para fazer assim que você percebe.",
   },
   {
     id: "next",
-    label: "Ações sob orientação da equipe responsável",
-    description: "Só devem ser realizadas depois que a equipe responsável indicar o procedimento adequado ao caso.",
+    label: "Depois, com a equipe",
+    description: "Só depois que a segurança orientar.",
   },
   {
     id: "do-not",
-    label: "Ações que aumentam o risco",
-    description: "Não fazem parte do plano: podem ampliar a exposição, apagar evidências ou espalhar o conteúdo.",
+    label: "Nunca",
+    description: "Isso piora a situação.",
   },
 ] as const;
 
 export const RECOVERY_OFFICIAL_ROUTE_OPTIONS = [
   {
     id: "known-report-guide",
-    label: "Abrir a página de segurança pela intranet ou por um favorito já conhecido",
-    detail: "A referência já era conhecida antes do incidente e não veio da mensagem suspeita.",
+    label: "Abrir a página de segurança pela intranet",
+    detail: "Você já conhecia esse caminho antes de tudo acontecer.",
   },
   {
     id: "message-contact",
-    label: "Usar o contato indicado na própria mensagem",
-    detail: "O mesmo pedido continuaria indicando onde e com quem confirmar.",
+    label: "Falar com o contato que veio na mensagem",
+    detail: "É o golpe dizendo onde você deve confirmar o golpe.",
   },
   {
     id: "first-search-result",
-    label: "Pesquisar o nome do serviço e abrir o primeiro resultado",
-    detail: "A posição na busca não comprova que o resultado pertence ao serviço.",
+    label: "Procurar no Google e abrir o primeiro link",
+    detail: "Aparecer primeiro não prova que o site é o certo.",
   },
 ] as const satisfies ReadonlyArray<{
   id: RecoveryOfficialRouteId;
@@ -124,23 +124,23 @@ export const RECOVERY_OFFICIAL_ROUTE_OPTIONS = [
 }>;
 
 export const RECOVERY_REPORT_BLOCK_OPTIONS = [
-  { id: "received-channel", label: "Canal em que a solicitação chegou", safe: true },
-  { id: "occurred-at", label: "Horário aproximado do ocorrido", safe: true },
+  { id: "received-channel", label: "Por onde a mensagem chegou", safe: true },
+  { id: "occurred-at", label: "Mais ou menos que horas foi", safe: true },
   {
     id: "apparent-origin-destination",
-    label: "Origem e destino aparentes",
+    label: "De quem parecia ser e para onde ia",
     safe: true,
   },
-  { id: "action-taken", label: "Ação que realmente foi realizada", safe: true },
-  { id: "affected-device", label: "Dispositivo usado, sem dados secretos", safe: true },
+  { id: "action-taken", label: "O que você realmente fez", safe: true },
+  { id: "affected-device", label: "Qual aparelho você usou", safe: true },
   {
     id: "password-or-code",
-    label: "Senha ou código temporário para o suporte conferir",
+    label: "Sua senha ou código",
     safe: false,
   },
   {
     id: "unconfirmed-claim",
-    label: "Afirmar que a conta foi invadida, mesmo sem confirmação",
+    label: "Dizer que invadiram sua conta, sem ter certeza",
     safe: false,
   },
 ] as const satisfies ReadonlyArray<{
@@ -160,17 +160,17 @@ const commonHarmfulCards: readonly RecoveryActionCard[] = [
   {
     id: "delete-evidence",
     title: "Apagar a mensagem e o histórico",
-    detail: "Remove informações que podem ajudar a entender o que ocorreu.",
+    detail: "Some com o que ajudaria a entender o que houve.",
   },
   {
     id: "forward-content",
-    title: "Encaminhar o conteúdo para avisar colegas",
-    detail: "Espalha o material suspeito fora do fluxo oficial.",
+    title: "Repassar a mensagem para os colegas",
+    detail: "Espalha o material suspeito para mais gente.",
   },
   {
     id: "reopen-content",
-    title: "Abrir novamente para investigar por conta própria",
-    detail: "Retoma a interação com o mesmo destino ou artefato suspeito.",
+    title: "Abrir de novo para investigar sozinho",
+    detail: "Volta a mexer justamente no que é suspeito.",
   },
 ];
 
@@ -178,11 +178,11 @@ const p1Content: RecoveryBuilderContent = {
   pathId: "p1-clicked-destination",
   pathLabel: "Abri o destino",
   summary: "Resposta proporcional depois de abrir um link sem enviar dados.",
-  role: "Você recebeu um aviso de documento pendente durante o expediente.",
+  role: "Chegou um aviso de documento pendente no meio do expediente.",
   situation:
-    "Você selecionou o botão da mensagem, viu uma página de entrada e a fechou antes de preencher qualquer campo ou baixar arquivo.",
+    "Você clicou no botão, viu uma tela de login e fechou. Não digitou nada e não baixou nada.",
   task:
-    "Registre até onde a interação chegou, organize o que fazer e monte um reporte factual sem reabrir a página.",
+    "Descubra até onde você foi, monte o plano e peça ajuda — sem abrir a página de novo.",
   protectedConsequence:
     "Uma descrição precisa permite que a área responsável oriente a recuperação sem presumir uma exposição que não aconteceu.",
   timelineFacts: [
@@ -192,28 +192,28 @@ const p1Content: RecoveryBuilderContent = {
     { id: "p1-close", timeLabel: "09:15", title: "Página fechada", detail: "A interação parou antes de novo passo." },
   ],
   exposureOptions: [
-    { id: "clicked-no-data", label: "Abri o link e não enviei dados", detail: "É o último estágio confirmado pelos fatos." },
-    { id: "entered-data", label: "Enviei credenciais", detail: "Não há fato no caso que sustente esse estágio." },
-    { id: "downloaded-file", label: "Baixei ou executei um arquivo", detail: "O caso informa que nenhum arquivo foi baixado." },
-    { id: "unknown-compromise", label: "A conta foi comprometida", detail: "O clique não comprova sozinho esse resultado." },
+    { id: "clicked-no-data", label: "Abri o link, mas não digitei nada", detail: "É o que os fatos mostram." },
+    { id: "entered-data", label: "Digitei meu usuário e senha", detail: "Nada no caso diz isso." },
+    { id: "downloaded-file", label: "Baixei ou abri um arquivo", detail: "Nenhum arquivo foi baixado." },
+    { id: "unknown-compromise", label: "Minha conta foi invadida", detail: "Um clique sozinho não prova isso." },
   ],
   actionCards: [
-    { id: "stop-interaction", title: "Manter a página fechada", detail: "Não inserir dados nem retomar o destino recebido." },
-    { id: "preserve-context", title: "Preservar horário, canal e destino aparente", detail: "Guardar fatos úteis sem reenviar o conteúdo." },
-    { id: "report-official", title: "Avisar a equipe responsável que o link foi aberto", detail: "Informar que a página foi fechada e que nenhum dado foi enviado." },
-    { id: "follow-guidance", title: "Seguir as medidas indicadas pela área responsável", detail: "Aplicar somente a recuperação proporcional orientada." },
+    { id: "stop-interaction", title: "Deixar a página fechada", detail: "Não digitar nada e não voltar no link." },
+    { id: "preserve-context", title: "Anotar a hora, o canal e para onde o link ia", detail: "Guardar os fatos, sem repassar a mensagem." },
+    { id: "report-official", title: "Avisar a segurança que você abriu o link", detail: "Contar que fechou a página e não digitou nada." },
+    { id: "follow-guidance", title: "Fazer o que a equipe mandar", detail: "Seguir só o que a segurança orientar." },
     ...commonHarmfulCards,
   ],
   consequence:
     "Se o reporte vier cedo e separar clique de envio de dados, a resposta pode ser proporcional. Reabrir, apagar ou encaminhar reduz a qualidade do contexto.",
   transfer: {
-    title: "O mesmo comportamento em uma mensagem de projeto",
+    title: "Agora a mesma coisa, no chat do projeto",
     context:
-      "Num chat de projeto, você abriu um endereço recebido, fechou a página e não preencheu campos.",
+      "Você abriu um link que chegou no chat, fechou a página e não digitou nada.",
     exposureOptions: [
-      { id: "transfer-clicked-no-data", label: "Clique sem envio de dados", detail: "Registra somente o que aconteceu." },
-      { id: "transfer-account-taken", label: "Conta confirmadamente invadida", detail: "O resultado não foi comprovado." },
-      { id: "transfer-no-incident", label: "Nada precisa ser informado", detail: "O clique ainda deve ser relatado com precisão." },
+      { id: "transfer-clicked-no-data", label: "Cliquei, mas não digitei nada", detail: "É só o que aconteceu de fato." },
+      { id: "transfer-account-taken", label: "Minha conta foi invadida", detail: "Isso não foi comprovado." },
+      { id: "transfer-no-incident", label: "Não preciso avisar ninguém", detail: "O clique precisa ser contado mesmo assim." },
     ],
   },
 };

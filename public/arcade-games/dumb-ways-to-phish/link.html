@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#4075CC"><meta name="description" content="Microjogos de raciocínio rápido sobre phishing. Três vidas, pontos sem limite."><title>Link torto — Dumb Ways to Phish</title><link rel="icon" href="assets/ui/brand-mark.svg" type="image/svg+xml"><script src="campaign-entry.js"></script><link rel="stylesheet" href="base.css"><link rel="stylesheet" href="shell.css"><link rel="stylesheet" href="popups.css"><link rel="stylesheet" href="link.css"></head>
+<body>
+<main class="arcade">
+ <section class="game-shell" id="game" aria-label="Dumb Ways to Phish">
+  <header class="game-hud" id="game-hud" aria-label="Estado da partida">
+   <div class="hud-score"><span>PONTOS</span><strong id="score">0</strong></div>
+   <div class="lives" id="lives" role="img" aria-label="3 vidas"><b><img src="assets/ui/shield-full.svg" alt=""></b><b><img src="assets/ui/shield-full.svg" alt=""></b><b><img src="assets/ui/shield-full.svg" alt=""></b></div>
+   <button id="pause-button" class="pause-control" type="button" aria-label="Pausar jogo" disabled><img src="assets/ui/pause.svg" alt=""></button>
+  </header>
+  <div class="stage-wrap">
+   <canvas id="room-backdrop" aria-hidden="true"></canvas>
+   <div class="workroom" id="workroom">
+    <canvas id="link-canvas" width="1672" height="941" aria-label="Correio dos pombos. Escolha a placa que repete exatamente o domínio do cartaz."></canvas>
+    <div id="link-controls" aria-label="Destinatários"><button class="bird-choice" data-bird="0" aria-label="Pombo da esquerda"></button><button class="bird-choice" data-bird="1" aria-label="Pombo do centro"></button><button class="bird-choice" data-bird="2" aria-label="Pombo da direita"></button></div>
+    <div id="round-clock" class="round-clock" aria-label="Tempo da rodada"><strong id="round-timer">9,0s</strong><span id="round-progress">Rodada 1</span></div>
+    <p id="intro-command" class="stage-message intro-command">Encontre o domínio igual!</p>
+    <p id="feedback" class="stage-message feedback" hidden></p>
+   </div>
+  </div>
+  <section id="start-overlay" class="shell-screen home-screen" aria-labelledby="home-title">
+   <div class="home-content"><img class="brand-mark" src="assets/ui/brand-mark.svg" alt="" draggable="false"><h1 id="home-title">Dumb Ways<br>to Phish<span class="phase-name">Link torto</span></h1>
+    <nav class="text-menu" aria-label="Menu principal"><button id="start-button" type="button" class="menu-item current">Jogar</button><button id="other-game" type="button" class="menu-item">Escolher jogo</button><button id="help-button" type="button" class="menu-item">Como jogar</button><button id="home-options" type="button" class="menu-item">Opções</button></nav>
+   </div>
+  </section>
+  <section id="pause-overlay" class="shell-screen pause-screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="screen-content"><h2 id="pause-title">Pausa</h2><nav class="text-menu" aria-label="Menu de pausa"><button id="resume-button" type="button" class="menu-item current">Continuar</button><button id="pause-options" type="button" class="menu-item">Opções</button><button id="exit-button" type="button" class="menu-item">Voltar ao menu</button></nav></div></section>
+  <section id="options-overlay" class="shell-screen home-screen" role="dialog" aria-modal="true" aria-labelledby="options-title" hidden><div class="screen-content"><h2 id="options-title">Opções</h2><div class="text-menu"><button id="sound-button" type="button" class="menu-item" aria-pressed="false">Som <span id="sound-state">desligado</span></button><button id="motion-button" type="button" class="menu-item" aria-pressed="false">Reduzir movimentos <span id="motion-state">não</span></button><button id="options-back" type="button" class="menu-item">Voltar</button></div></div></section>
+  <section id="help-overlay" class="shell-screen home-screen" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden><div class="screen-content help-content"><h2 id="help-title">Link torto</h2><p>Leia o domínio no cartaz de cima e escolha o pombo cuja placa tem exatamente o mesmo endereço.</p><p>Compare as letras e a terminação: .com e .co são diferentes, assim como .com.br e .com.pt. Qualquer posição e qualquer terminação podem ser a resposta correta.</p><p>Um erro ou o tempo esgotado custa um escudo. Você começa com 9 segundos; as rodadas ficam mais rápidas. Não há limite de rodadas ou pontos.</p><p class="keyboard-help"><strong>Teclado</strong><br>1, 2 e 3 escolhem esquerda, centro e direita. Tab e Enter também funcionam. P ou Esc pausa.</p><p class="keyboard-help">Os nomes são exemplos do jogo. Uma terminação ou aparência parecida, por si só, não indica que um site é seguro ou malicioso.</p><div class="text-menu"><button id="help-back" type="button" class="menu-item">Voltar</button></div></div></section>
+  <section id="exit-overlay" class="shell-screen pause-screen" role="dialog" aria-modal="true" aria-labelledby="exit-title" hidden><div class="screen-content"><h2 id="exit-title">Sair da partida?</h2><p>O recorde fica salvo. Esta partida será encerrada.</p><nav class="text-menu" aria-label="Confirmar saída"><button id="exit-cancel" type="button" class="menu-item current">Continuar partida</button><button id="exit-confirm" type="button" class="menu-item">Voltar ao menu</button></nav></div></section>
+  <section id="gameover-overlay" class="shell-screen home-screen" role="dialog" aria-modal="true" aria-labelledby="end-title" hidden><div class="screen-content result-content"><span id="end-eyebrow" class="eyebrow">FIM DE JOGO</span><h2 id="end-title">Fim de jogo</h2><div class="result-score"><strong id="end-score">0</strong><span>pontos</span></div><p id="end-summary"></p><p class="record">Recorde <strong id="best">0</strong></p><nav class="text-menu" aria-label="Resultado"><button id="replay-button" type="button" class="menu-item current">Tentar de novo</button><button id="result-home" type="button" class="menu-item">Voltar ao menu</button></nav></div></section>
+  <section id="load-error" class="shell-screen home-screen" role="alertdialog" aria-modal="true" aria-labelledby="load-title" hidden><div class="screen-content"><h2 id="load-title">Não carregou.</h2><p>Uma imagem da fase não abriu. Tente novamente.</p><div class="text-menu"><button id="reload-button" type="button" class="menu-item">Tentar novamente</button></div></div></section>
+ </section>
+ <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+ <noscript>Ative o JavaScript para jogar.</noscript>
+</main>
+<script type="module" src="link.js"></script>
+</body></html>

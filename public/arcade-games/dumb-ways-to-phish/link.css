@@ -1,0 +1,17 @@
+/* Original shell and illustrated plaques; buttons only provide hit targets. */
+.bird-choice{position:absolute;top:29%;height:58%;padding:0;border:0;background:transparent;cursor:pointer;border-radius:15% 15% 2% 2%}
+.bird-choice[data-bird="0"]{left:1.5%;width:35%}.bird-choice[data-bird="1"]{left:37%;width:27%}.bird-choice[data-bird="2"]{left:64.5%;width:34%}
+.bird-choice:disabled{pointer-events:none}.bird-choice:focus-visible{outline:4px dashed #e8b859;outline-offset:-6px}
+.round-clock{top:2%;left:4%;transform:none;flex-direction:column;gap:2px;padding:9px 16px;font-size:17px}.round-clock strong{font-size:29px}
+.feedback{bottom:1.4%;font-size:clamp(14px,1.3vw,22px);padding:10px 18px}
+
+/* Full room experiment, scoped to Link torto. Menus retain the approved blue. */
+html,body,.game-shell{background:#493426}.game-shell{position:relative;border:0}
+.game-hud{position:absolute;inset:0 0 auto;height:76px;max-width:none;background:linear-gradient(#1c120dc9,#1c120d38,transparent);padding:0 32px;text-shadow:0 2px 4px #21140f}
+.game-hud .lives,.pause-control{filter:drop-shadow(0 2px 3px #21140f80)}
+.stage-wrap{position:relative;height:100svh;padding-top:76px;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:center;background:#493426}
+#room-backdrop{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none}
+.workroom{z-index:1;width:min(100%,calc((100svh - 76px)*1672/941));height:auto;flex:none;min-height:0;aspect-ratio:1672/941;mask-image:linear-gradient(to right,transparent,#000 5px,#000 calc(100% - 5px),transparent)}
+.round-clock{background:#38271de6;border-radius:4px;text-shadow:0 1px 2px #160e08}
+.round-clock.urgent{background:#843e2aeF}
+.feedback{background:#493020ee}.feedback[data-kind=close]{background:#244c44ed}

@@ -82,33 +82,33 @@ export type TrueSenderV2Allowlists = {
 export const IDENTITY_RELATION_OPTIONS = [
   {
     id: "declared-identity",
-    label: "Declara como o remetente quer ser apresentado",
-    detail: "É um rótulo visível; não autentica a pessoa.",
+    label: "O nome que a pessoa escolheu mostrar",
+    detail: "Qualquer um pode digitar o nome que quiser aqui.",
   },
   {
     id: "sender-account",
-    label: "Identifica a conta usada no campo De",
-    detail: "Mostra a conta apresentada como origem da mensagem.",
+    label: "A conta que aparece como remetente",
+    detail: "É o endereço que o e-mail diz ser a origem.",
   },
   {
     id: "reply-destination",
-    label: "Define para onde uma resposta seria enviada",
-    detail: "O Reply-To pode ser igual ou diferente do endereço de origem.",
+    label: "Para onde sua resposta iria",
+    detail: "Pode ser um endereço diferente do remetente.",
   },
   {
     id: "address-domain",
-    label: "Identifica o domínio presente no endereço",
-    detail: "O domínio ajuda a comparar a origem esperada, mas não prova autorização.",
+    label: "O site dono do endereço",
+    detail: "É a parte depois do @. Dá para comparar com o site que você conhece.",
   },
   {
     id: "process-context",
-    label: "Mostra se o pedido combina com o processo esperado",
-    detail: "Chamado, tarefa iniciada e finalidade ajudam a avaliar o pedido.",
+    label: "Se o pedido combina com o seu trabalho",
+    detail: "Você esperava isso? Existe chamado aberto?",
   },
   {
     id: "current-controller",
-    label: "Comprova qual pessoa controla a conta agora",
-    detail: "Nenhum campo comum da mensagem comprova isso sozinho.",
+    label: "Quem está usando a conta agora",
+    detail: "Nenhum campo do e-mail mostra isso.",
   },
 ] as const satisfies readonly {
   id: IdentityRelationId;
@@ -119,13 +119,13 @@ export const IDENTITY_RELATION_OPTIONS = [
 export const IDENTITY_CLAIM_ASSESSMENT_OPTIONS = [
   {
     id: "fact",
-    label: "Comprovado",
-    detail: "A afirmação é sustentada diretamente pelo artefato ou pelo processo conhecido.",
+    label: "Dá para ver no e-mail",
+    detail: "Está escrito ali, na sua frente.",
   },
   {
     id: "unproven",
-    label: "Não comprovado",
-    detail: "Os dados disponíveis não bastam para sustentar essa afirmação, mesmo que ela pareça plausível.",
+    label: "Não dá para saber",
+    detail: "Pode até ser verdade, mas o e-mail não prova.",
   },
 ] as const satisfies readonly {
   id: IdentityClaimAssessmentId;
@@ -134,41 +134,41 @@ export const IDENTITY_CLAIM_ASSESSMENT_OPTIONS = [
 }[];
 
 export const IDENTITY_VERDICT_OPTIONS = [
-  { id: "legitimate", label: "Legítimo neste contexto" },
-  { id: "suspicious", label: "Suspeito; interromper e reportar" },
-  { id: "inconclusive", label: "Inconclusivo; preciso verificar" },
+  { id: "legitimate", label: "Posso atender o pedido" },
+  { id: "suspicious", label: "É golpe. Parar e reportar" },
+  { id: "inconclusive", label: "Ainda não sei. Preciso conferir antes" },
 ] as const satisfies readonly { id: LinkVerdict; label: string }[];
 
 export const IDENTITY_VERIFICATION_OPTIONS = [
   {
     id: "official-directory",
-    label: "Abrir o suporte pelo diretório oficial já conhecido",
-    detail: "A rota existe fora desta mensagem e permite conferir o pedido.",
+    label: "Ligar para o suporte pelo número da intranet",
+    detail: "Você acha o número sozinho, sem usar nada que veio no e-mail.",
   },
   {
     id: "registered-contact",
-    label: "Usar o contato que já estava cadastrado antes do pedido",
-    detail: "A confirmação não depende da conversa que está sendo verificada.",
+    label: "Falar pelo contato que você já tinha antes",
+    detail: "O telefone ou ramal que você já usava com essa pessoa.",
   },
   {
     id: "initiated-workflow",
-    label: "Conferir na área oficial do fluxo que eu mesmo iniciei",
-    detail: "O registro esperado existe fora da mensagem recebida.",
+    label: "Conferir no sistema onde você mesmo abriu o pedido",
+    detail: "Se o pedido é real, ele está registrado lá.",
   },
   {
     id: "same-message-reply",
-    label: "Responder à própria mensagem pedindo confirmação",
-    detail: "A resposta permanece no mesmo canal cuja identidade está em dúvida.",
+    label: "Responder o e-mail perguntando se é verdade",
+    detail: "Quem enviou o golpe vai responder que sim.",
   },
   {
     id: "request-provided-link",
-    label: "Usar o link ou contato fornecido nesta solicitação",
-    detail: "A solicitação continuaria confirmando a si mesma.",
+    label: "Clicar no link ou ligar no número do e-mail",
+    detail: "É o golpista confirmando o próprio golpe.",
   },
   {
     id: "share-secret",
-    label: "Enviar o código solicitado para validar o atendimento",
-    detail: "Código temporário é um segredo e não deve ser compartilhado.",
+    label: "Mandar o código para eles confirmarem",
+    detail: "O código é sua chave. Nunca se manda para ninguém.",
   },
 ] as const satisfies readonly {
   id: IdentityVerificationRouteId;
@@ -230,9 +230,9 @@ function createPackage(
     criticalControlIds: ["human-control", "independent-route", "secret-sharing"],
     feedback,
     debrief: {
-      title: "Conta usada não é o mesmo que pessoa confirmada",
+      title: "Leve isto para o trabalho",
       body:
-        "Nome, From, Reply-To, domínio e contexto revelam fatos diferentes. Quando o pedido muda o processo ou solicita um segredo, confirme por uma rota obtida fora da própria mensagem.",
+        "O e-mail mostra qual conta enviou. Ele nunca mostra quem estava usando essa conta. Quando o pedido for fora do normal ou pedir um código, confirme por um caminho que você já conhecia antes do e-mail.",
     },
   } as const satisfies ActivityContentPackage<
     TrueSenderV2Content,
@@ -249,9 +249,9 @@ export const TRUE_SENDER_V2_PACKAGES = [
       summary: "Um suposto suporte pede um código temporário sem existir chamado.",
       role: "Você recebeu uma mensagem no e-mail de trabalho e precisa verificar a identidade antes de responder.",
       situation:
-        "Alguém usando o nome de André Silva, do Suporte de Identidade, afirma que seu acesso falhou e pede um código temporário em dez minutos. Você não abriu chamado.",
+        "Um e-mail assinado por André Silva, do Suporte, diz que seu acesso falhou e pede seu código de seis dígitos em dez minutos. Você não pediu ajuda nenhuma.",
       task:
-        "Relacione cada campo ao que ele realmente informa, marque o que está comprovado ou não comprovado e escolha uma confirmação que não dependa desta mensagem.",
+        "Descubra o que o e-mail realmente prova — e o que ele só está afirmando.",
       protectedConsequence:
         "O processo protege seu código temporário e evita que uma identidade apenas declarada receba acesso à conta.",
       calibration,
@@ -267,61 +267,61 @@ export const TRUE_SENDER_V2_PACKAGES = [
           label: "Nome exibido",
           value: "André Silva · Suporte de Identidade",
           correctRelationId: "declared-identity",
-          explanation: "O texto declara uma identidade, mas pode ser escolhido por quem envia.",
+          explanation: "Esse nome é digitado por quem envia. Dá para escrever qualquer coisa.",
         },
         {
           id: "p1-from",
           label: "De / From",
           value: "andre.silva@acessos-corporativos.example",
           correctRelationId: "sender-account",
-          explanation: "Este é o endereço apresentado como conta remetente.",
+          explanation: "É a conta que o e-mail diz ser a origem. Diz — não prova.",
         },
         {
           id: "p1-reply-to",
           label: "Reply-To",
           value: "atendimento@resposta-rapida.example",
           correctRelationId: "reply-destination",
-          explanation: "Uma resposta seria desviada para este endereço.",
+          explanation: "Repare: sua resposta não vai para o André. Vai para outro endereço.",
         },
         {
           id: "p1-domain",
           label: "Domínio do From",
           value: "acessos-corporativos.example",
           correctRelationId: "address-domain",
-          explanation: "É o domínio do endereço, diferente do diretório interno esperado.",
+          explanation: "É o site dono do endereço. Não é o da empresa.",
         },
         {
           id: "p1-context",
           label: "Contexto conhecido",
-          value: "Nenhum chamado aberto; suporte não solicita códigos por mensagem.",
+          value: "Você não abriu chamado. E o suporte nunca pede código por mensagem.",
           correctRelationId: "process-context",
-          explanation: "O pedido não combina com a tarefa nem com o processo esperado.",
+          explanation: "Este é o sinal mais forte: o pedido não encaixa na sua rotina.",
         },
       ],
       claims: [
         {
           id: "p1-account-used",
-          text: "A mensagem apresenta andre.silva@acessos-corporativos.example como conta remetente.",
+          text: "O e-mail chegou da conta andre.silva@acessos-corporativos.example.",
           correctAssessmentId: "fact",
         },
         {
           id: "p1-person-controls",
-          text: "André Silva está comprovadamente controlando essa conta neste momento.",
+          text: "Quem escreveu foi mesmo o André Silva.",
           correctAssessmentId: "unproven",
         },
         {
           id: "p1-reply-route",
-          text: "Uma resposta seria enviada a atendimento@resposta-rapida.example.",
+          text: "Se você responder, a resposta vai para atendimento@resposta-rapida.example.",
           correctAssessmentId: "fact",
         },
         {
           id: "p1-process-conflict",
-          text: "A ausência de chamado e o pedido de código conflitam com o processo conhecido.",
+          text: "Você não abriu chamado nenhum.",
           correctAssessmentId: "fact",
         },
         {
           id: "p1-compromise-hypothesis",
-          text: "A mensagem pode ser uma tentativa de obter o código usando uma identidade falsa.",
+          text: "É um golpe para roubar o seu código.",
           correctAssessmentId: "unproven",
         },
       ],
@@ -329,9 +329,9 @@ export const TRUE_SENDER_V2_PACKAGES = [
       correctVerificationRouteId: "official-directory",
       transferCase: {
         id: "p1-shared-mailbox",
-        title: "Uma caixa compartilhada legítima",
+        title: "Agora um e-mail parecido, mas diferente",
         context:
-          "Você iniciou uma solicitação de entrega no portal oficial. A confirmação chega da conta esperada, e o procedimento registrado informa que respostas vão para a caixa operacional do mesmo serviço.",
+          "Desta vez foi você quem pediu. Você abriu um pedido de entrega no portal da empresa, e a confirmação chegou. O endereço de resposta é outro — é a caixa da equipe de entregas, como o procedimento diz.",
         fieldSummary: [
           { label: "De", value: "avisos@entregas.example" },
           { label: "Reply-To", value: "atendimento@entregas.example" },
@@ -343,9 +343,9 @@ export const TRUE_SENDER_V2_PACKAGES = [
     },
     {
       success:
-        "Você separou identidade declarada, conta usada e controle não comprovado antes de escolher uma rota independente.",
+        "Você percebeu a diferença entre o que o e-mail mostra e o que ele prova — e conferiu por fora.",
       review:
-        "Revise o que cada campo realmente prova e por que a própria mensagem não pode confirmar a identidade que apresenta.",
+        "A ideia central: um e-mail nunca confirma a si mesmo. Quem confirma é você, por um caminho que já existia antes.",
     },
   ),
   createPackage(

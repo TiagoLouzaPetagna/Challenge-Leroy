@@ -114,7 +114,7 @@ export const accountProgressSummaries = sqliteTable(
   ],
 );
 
-export const arcadeRuns = sqliteTable(
+  export const arcadeRuns = sqliteTable(
   "arcade_runs",
   {
     id: text("id").primaryKey(),
@@ -163,7 +163,46 @@ export const arcadeRuns = sqliteTable(
       sql`${table.classifiedMessages} BETWEEN 0 AND 12 AND ${table.phishingReported} BETWEEN 0 AND 7 AND ${table.legitimateCompleted} BETWEEN 0 AND 5 AND ${table.phishingProcessed} BETWEEN 0 AND 7 AND ${table.legitimateDiscarded} BETWEEN 0 AND 5`,
     ),
   ],
-);
+  );
+
+  export const arcadeRunExtensions = sqliteTable(
+    "arcade_run_extensions",
+    {
+      runId: text("run_id").primaryKey().references(() => arcadeRuns.id, { onDelete: "cascade" }),
+      actualScore: integer("actual_score").notNull(),
+      resultJson: text("result_json").notNull(),
+    },
+  );
+
+  export const arcadeDuoMatches = sqliteTable(
+    "arcade_duo_matches",
+    {
+      id: text("id").primaryKey(),
+      hostRunId: text("host_run_id").notNull().unique().references(() => arcadeRuns.id, { onDelete: "cascade" }),
+      guestRunId: text("guest_run_id").notNull().unique().references(() => arcadeRuns.id, { onDelete: "cascade" }),
+    },
+    (table) => [index("idx_arcade_duo_matches_guest_run").on(table.guestRunId)],
+  );
+
+  export const arcadeGameResults = sqliteTable(
+    "arcade_game_results",
+    {
+      id: text("id").primaryKey(),
+      accountId: text("account_id").notNull().references(() => accounts.id, { onDelete: "cascade" }),
+      gameId: text("game_id").notNull(),
+      trackId: text("track_id").notNull().default(""),
+      status: text("status", { enum: ["started", "completed"] }).notNull(),
+      startedAt: text("started_at").notNull(),
+      completedAt: text("completed_at"),
+      score: integer("score"),
+    },
+    (table) => [
+      index("idx_arcade_game_results_ranking").on(table.gameId, table.trackId, table.status, table.score),
+      index("idx_arcade_game_results_account").on(table.accountId, table.gameId, table.status),
+      check("arcade_game_results_status_check", sql`${table.status} IN ('started', 'completed')`),
+      check("arcade_game_results_score_check", sql`${table.score} IS NULL OR ${table.score} BETWEEN 0 AND 1000000`),
+    ],
+  );
 
 export const teamProtocolResponses = sqliteTable(
   "team_protocol_responses",

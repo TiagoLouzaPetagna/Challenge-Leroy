@@ -78,21 +78,19 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/missoes/a-conversa-ja-estava-acontecendo",
       expected: [
-        /class="activity-workspace page-stack conversation-reconstruction-page"/,
+        /data-activity-id="mission:compromised-conversation"/,
         /<h1>A conversa j.{0,4} estava acontecendo<\/h1>/,
-        /Caso atribu.do/,
-        /Seu papel/,
-        /Sua tarefa/,
-        /Iniciar reconstru..o/,
-        /100.{0,30}pontos-base/,
+        /As mensagens chegaram embaralhadas/,
+        /Marina Lopes/,
+        /MISS.O 02/,
       ],
     },
     {
       pathname: "/missoes/voce-iniciou-este-acesso",
       expected: [
-        /class="activity-workspace page-stack mission-page mfa-mission-page"/,
+        /data-activity-id="mission:mfa-fatigue"/,
         /<h1>Voc. iniciou este acesso\?<\/h1>/,
-        /Prepara..o necess.ria/,
+        /Faltam dois laborat.rios/,
         /Quem enviou de verdade/,
         /Dom.nio sob a lupa/,
       ],
@@ -100,12 +98,10 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/missoes/cliquei-e-agora",
       expected: [
-        /class="activity-workspace page-stack mission-page recovery-mission-page recovery-builder-page"/,
+        /data-activity-id="mission:clicked-now-what"/,
         /Cliquei\. E agora\?/,
-        /Reconstrua o que aconteceu/,
-        /Reconstruir o ocorrido/,
-        /etapa 1 de 9/,
-        /100.{0,30}pontos-base/,
+        /Os registros chegaram fora de ordem/,
+        /MISS.O 06/,
       ],
     },
     {
@@ -160,10 +156,10 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/phishlab/quem-enviou-de-verdade",
       expected: [
-        /class="activity-workspace page-stack identity-map-page"/,
-        /Observe quem está pedindo/,
-        /O que aconteceu/,
-        /60 pontos-base/,
+        /data-activity-id="phishlab:true-sender"/,
+        /Chegou um e-mail pedindo seu código/,
+        /O QUE ACONTECEU/,
+        /Caixa de entrada/,
       ],
     },
     {
@@ -188,10 +184,10 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/simulacoes/dia-de-trabalho",
       expected: [
-        /class="activity-workspace page-stack simulation-player-page workday-v2-page"/,
+        /data-activity-id="simulation:workday"/,
         /Uma manh. comum/,
-        /Começar a triagem/,
-        /70.{0,30}pontos-base/,
+        /SIMULA..O/,
+        /workday-opening-inbox/,
       ],
     },
     {
@@ -267,12 +263,11 @@ test("renderiza as rotas funcionais do fluxo principal", async () => {
     {
       pathname: "/equipes/mudanca-bancaria-sem-atalho",
       expected: [
-        /class="activity-workspace page-stack bank-change-page bank-process-page"/,
+        /data-activity-id="team:bank-change"/,
         /<h1[^>]*>\s*Mudan.a banc.ria sem atalho\s*<\/h1>/,
-        /A fornecedora Madeira Norte Componentes usa uma conversa conhecida/,
-        /Estação de processo/,
-        /Seu papel/,
-        /80.{0,40}pontos-base/,
+        /O que mudou no pedido\?/,
+        /EQUIPES/,
+        /bank-process-page/,
       ],
     },
   ];
@@ -414,6 +409,7 @@ test("todas as atividades disponíveis encerram com revisão explícita das resp
     "features/missions/RecoveryMission.tsx",
     "features/phishlab/SenderInspectorLab.tsx",
     "features/phishlab/DomainUnderMagnifierLab.tsx",
+    "features/teams/BankChangeChallenge.tsx",
     "features/simulations/SimulationExperience.tsx",
     "features/radar/RadarExperience.tsx",
   ];
@@ -421,10 +417,7 @@ test("todas as atividades disponíveis encerram com revisão explícita das resp
     assert.match(await readFile(new URL(file, projectRoot), "utf8"), /ActivityAnswerReview/);
   }
 
-  for (const file of [
-    "features/teams/TeamsExperience.tsx",
-    "features/teams/BankChangeChallenge.tsx",
-  ]) {
+  for (const file of ["features/teams/TeamsExperience.tsx"]) {
     const source = await readFile(new URL(file, projectRoot), "utf8");
     assert.match(source, /O que você acertou e o que precisa revisar/);
     assert.match(source, /Acertou/);
@@ -2155,10 +2148,10 @@ test("libera e conclui Você iniciou este acesso? somente depois dos dois PhishL
       new URL("features/missions/MfaFatigueMission.tsx", projectRoot),
       "utf8",
     );
-    assert.match(mfaPlayerSource, /Compare os dados do pedido com seu acesso/);
+    assert.match(mfaPlayerSource, /Foi você que começou este acesso/);
     assert.match(mfaPlayerSource, /Chegou uma mensagem do suporte/);
-    assert.match(mfaPlayerSource, /Abra a área de segurança da conta/);
-    assert.match(mfaPlayerSource, /Separe as informações para a equipe/);
+    assert.match(mfaPlayerSource, /Vá conferir a sua conta/);
+    assert.match(mfaPlayerSource, /O que contar para a segurança/);
     assert.match(mfaPlayerSource, /onOpenRecovery/);
     assert.doesNotMatch(mfaPlayerSource, /Negar&nbsp;&nbsp; Aprovar/);
 
@@ -3341,6 +3334,92 @@ test("conclui o Radar somente com a resposta correta e não duplica pontos", asy
   }
 });
 
+test("publica os cinco radares com respostas e recompensas independentes", async () => {
+  const { createServer } = await import("vite");
+  const vite = await createServer({
+    root: fileURLToPath(projectRoot),
+    configFile: false,
+    server: { middlewareMode: true },
+    appType: "custom",
+    logLevel: "silent",
+  });
+
+  try {
+    const [
+      { RADAR_ARTICLES },
+      { findAdditionalRadarLesson },
+      { appReducer, createDemoState },
+      { isValidRadarSubmission, evaluateRadar },
+      { isValidState },
+      { selectCompletedRadarIds, selectLatestRadarResult, selectTotalPoints },
+      { resolvePortalRoute },
+    ] = await Promise.all([
+      vite.ssrLoadModule("/lib/content/radar-catalog.ts"),
+      vite.ssrLoadModule("/lib/content/radar-lessons.ts"),
+      vite.ssrLoadModule("/lib/state/app-reducer.ts"),
+      vite.ssrLoadModule("/lib/domain/rules.ts"),
+      vite.ssrLoadModule("/lib/state/persistence.ts"),
+      vite.ssrLoadModule("/lib/state/selectors.ts"),
+      vite.ssrLoadModule("/lib/activities/registry.ts"),
+    ]);
+
+    let state = appReducer(createDemoState(), {
+      type: "RADAR_COMPLETED",
+      payload: {
+        attemptId: "radar:quishing:before-library",
+        activityId: "radar:quishing",
+        activityVersion: 1,
+        completedAt: "2026-08-01T17:59:00.000Z",
+        selectedOptionId: "inspect-and-confirm",
+      },
+    });
+    assert.equal(selectTotalPoints(state), 5);
+    const articles = RADAR_ARTICLES.filter((article) => article.id !== "radar:quishing");
+    assert.equal(articles.length, 5);
+
+    for (const [index, article] of articles.entries()) {
+      const lesson = findAdditionalRadarLesson(article.id);
+      assert.ok(lesson, `Conteúdo ausente: ${article.id}`);
+      assert.equal(resolvePortalRoute(`/radar/${article.slug}`).kind, "activity");
+      assert.equal(article.status, "available");
+      assert.ok(lesson.check.options.some((option) => option.id === lesson.check.correctOptionId));
+
+      const base = {
+        activityId: article.id,
+        activityVersion: article.version,
+        completedAt: `2026-08-01T18:${String(index).padStart(2, "0")}:00.000Z`,
+      };
+      const wrongOption = lesson.check.options.find((option) => option.id !== lesson.check.correctOptionId);
+      const wrong = { ...base, attemptId: `radar:${index}:wrong`, selectedOptionId: wrongOption.id };
+      assert.equal(isValidRadarSubmission(wrong), true);
+      assert.equal(evaluateRadar(wrong).correct, false);
+      assert.equal(appReducer(state, { type: "RADAR_COMPLETED", payload: wrong }), state);
+
+      const correct = { ...base, attemptId: `radar:${index}:correct`, selectedOptionId: lesson.check.correctOptionId };
+      assert.equal(isValidRadarSubmission(correct), true);
+      assert.equal(isValidRadarSubmission({ ...correct, activityId: "toString" }), false);
+      const previousPoints = selectTotalPoints(state);
+      state = appReducer(state, { type: "RADAR_COMPLETED", payload: correct });
+      assert.equal(selectTotalPoints(state), previousPoints + 5);
+      assert.equal(selectLatestRadarResult(state, article.id).correct, true);
+      assert.ok(selectCompletedRadarIds(state).includes(article.id));
+      assert.ok(state.learning.rewardClaims[`${article.id}:first-completion`]);
+      assert.equal(isValidState(state), true);
+
+      const reread = appReducer(state, {
+        type: "RADAR_COMPLETED",
+        payload: { ...correct, attemptId: `radar:${index}:reread` },
+      });
+      assert.equal(reread, state);
+      assert.equal(isValidRadarSubmission({ ...correct, selectedOptionId: "inspect-and-confirm" }), false);
+    }
+
+    assert.equal(selectTotalPoints(state), 30);
+  } finally {
+    await vite.close();
+  }
+});
+
 test("publica a fundação PARE v2 com contrato, avaliação e recompensa idempotente entre versões", async () => {
   const { createServer } = await import("vite");
   const vite = await createServer({
@@ -3718,13 +3797,13 @@ test("resolve o registro P0 sem rotas duplicadas nem queda silenciosa no hub", a
       PORTAL_ACTIVITY_REGISTRY.filter(
         (item) => item.integrationStatus === "available",
       ).length,
-      11,
+      16,
     );
     assert.equal(
       PORTAL_ACTIVITY_REGISTRY.filter(
         (item) => item.integrationStatus === "planned",
       ).length,
-      21,
+      16,
     );
 
     const domainActivity = findActivityById("phishlab:link-analyzer");
@@ -3764,7 +3843,7 @@ test("resolve o registro P0 sem rotas duplicadas nem queda silenciosa no hub", a
     );
     assert.equal(
       resolvePortalRoute("/radar/falso-gestor").kind,
-      "planned",
+      "activity",
     );
     assert.deepEqual(resolvePortalRoute("/simulacoes/nao-existe"), {
       pathname: "/simulacoes/nao-existe",
@@ -4384,11 +4463,10 @@ test("publica A conversa já estava acontecendo v2 com três reconstruções e c
     assert.equal(response.status, 200);
     const html = await response.text();
     assert.match(html, /data-activity-id="mission:compromised-conversation"/);
-    assert.match(html, /Miss.o . vers.o 2/);
-    assert.match(html, /Caso atribu.do/);
+    assert.match(html, /As mensagens chegaram embaralhadas/);
+    assert.match(html, /Marina Lopes/);
     assert.doesNotMatch(html, />P1<|>P2<|>P3</);
     assert.doesNotMatch(html, /Percurso desta tentativa/);
-    assert.match(html, /Iniciar reconstru..o/);
   } finally {
     await vite.close();
   }
@@ -4658,8 +4736,8 @@ test("publica Quem enviou de verdade? v2 com mapa de identidade e compatibilidad
     assert.equal(response.status, 200);
     const html = await response.text();
     assert.match(html, /data-activity-id="phishlab:true-sender"/);
-    assert.match(html, /class="activity-workspace page-stack identity-map-page"/);
-    assert.match(html, /Ver um exemplo/);
+    assert.match(html, /Chegou um e-mail pedindo seu código/);
+    assert.match(html, /Caixa de entrada/);
     assert.doesNotMatch(html, />P1<|>P2<|>P3</);
   } finally {
     await vite.close();
@@ -4908,9 +4986,7 @@ test("publica Uma manhã comum v2 como triagem em lote sem reabrir recompensas v
     assert.equal(response.status, 200);
     const html = await response.text();
     assert.match(html, /data-activity-id="simulation:workday"/);
-    assert.match(html, /Simula..o . vers.o 2/);
-    assert.match(html, /Come.ar a triagem/);
-    assert.match(html, /class="activity-stage-progress workday-foundation-progress"/);
+    assert.match(html, /Uma manh. comum/);
     assert.match(html, /class="workday-v2-opening workday-foundation-opening"/);
     assert.match(html, /workday-opening-inbox/);
     assert.doesNotMatch(html, />P1<|>P2<|>P3</);
@@ -4928,14 +5004,6 @@ test("mostra estados explícitos para atividades planejadas e rotas desconhecida
         /Pedido urgente de um gestor/,
         /Planejada/,
         /ainda n.o possui player, contrato, avaliador e persist.ncia/,
-      ],
-    },
-    {
-      pathname: "/radar/falso-gestor",
-      expected: [
-        /class="page-stack activity-route-state planned"/,
-        /Quando o golpista se passa por um gestor/,
-        /conte.do permanece planejado/,
       ],
     },
     {

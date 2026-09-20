@@ -758,7 +758,8 @@ button { color: inherit; }
 .workday-v2-inbox-overview .workday-v2-board > button { display: grid; width: 100%; min-width: 0; grid-template-columns: 30px minmax(120px, .65fr) minmax(220px, 1.25fr) minmax(170px, 1fr) 56px 94px; gap: 12px; align-items: center; padding: 13px 16px; border: 0; border-bottom: 1px solid #e8eae8; color: #26312c; background: #fff; box-shadow: none; font: inherit; text-align: left; cursor: pointer; transition: background var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease); }
 .workday-v2-inbox-overview .workday-v2-board > button:last-child { border-bottom: 0; }
 .workday-v2-inbox-overview .workday-v2-board > button:hover { background: #f5f6f4; }
-.workday-v2-inbox-overview .workday-v2-board > button.selected { position: relative; z-index: 1; background: #f0f3f0; box-shadow: inset 4px 0 0 var(--learn-green); }
+/* Mesma cor de seleção dos botões de escolha das outras lições. */
+.workday-v2-inbox-overview .workday-v2-board > button.selected { position: relative; z-index: 1; background: #edf3e5; border-color: #568043; box-shadow: inset 4px 0 0 #568043; }
 .workday-v2-inbox-index { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 7px; color: #657069; background: #eef0ee; font-size: 11px; font-weight: 850; }
 .workday-v2-inbox-sender { min-width: 0; overflow: hidden; font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .workday-v2-inbox-overview .workday-v2-board > button > strong { min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
@@ -1328,3 +1329,17 @@ button { color: inherit; }
   .home-trail__item.is-completed .home-trail__node,
   .home-trail__item[aria-current="step"] .home-trail__node { border: 2px solid Highlight; }
 }
+
+/* A lição agora vive dentro do shell padrão, que já tem cabeçalho e rodapé
+   próprios. As alturas cheias de viewport foram calculadas para a moldura
+   antiga e deixavam vãos enormes. */
+.workday-v2-page .workday-v2-shell { min-height: 0; }
+.workday-v2-page .workday-v2-workspace { min-height: 0; padding: 0; }
+.workday-v2-page .workday-foundation-opening { min-height: 0; gap: 28px 50px; }
+/* O mockup é decorativo e sangra para a esquerda; sem a moldura de largura
+   total de antes, o corte caía no meio da palavra. */
+.workday-v2-page .workday-opening-visual { overflow: visible; }
+/* As demais etapas alinham à esquerda; a de transferência era a única centralizada. */
+.workday-v2-page .workday-v2-transfer > .section-kicker { justify-self: start; }
+.workday-v2-page .workday-v2-transfer > h2,
+.workday-v2-page .workday-v2-transfer > p { margin-inline: 0; text-align: left; }

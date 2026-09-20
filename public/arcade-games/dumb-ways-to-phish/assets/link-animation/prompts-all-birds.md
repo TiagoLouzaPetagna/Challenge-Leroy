@@ -1,0 +1,11 @@
+# Complemento: reações para todos os pombos
+
+Geração integrada de imagem, com `base.png` como alvo e referência. Arquivos finais: `delivery-sides.png` e `reactions-others.png`, nesta pasta.
+
+## Entrega nas laterais
+
+Edit target: attached approved pigeon post office scene. Make a REGISTERED animation frame exactly same 1672x941 canvas and positions. Change ONLY LEFT and RIGHT pigeons into success poses. CENTER pigeon unchanged. Left pigeon lifts its outer wing (viewer LEFT) holding a cream envelope near x65..230 y540..640, below head and above sign. Right pigeon lifts its outer wing (viewer RIGHT) holding a cream envelope near x1460..1630 y540..640. Each envelope black hand drawn outline, simple back flap, no text. Each lifted wing connects to existing shoulder, exactly TWO wings per bird. REMOVE the old resting outer hands from their placard edges and reconstruct placard and counter there. Other hands remain on placards. Left and right faces look proud with slightly raised eyebrows, keep beak anatomy and head silhouette. Keep caps on. Preserve background, lighting, all text and placards in exact original positions. Do not shift center or other scenery. Maintain original imperfect ink outlines, muted colors, adult comic pigeon caricatures. No new objects beyond two envelopes. Exact registration required for local animation overlays.
+
+## Erro à esquerda e no centro
+
+Edit target attached pigeon scene: registered alternate animation frame, exactly same 1672x941 composition. Change ONLY LEFT and CENTER pigeons heads: remove their blue postman caps completely and reconstruct the background behind caps, including the small area of cream poster behind center cap. Give both birds startled wide round eyes, small pupils and raised eyebrows. Natural round gray feathered heads where the caps were, same bird identities and head/neck positions. Preserve their original beak anatomy and silhouettes as closely as possible. RIGHT pigeon entirely unchanged with cap still on. All bodies, wings, placards, text, furniture, background must stay exactly registered and unchanged except cap reconstruction areas. No loose hats in scene, no added objects, no sweat effects. Rough hand drawn black outlines and same muted shading. This is an animation frame for local head overlays, not a redesign.

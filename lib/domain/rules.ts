@@ -117,11 +117,13 @@ import {
   WORKDAY_TRIAGE_MECHANIC_ID,
 } from "../content/activities/workday-triage/v2";
 import {
+  RADAR_ARTICLES,
   RADAR_CORRECT_OPTION_ID,
   RADAR_FEATURED_ARTICLE_ID,
   RADAR_FEATURED_ARTICLE_VERSION,
   RADAR_QUESTION_OPTIONS,
 } from "../content/radar-catalog";
+import { findAdditionalRadarLesson } from "../content/radar-lessons";
 import {
   TEAM_CHALLENGE_CASES,
   TEAM_CHALLENGE_ID,
@@ -174,6 +176,7 @@ export const SIMULATION_TEAM_CLAIM =
 export const RADAR_ACTIVITY_ID = RADAR_FEATURED_ARTICLE_ID;
 export const RADAR_ACTIVITY_VERSION = RADAR_FEATURED_ARTICLE_VERSION;
 export const RADAR_REWARD_CLAIM = `${RADAR_ACTIVITY_ID}:first-completion`;
+export const radarRewardClaimKey = (activityId: string) => `${activityId}:first-completion`;
 export const TEAM_CHALLENGE_ACTIVITY_ID = TEAM_CHALLENGE_ID;
 export const TEAM_CHALLENGE_ACTIVITY_VERSION = TEAM_CHALLENGE_VERSION;
 export const TEAM_CHALLENGE_REWARD_CLAIM =
@@ -2315,19 +2318,19 @@ export function createWorkdayTriageV2CompetencyEvidence(
   }));
 }
 
-const RADAR_OPTION_IDS = new Set(
-  RADAR_QUESTION_OPTIONS.map((option) => option.id),
-);
-
 export function isValidRadarSubmission(submission: RadarSubmission): boolean {
+  const article = RADAR_ARTICLES.find((item) => item.id === submission.activityId);
+  const optionIds = !article ? undefined : article.id === RADAR_ACTIVITY_ID
+    ? RADAR_QUESTION_OPTIONS.map((option) => option.id)
+    : findAdditionalRadarLesson(submission.activityId)?.check.options.map((option) => option.id);
   return (
-    submission.activityId === RADAR_ACTIVITY_ID &&
-    submission.activityVersion === RADAR_ACTIVITY_VERSION &&
+    article?.status === "available" &&
+    submission.activityVersion === article.version &&
     typeof submission.attemptId === "string" &&
     submission.attemptId.length > 0 &&
     typeof submission.completedAt === "string" &&
     !Number.isNaN(Date.parse(submission.completedAt)) &&
-    RADAR_OPTION_IDS.has(submission.selectedOptionId)
+    Boolean(optionIds && new Set<string>(optionIds).has(submission.selectedOptionId))
   );
 }
 
@@ -2338,7 +2341,10 @@ export function evaluateRadar(submission: RadarSubmission): RadarResult {
     );
   }
 
-  const correct = submission.selectedOptionId === RADAR_CORRECT_OPTION_ID;
+  const correctOptionId = submission.activityId === RADAR_ACTIVITY_ID
+    ? RADAR_CORRECT_OPTION_ID
+    : findAdditionalRadarLesson(submission.activityId)?.check.correctOptionId;
+  const correct = submission.selectedOptionId === correctOptionId;
   return {
     score: correct ? 100 : 0,
     correct,
@@ -2350,10 +2356,10 @@ export function evaluateRadar(submission: RadarSubmission): RadarResult {
 export function createRadarCompetencyEvidence(
   submission: RadarSubmission,
 ): CompetencyEvidence[] {
-  const values: Array<[CompetencyId, number]> = [
-    ["investigar", 75],
-    ["verificar", 75],
-  ];
+  const article = RADAR_ARTICLES.find((item) => item.id === submission.activityId);
+  const values: Array<[CompetencyId, number]> = submission.activityId === RADAR_ACTIVITY_ID
+    ? [["investigar", 75], ["verificar", 75]]
+    : article ? [[article.competencyId, 75]] : [];
 
   return values.map(([competencyId, score]) => ({
     key: `${submission.activityId}:${competencyId}:${submission.attemptId}`,

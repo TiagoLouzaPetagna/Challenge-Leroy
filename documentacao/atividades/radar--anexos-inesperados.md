@@ -1,8 +1,10 @@
 # Anexos inesperados e falsas notas fiscais
 
-> **Estado atual:** conteúdo planejado e visível somente como card de catálogo.
+> **Estado atual (2026-09-20):** conteúdo implementado e disponível em `/radar/anexos-inesperados`, com seis etapas, prática de evidências e verificação final.
 >
-> **Formato-alvo:** não definido além dos metadados atuais e da estrutura compartilhada do Radar; nenhuma mecânica específica foi aprovada.
+> **Implementação:** 5 pontos na primeira resposta correta; conclusão e recompensa independentes dos demais radares. O registro de planejamento abaixo foi preservado como histórico anterior à implementação.
+
+O caso fictício apresenta uma nota fiscal inesperada em arquivo compactado. A leitura diferencia contexto observável de conclusões não comprovadas e orienta confirmar a compra e o remetente por uma referência conhecida antes de abrir o anexo. Conteúdo e pergunta: `lib/content/radar-lessons.ts`; interface: `features/radar/RadarAdditionalArticle.tsx`.
 
 ## 1. Identidade e estados
 

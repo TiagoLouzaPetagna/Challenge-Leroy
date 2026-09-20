@@ -2992,3 +2992,46 @@
     min-height: 44px;
   }
 }
+
+@media (max-width: 480px) {
+  .house-page .house-focus-bar {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 5px;
+    padding-inline: 8px;
+  }
+
+  .house-page .house-focus-back {
+    width: 30px;
+    min-width: 30px;
+    padding: 6px;
+  }
+
+  .house-page .house-focus-context {
+    overflow: hidden;
+  }
+
+  .house-page .house-focus-context strong {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+  }
+
+  .house-page .house-focus-actions {
+    gap: 4px;
+  }
+
+  .house-page .house-action--build,
+  .house-page .house-action--complete {
+    width: 38px;
+    min-width: 38px;
+    padding: 7px;
+    font-size: 0;
+  }
+
+  .house-page .house-action--build span {
+    display: none;
+  }
+}

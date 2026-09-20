@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10152c">
+<meta name="description" content="Phishing Beat: seis fases de phishing, cada uma com música, timbre, movimento e gramática rítmica próprios. Observe antes, reporte na batida.">
+<title>Phishing Beat</title>
+<!-- Optional online typography. No font binaries are bundled. Offline fallbacks are provided. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Oxanium:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="stage" aria-label="Phishing Beat">
+ <canvas id="game" width="1280" height="720" role="img" aria-label="Phishing Beat. Use os controles acessíveis com Tab. Em jogo, espaço reporta e Escape pausa.">Seu navegador precisa oferecer suporte a Canvas.</canvas>
+ <nav id="controls" class="sr-only" aria-label="Controles do jogo"></nav>
+ <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+ <section class="sr-only" aria-label="Instruções">
+  <h1>Phishing Beat</h1><p>Cada fase possui sua própria música, ritmo e movimento. Observe domínios ou remetentes e reporte apenas as inconsistências sustentadas pelo contexto da fase. Pressione espaço ou toque em Reportar no momento em que o envelope chega ao marcador. Deixar passar não significa abrir o link.</p>
+  <p>Três erros de classificação encerram a faixa normal. Erros apenas de ritmo afetam bônus e combo, não vidas. O treino possui tolerância ampliada e não retira vidas. O minigame rítmico não é uma alternativa plenamente acessível por leitor de tela; menus e resultados oferecem apoio semântico.</p>
+ </section>
+</main>
+<p id="boot">Carregando os sprites…</p>
+<noscript>Ative JavaScript para jogar Phishing Beat.</noscript>
+<script src="src/assets.js"></script>
+<script src="data/scenarios.js"></script>
+<script src="data/rhythms.js"></script>
+<script src="data/soundsets.js"></script>
+<script src="src/core.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/game.js"></script>
+</body>
+</html>

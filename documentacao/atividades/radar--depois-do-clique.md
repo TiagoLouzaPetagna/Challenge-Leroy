@@ -1,8 +1,10 @@
 # Cliquei em um link suspeito. E agora?
 
-> **Estado atual:** conteúdo planejado e visível somente como card de catálogo.
+> **Estado atual (2026-09-20):** conteúdo implementado e disponível em `/radar/depois-do-clique`, com seis etapas, prática de evidências e verificação final.
 >
-> **Formato-alvo:** não definido além dos metadados atuais e da estrutura compartilhada do Radar; nenhuma mecânica específica foi aprovada.
+> **Implementação:** 5 pontos na primeira resposta correta; conclusão e recompensa independentes dos demais radares. O registro de planejamento abaixo foi preservado como histórico anterior à implementação.
+
+O caso fictício distingue abrir uma página de informar dados ou baixar arquivos. A leitura orienta interromper a interação e relatar o que realmente ocorreu, sem presumir roubo de senha ou instalação de programa. Conteúdo e pergunta: `lib/content/radar-lessons.ts`; interface: `features/radar/RadarAdditionalArticle.tsx`.
 
 ## 1. Identidade e estados
 

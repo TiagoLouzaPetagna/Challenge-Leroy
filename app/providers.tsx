@@ -53,7 +53,7 @@ import {
   isValidTeamChallengeSubmission,
   isValidTrueSenderV2Submission,
   SIMULATION_TEAM_CLAIM,
-  RADAR_REWARD_CLAIM,
+  radarRewardClaimKey,
 } from "@/lib/domain/rules";
 import { executeActivitySubmission } from "@/lib/activities/runtime/execute-activity";
 import type {
@@ -773,7 +773,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         completedAt,
       };
       const alreadyCompleted = Boolean(
-        state.learning.rewardClaims[RADAR_REWARD_CLAIM],
+        state.learning.rewardClaims[radarRewardClaimKey(answer.activityId)],
       );
       return executeActivitySubmission({
         submission,

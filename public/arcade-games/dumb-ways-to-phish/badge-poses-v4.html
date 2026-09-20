@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Revisão dos visitantes — Crachá falso</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #171629; color: #fff7dc; font: 700 16px system-ui, sans-serif; }
+    main { width: min(1500px, 96vw); margin: 20px auto 40px; }
+    h1 { margin: 0 0 16px; font-size: clamp(22px, 3vw, 38px); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    h2 { margin: 34px 0 16px; }
+    .pose-groups { display: grid; gap: 26px; }
+    .pose-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .pose-card { min-width: 0; }
+    .pose-card span { display: block; min-height: 2.7em; margin-bottom: 5px; font-size: 12px; line-height: 1.15; }
+    .pose-card img { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: contain; background: #23223a; border: 2px solid #080d2d; border-radius: 8px; }
+    figure { margin: 0; }
+    figcaption { margin: 0 0 7px; letter-spacing: .04em; }
+    .stage { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: #44c8ee; border: 4px solid #080d2d; border-radius: 12px; }
+    .stage img { position: absolute; display: block; object-fit: contain; pointer-events: none; }
+    .background { inset: 0; width: 100%; height: 100%; object-fit: cover !important; }
+    .visitor { z-index: 5; left: .8%; bottom: 2.5%; width: 42%; height: 76%; object-position: center bottom; }
+    .guard { z-index: 6; right: 1.8%; bottom: 4.3%; width: 36%; height: 64%; object-position: center bottom; }
+    .door { z-index: 9; left: 47.8%; top: -1%; width: auto; height: 102%; translate: -50% 0; }
+    .counter { z-index: 7; right: 0; bottom: 0; width: 52%; height: auto; }
+    @media (max-width: 840px) { .grid { grid-template-columns: 1fr; } .pose-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Visitantes adicionais na escala real da fase</h1>
+    <section class="grid" aria-label="Comparação visual dos visitantes">
+      <figure><figcaption>Entregador</figcaption><div class="stage" data-visitor="02"></div></figure>
+      <figure><figcaption>Técnico</figcaption><div class="stage" data-visitor="03"></div></figure>
+      <figure><figcaption>Executivo</figcaption><div class="stage" data-visitor="04"></div></figure>
+      <figure><figcaption>Fornecedora</figcaption><div class="stage" data-visitor="05"></div></figure>
+    </section>
+    <h2>Todas as ações individuais</h2>
+    <section class="pose-groups" id="pose-groups" aria-label="Ações individuais dos visitantes"></section>
+  </main>
+  <script>
+    for (const stage of document.querySelectorAll('.stage')) {
+      const id = stage.dataset.visitor;
+      stage.innerHTML = `
+        <img class="background" src="assets/badge/v4/scene-background.png" alt="">
+        <img class="visitor" src="assets/badge/v4/visitor-${id}/present.png" alt="">
+        <img class="guard" src="assets/badge/v4/guard/inspect.png" alt="">
+        <img class="counter" src="assets/badge/v4/counter.png" alt="">
+        <img class="door" src="assets/badge/v4/door.png" alt="">`;
+    }
+    const people = [['02','Entregador'],['03','Técnico'],['04','Executivo'],['05','Fornecedora']];
+    const states = [['present','Apresentação'],['accepted','Entrada autorizada'],['impostor','Impostor liberado'],['blocked-guilty','Impostor recusado'],['blocked-innocent','Válido recusado']];
+    const groups = document.getElementById('pose-groups');
+    for (const [id, person] of people) {
+      const group = document.createElement('section');
+      group.innerHTML = `<h3>${person}</h3><div class="pose-row">${states.map(([state,label]) => `<article class="pose-card"><span>${label}</span><img src="assets/badge/v4/visitor-${id}/${state}.png" alt="${person}: ${label}"></article>`).join('')}</div>`;
+      groups.append(group);
+    }
+  </script>
+</body>
+</html>

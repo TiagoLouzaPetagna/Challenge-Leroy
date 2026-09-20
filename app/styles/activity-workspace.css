@@ -148,7 +148,6 @@
   .activity-workspace :is(.conversation-opening,.bank-process-briefing,.bank-process-comparison,.bank-process-builder) { grid-template-columns: minmax(0,1fr); padding: 20px 0; }
   .activity-workspace :is(.conversation-assigned-case,.bank-process-briefing > aside,.mission-shell,.bank-process-station,.conversation-reconstruction-workspace) { min-width: 0; max-width: 100%; width: auto; }
   .activity-workspace .conversation-assigned-case { margin: 0; padding: 18px; }
-  .activity-workspace .bank-process-briefing > aside { padding: 18px; }
   .activity-workspace .activity-stage-progress__heading { gap: 12px; }
   .activity-workspace .activity-stage-progress__heading > div { min-width: 0; }
   .activity-workspace :is(.conversation-message-copy,.team-message-reader,.workday-v2-reader) { overflow-wrap: anywhere; }

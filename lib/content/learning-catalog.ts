@@ -128,7 +128,12 @@ export const ACTIVITY_LABELS: Readonly<Record<string, string>> = {
   "phishlab:link-analyzer": "Domínio sob a lupa",
   "simulation:workday": "Uma manhã comum",
   "radar:quishing": "Radar: Quishing",
+  "radar:unexpected-attachments": "Radar: Anexos inesperados",
+  "radar:manager-impersonation": "Radar: Falso gestor",
+  "radar:mfa-fatigue": "Radar: Fadiga de MFA",
+  "radar:message-scams": "Radar: Golpes por mensagem",
+  "radar:after-click": "Radar: Depois do clique",
   "team:secure-inbox": "Equipes: Caixa de Entrada Segura",
   "team:bank-change": "Equipes: Mudança bancária sem atalho",
-  "arcade:overlooked": "Overlooked",
+  "arcade:overlooked": "Office Defenders",
 };

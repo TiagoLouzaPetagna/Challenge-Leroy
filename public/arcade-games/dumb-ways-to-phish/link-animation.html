@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Link torto · estudo de animação</title>
+  <link rel="stylesheet" href="link-animation.css">
+  <script type="module" src="link-animation.js"></script>
+</head>
+<body>
+  <main>
+    <header><div><h1>Link torto</h1><p>Estudo de animação</p></div><a href="/">Voltar ao menu</a></header>
+    <canvas id="scene" width="1672" height="941" aria-label="Três pombos carteiros atrás de um balcão. Prévia das expressões e reações."></canvas>
+    <section class="controls" aria-label="Controles da prévia">
+      <div class="modes" role="group" aria-label="Pombo" style="margin-bottom:10px">
+        <span>Pombo:</span><button data-bird="0" aria-pressed="true">Esquerda</button><button data-bird="1" aria-pressed="false">Centro</button><button data-bird="2" aria-pressed="false">Direita</button>
+      </div>
+      <div class="modes" role="group" aria-label="Animação">
+        <button data-mode="sequence" aria-pressed="true">Sequência completa</button>
+        <button data-mode="idle" aria-pressed="false">Piscar</button>
+        <button data-mode="success" aria-pressed="false">Acerto · envelope</button>
+        <button data-mode="error" aria-pressed="false">Erro · boné</button>
+      </div>
+      <div class="transport"><button id="play" disabled>Pausar</button><button id="restart" disabled>Repetir</button><label for="timeline">Tempo</label><input id="timeline" type="range" min="0" max="12" value="0" step="0.01" disabled><output id="time">0,00 / 12,00 s</output><label class="loop"><input id="loop" type="checkbox" checked> Loop</label></div>
+      <p id="status" role="status">Carregando as poses…</p>
+    </section>
+  </main>
+</body>
+</html>

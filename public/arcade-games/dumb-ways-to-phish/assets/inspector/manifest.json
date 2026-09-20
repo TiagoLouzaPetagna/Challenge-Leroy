@@ -1,0 +1,98 @@
+{
+  "body": {
+    "sourceRect": [
+      0,
+      0,
+      512,
+      565
+    ],
+    "trimRect": [
+      23,
+      48,
+      494,
+      543
+    ],
+    "width": 471,
+    "height": 495
+  },
+  "head": {
+    "sourceRect": [
+      512,
+      0,
+      1024,
+      610
+    ],
+    "trimRect": [
+      35,
+      9,
+      490,
+      593
+    ],
+    "width": 455,
+    "height": 584
+  },
+  "arm-stop": {
+    "sourceRect": [
+      1024,
+      0,
+      1536,
+      565
+    ],
+    "trimRect": [
+      37,
+      37,
+      483,
+      500
+    ],
+    "width": 446,
+    "height": 463
+  },
+  "arm-point": {
+    "sourceRect": [
+      0,
+      590,
+      512,
+      1024
+    ],
+    "trimRect": [
+      35,
+      42,
+      505,
+      328
+    ],
+    "width": 470,
+    "height": 286
+  },
+  "mouth-grin": {
+    "sourceRect": [
+      512,
+      620,
+      1024,
+      1024
+    ],
+    "trimRect": [
+      100,
+      76,
+      458,
+      294
+    ],
+    "width": 358,
+    "height": 218
+  },
+  "mouth-open": {
+    "sourceRect": [
+      1024,
+      580,
+      1536,
+      1024
+    ],
+    "trimRect": [
+      114,
+      33,
+      421,
+      408
+    ],
+    "width": 307,
+    "height": 375
+  }
+}

@@ -1,8 +1,10 @@
 # Quando o golpista se passa por um gestor
 
-> **Estado atual:** conteúdo planejado e visível somente como card de catálogo.
+> **Estado atual (2026-09-20):** conteúdo implementado e disponível em `/radar/falso-gestor`, com seis etapas, prática de evidências e verificação final.
 >
-> **Formato-alvo:** não definido além dos metadados atuais e da estrutura compartilhada do Radar; nenhuma mecânica específica foi aprovada.
+> **Implementação:** 5 pontos na primeira resposta correta; conclusão e recompensa independentes dos demais radares. O registro de planejamento abaixo foi preservado como histórico anterior à implementação.
+
+O caso fictício mostra um pedido atribuído à gestão que solicita dados, urgência e sigilo fora do fluxo usual. A leitura evita presumir invasão de conta e ensina a confirmar o pedido por um contato conhecido. Conteúdo e pergunta: `lib/content/radar-lessons.ts`; interface: `features/radar/RadarAdditionalArticle.tsx`.
 
 ## 1. Identidade e estados
 

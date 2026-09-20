@@ -1,0 +1,604 @@
+{
+  "stage": {
+    "file": "assets/backgrounds/stage.jpg",
+    "width": 1920,
+    "height": 1080,
+    "alpha": false,
+    "origin": "original AI-generated Y2K music/mail border, resized to 16:9"
+  },
+  "mail": {
+    "file": "assets/sprites/mail.png",
+    "width": 300,
+    "height": 276,
+    "scale": 2,
+    "alpha": true,
+    "origin": "isolated envelope from original AI background; geometric alpha mask"
+  },
+  "logo": {
+    "file": "assets/ui/logo.png",
+    "width": 1520,
+    "height": 464,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "evidence": {
+    "file": "assets/ui/evidence.png",
+    "width": 1944,
+    "height": 376,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "evidence_review": {
+    "file": "assets/ui/evidence_review.png",
+    "width": 1944,
+    "height": 376,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "lane": {
+    "file": "assets/ui/lane.png",
+    "width": 1944,
+    "height": 274,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "modal": {
+    "file": "assets/ui/modal.png",
+    "width": 2160,
+    "height": 1248,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "hud": {
+    "file": "assets/ui/hud.png",
+    "width": 504,
+    "height": 156,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "ribbon": {
+    "file": "assets/ui/ribbon.png",
+    "width": 1944,
+    "height": 116,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_primary_up": {
+    "file": "assets/ui/button_primary_up.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_primary_down": {
+    "file": "assets/ui/button_primary_down.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_primary_focus": {
+    "file": "assets/ui/button_primary_focus.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_primary_disabled": {
+    "file": "assets/ui/button_primary_disabled.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_cream_up": {
+    "file": "assets/ui/button_cream_up.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_cream_down": {
+    "file": "assets/ui/button_cream_down.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_cream_focus": {
+    "file": "assets/ui/button_cream_focus.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_cream_disabled": {
+    "file": "assets/ui/button_cream_disabled.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_pink_up": {
+    "file": "assets/ui/button_pink_up.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_pink_down": {
+    "file": "assets/ui/button_pink_down.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_pink_focus": {
+    "file": "assets/ui/button_pink_focus.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_pink_disabled": {
+    "file": "assets/ui/button_pink_disabled.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_dark_up": {
+    "file": "assets/ui/button_dark_up.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_dark_down": {
+    "file": "assets/ui/button_dark_down.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_dark_focus": {
+    "file": "assets/ui/button_dark_focus.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "button_dark_disabled": {
+    "file": "assets/ui/button_dark_disabled.png",
+    "width": 960,
+    "height": 178,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "report_label": {
+    "file": "assets/ui/report_label.png",
+    "width": 920,
+    "height": 116,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "progress_fill": {
+    "file": "assets/ui/progress_fill.png",
+    "width": 1920,
+    "height": 16,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "progress_base": {
+    "file": "assets/ui/progress_base.png",
+    "width": 1920,
+    "height": 16,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "focus_line": {
+    "file": "assets/ui/focus_line.png",
+    "width": 1920,
+    "height": 16,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "scrim": {
+    "file": "assets/ui/scrim.png",
+    "width": 16,
+    "height": 16,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "pulse": {
+    "file": "assets/sprites/pulse.png",
+    "width": 1136,
+    "height": 284,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat",
+    "frames": 4,
+    "cell": [
+      284,
+      284
+    ],
+    "layout": [
+      4,
+      1
+    ],
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "equalizer": {
+    "file": "assets/sprites/equalizer.png",
+    "width": 3520,
+    "height": 124,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat",
+    "frames": 8,
+    "cell": [
+      440,
+      124
+    ],
+    "layout": [
+      8,
+      1
+    ]
+  },
+  "record": {
+    "file": "assets/sprites/record.png",
+    "width": 624,
+    "height": 624,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_pause": {
+    "file": "assets/sprites/icon_pause.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_sound": {
+    "file": "assets/sprites/icon_sound.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_muted": {
+    "file": "assets/sprites/icon_muted.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_settings": {
+    "file": "assets/sprites/icon_settings.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_arrow": {
+    "file": "assets/sprites/icon_arrow.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_check": {
+    "file": "assets/sprites/icon_check.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_close": {
+    "file": "assets/sprites/icon_close.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_heart": {
+    "file": "assets/sprites/icon_heart.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_heart_empty": {
+    "file": "assets/sprites/icon_heart_empty.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_fullscreen": {
+    "file": "assets/sprites/icon_fullscreen.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_note": {
+    "file": "assets/sprites/icon_note.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "icon_back": {
+    "file": "assets/sprites/icon_back.png",
+    "width": 128,
+    "height": 128,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "star": {
+    "file": "assets/fx/star.png",
+    "width": 136,
+    "height": 136,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "spark": {
+    "file": "assets/fx/spark.png",
+    "width": 136,
+    "height": 136,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "error": {
+    "file": "assets/fx/error.png",
+    "width": 136,
+    "height": 136,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "confetti": {
+    "file": "assets/fx/confetti.png",
+    "width": 136,
+    "height": 136,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_perfect": {
+    "file": "assets/fx/label_perfect.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_good": {
+    "file": "assets/fx/label_good.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_offbeat": {
+    "file": "assets/fx/label_offbeat.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_miss": {
+    "file": "assets/fx/label_miss.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_false_positive": {
+    "file": "assets/fx/label_false_positive.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_ok": {
+    "file": "assets/fx/label_ok.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_clear": {
+    "file": "assets/fx/label_clear.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_failed": {
+    "file": "assets/fx/label_failed.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "label_ready": {
+    "file": "assets/fx/label_ready.png",
+    "width": 920,
+    "height": 164,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "digits": {
+    "file": "assets/sprites/digits.png",
+    "width": 1740,
+    "height": 140,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat",
+    "characters": "0123456789×%:–+",
+    "cell": [
+      116,
+      140
+    ],
+    "layout": [
+      15,
+      1
+    ]
+  },
+  "digits_yellow": {
+    "file": "assets/sprites/digits_yellow.png",
+    "width": 1740,
+    "height": 140,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat",
+    "characters": "0123456789×%:–+",
+    "cell": [
+      116,
+      140
+    ],
+    "layout": [
+      15,
+      1
+    ]
+  },
+  "digits_cyan": {
+    "file": "assets/sprites/digits_cyan.png",
+    "width": 1740,
+    "height": 140,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat",
+    "characters": "0123456789×%:–+",
+    "cell": [
+      116,
+      140
+    ],
+    "layout": [
+      15,
+      1
+    ]
+  },
+  "glitch": {
+    "file": "assets/fx/glitch.png",
+    "width": 2560,
+    "height": 1440,
+    "scale": 2,
+    "alpha": true,
+    "origin": "raster artwork built for Phishing Beat"
+  },
+  "evidence_v4": {
+    "file": "assets/ui/evidence_v4.png",
+    "width": 1944,
+    "height": 376,
+    "scale": 2,
+    "alpha": true,
+    "origin": "V4 raster artwork built locally for Phishing Beat"
+  },
+  "sender": {
+    "file": "assets/sprites/sender.png",
+    "width": 300,
+    "height": 276,
+    "scale": 2,
+    "alpha": true,
+    "origin": "V4 raster artwork built locally for Phishing Beat"
+  },
+  "overlay_passo": {
+    "file": "assets/backgrounds/stage_overlay_passo.png",
+    "width": 1280,
+    "height": 720,
+    "alpha": true,
+    "origin": "V7 stage-specific raster overlay generated for Phishing Beat"
+  },
+  "overlay_contra": {
+    "file": "assets/backgrounds/stage_overlay_contra.png",
+    "width": 1280,
+    "height": 720,
+    "alpha": true,
+    "origin": "V7 stage-specific raster overlay generated for Phishing Beat"
+  },
+  "overlay_freio": {
+    "file": "assets/backgrounds/stage_overlay_freio.png",
+    "width": 1280,
+    "height": 720,
+    "alpha": true,
+    "origin": "V7 stage-specific raster overlay generated for Phishing Beat"
+  },
+  "overlay_swing": {
+    "file": "assets/backgrounds/stage_overlay_swing.png",
+    "width": 1280,
+    "height": 720,
+    "alpha": true,
+    "origin": "V7 stage-specific raster overlay generated for Phishing Beat"
+  },
+  "overlay_trinca": {
+    "file": "assets/backgrounds/stage_overlay_trinca.png",
+    "width": 1280,
+    "height": 720,
+    "alpha": true,
+    "origin": "V7 stage-specific raster overlay generated for Phishing Beat"
+  },
+  "overlay_resposta": {
+    "file": "assets/backgrounds/stage_overlay_resposta.png",
+    "width": 1280,
+    "height": 720,
+    "alpha": true,
+    "origin": "V7 stage-specific raster overlay generated for Phishing Beat"
+  }
+}

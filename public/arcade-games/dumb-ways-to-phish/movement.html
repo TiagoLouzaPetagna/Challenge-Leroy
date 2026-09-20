@@ -1,0 +1,21 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Esteira — movimento</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#4075cc;color:#fffdf4;font:16px Arial,sans-serif}main{max-width:1300px;margin:auto;padding:18px}nav{display:flex;align-items:center;gap:20px;margin:0 0 14px}a{color:inherit}button{font:inherit;border:1px solid #fff8;color:inherit;background:transparent;padding:8px 18px;cursor:pointer}input{flex:1}canvas{width:100%;height:auto;display:block}p{margin:12px 0}</style>
+<main><nav><button id="toggle">Pausar</button><input id="position" aria-label="Posição da demonstração" type="range" min="0" max="12500" step="10" value="0"><a href="./">Abrir jogo</a></nav><canvas id="demo" width="1672" height="941" aria-label="Demonstração da passagem dos arquivos e da trituração"></canvas><p id="description" aria-live="polite">Carregando as peças…</p></main>
+<script type="module">
+import {ConveyorArt,MOUTH_LIP,CUTTER} from './conveyor-art.js';
+import {TRACK} from './conveyor-engine.js';
+const art=new ConveyorArt(document.querySelector('canvas')),slider=document.querySelector('input'),toggle=document.querySelector('button');
+let playing=true,time=0,last=performance.now();
+toggle.onclick=()=>{playing=!playing;toggle.textContent=playing?'Pausar':'Continuar';};slider.oninput=()=>{time=Number(slider.value);playing=false;toggle.textContent='Continuar';};
+await art.load();
+function frame(now){const dt=Math.min(100,now-last);last=now;if(playing)time=(time+dt)%12500;slider.value=time;art.reset();art.time=time;
+ const scene={number:1,status:time<1800?'intro':'running',rule:{speed:170,blocked:['EXE','BAT']},files:[{id:1,type:'PDF',x:-110+time*.15}]};
+ if(time>1500&&time<5200)scene.files.push({id:2,type:'EXE',x:-110+(time-1500)*.17});
+ if(time>=4200&&time<5200){const t=(time-4200)/1000;art.drag={id:2,x:349+(MOUTH_LIP.x-349)*t,y:TRACK.y+(MOUTH_LIP.y-TRACK.y)*t};}
+ if(time>=5200&&time<6300)art.feeds.push({age:time-5200,emitted:time>=5630});
+ if(time>=5200&&time<6550)art.reaction={pose:0,ttl:6550-time};
+ if(time>=5630&&time<6280)for(let i=0;i<7;i++)art.scraps.push({age:time-5630,x:CUTTER.x+18+i*27,dx:(i-3)*9,turn:(i-3)*.035});
+ art.draw(scene);const text=time<1500?'O arquivo permitido aparece pela passagem da esquerda.':time<4200?'A esteira transporta os arquivos.':time<5200?'O arquivo bloqueado é arrastado até o antivírus.':time<6400?'O arquivo some; ele abre a boca e as tiras saem pelo cortador da barriga.':'O arquivo permitido segue até desaparecer pelo buraco da direita.';
+ if(document.querySelector('p').textContent!==text)document.querySelector('p').textContent=text;requestAnimationFrame(frame);
+}requestAnimationFrame(frame);
+</script></html>

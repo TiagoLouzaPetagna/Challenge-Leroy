@@ -1,0 +1,111 @@
+:root{--ui-blue:#4075cc;--ui-white:#fffdf4;--ui-ink:#192b51;--ui-font:Arial,Helvetica,sans-serif;font-family:var(--ui-font);background:var(--ui-blue)}
+html,body{min-width:320px;margin:0;background:var(--ui-blue);min-height:100%;font-family:var(--ui-font)}button{font-family:inherit}button:focus-visible{outline:3px solid currentColor;outline-offset:5px}
+.arcade{max-width:1600px;min-height:100svh;margin:auto;padding:0}.game-shell{min-height:100svh;border:0;border-radius:0;box-shadow:none;overflow:hidden;background:#fff3d6}.game-hud{height:88px;background:url('assets/ui/blue.svg');color:var(--ui-white);display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;padding:0 40px;gap:28px;position:relative;z-index:20}.hud-score{display:flex;align-items:center;gap:20px;min-width:0}.hud-score>span{font-size:18px;font-weight:700}.hud-score strong{font-size:42px;line-height:1;letter-spacing:.2px;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:0}.game-hud .lives{display:flex;gap:20px;align-items:center}.game-hud .lives b{display:block;width:40px;height:46px;line-height:0;color:inherit;transform:none;-webkit-text-stroke:0;transition:none}.game-hud .lives img{width:100%;height:100%;display:block}.game-hud .lives b.lost{transform:none}.pause-control{justify-self:end;width:54px;height:54px;padding:7px;border:0;background:none;color:var(--ui-white)}.pause-control img{display:block;width:100%;height:100%}.pause-control:hover{opacity:.8}.pause-control:disabled{opacity:.55}
+.workroom{height:calc(100svh - 140px);min-height:580px}.bottom-bar{height:52px;box-shadow:none;border:0}.head-rig,.arm-stop,.arm-point{animation:none!important}.is-paused .workroom *,.is-paused .workroom *:before,.is-paused .workroom *:after{animation-play-state:paused!important}
+.shell-screen{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:40px 28px;overflow:auto;font-family:var(--ui-font);color:var(--ui-white)}.home-screen{background:var(--ui-blue) url('assets/ui/blue.svg')}.pause-screen{background:var(--ui-blue) url('assets/ui/blue.svg');color:var(--ui-white);isolation:isolate}.screen-content{width:min(560px,100%);margin:auto;padding:24px 0}.screen-content h2{font-family:var(--ui-font);font-size:clamp(42px,5vw,64px);letter-spacing:-1.5px;line-height:1.12;margin:0 0 36px;font-weight:700}.screen-content p{font-size:19px;line-height:1.6;margin:0 0 24px;max-width:540px}.screen-content .text-menu{padding-left:0}.pause-screen .screen-content{position:relative;width:min(370px,100%)}
+.home-content{display:grid;grid-template-columns:190px auto;column-gap:40px;align-items:center;width:max-content;max-width:100%;transform:translateY(-8px)}.brand-mark{width:190px;height:255px;grid-column:1;grid-row:1;align-self:end;margin-bottom:0}.home-content h1{grid-column:2;grid-row:1;font-size:clamp(44px,5.2vw,76px);line-height:1.05;letter-spacing:-1.3px;margin:0;align-self:end;padding-bottom:5px;color:var(--ui-white);font-weight:700}.home-content>.text-menu{grid-column:2;grid-row:2;margin-top:70px}
+.text-menu{display:flex;flex-direction:column;align-items:flex-start;gap:4px}.menu-item{display:block;position:relative;color:inherit;border:0;border-radius:0;background:transparent;padding:8px 0;margin:0;text-align:left;font-size:clamp(25px,3.1vw,37px);font-weight:500;line-height:1.28;min-height:48px;text-decoration:none;max-width:100%;cursor:pointer}.menu-item:before{content:'';width:24px;height:24px;position:absolute;left:-40px;top:50%;transform:translateY(-50%);background:url('assets/ui/selection.svg') center/contain no-repeat;opacity:0}.menu-item.current:before,.menu-item:focus-visible:before{opacity:1}.menu-item:hover{color:inherit}.menu-item:active{transform:translateY(1px)}.text-menu:has(.menu-item:focus-visible) .menu-item.current:not(:focus-visible):before{opacity:0}.menu-item span{font-size:.63em;margin-left:16px;opacity:.8;white-space:nowrap}
+.help-content{width:min(650px,100%)}.help-content h2{margin-bottom:24px}.help-content p{font-size:18px}.help-content .keyboard-help{font-size:16px;opacity:.88}.help-content .text-menu{margin-top:24px}.result-content .eyebrow{font-family:inherit;font-size:13px;letter-spacing:1.2px;display:block;margin-bottom:16px}.result-content h2{margin-bottom:18px}.result-score{display:flex;align-items:baseline;gap:15px;margin-bottom:20px;overflow-wrap:anywhere}.result-score strong{font-size:clamp(45px,7vw,80px);line-height:1.1;font-variant-numeric:tabular-nums}.result-score span{font-size:18px}.result-content p{font-size:16px;margin:10px 0}.result-content .text-menu{margin-top:32px}.result-content .record{margin-top:16px}.result-content .record strong{margin-left:8px}.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.is-start .workroom,.is-start .bottom-bar{visibility:hidden}.is-start .inspector-zone{z-index:auto}.is-start .command{opacity:1}.is-start .files-area{opacity:1}
+body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(min-width:1601px){.game-shell{border-left:1px solid #fff2;border-right:1px solid #fff2}}
+@media(max-width:700px){.game-hud{height:72px;padding:0 18px;gap:12px;grid-template-columns:minmax(0,1fr) auto 48px}.hud-score{gap:5px;align-items:flex-start;flex-direction:column}.hud-score>span{font-size:10px;letter-spacing:.7px}.hud-score strong{font-size:29px}.game-hud .lives{gap:8px}.game-hud .lives b{width:27px;height:32px}.pause-control{width:46px;height:48px;padding:9px}.workroom{height:calc(100svh - 120px);min-height:620px}.bottom-bar{height:48px}.shell-screen{padding:28px 38px}.home-content{width:100%;grid-template-columns:77px minmax(0,1fr);column-gap:18px;transform:none}.brand-mark{width:77px;height:110px}.home-content h1{font-size:clamp(32px,7vw,48px);letter-spacing:-.6px;padding-bottom:2px}.home-content>.text-menu{margin-top:45px;grid-column:2}.menu-item{font-size:27px;padding:9px 0}.menu-item:before{width:19px;height:19px;left:-28px}.screen-content{padding:20px 0}.screen-content h2{font-size:43px;margin-bottom:24px}.screen-content p{font-size:16px}.menu-item span{display:block;font-size:16px;margin:3px 0 0}.help-content p{font-size:16px}.help-content .keyboard-help{font-size:14px}}
+@media(max-height:520px) and (min-width:701px){.shell-screen{padding:20px 50px}.home-content{grid-template-columns:120px auto;gap:0 28px}.brand-mark{width:120px;height:150px}.home-content h1{font-size:48px}.home-content>.text-menu{margin-top:24px}.menu-item{font-size:26px;padding:5px 0}.screen-content h2{font-size:42px;margin-bottom:18px}.screen-content p{font-size:16px;margin-bottom:12px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* The selection dot is the keyboard-focus indicator for text menus. */
+.menu-item:focus-visible{outline:none}
+.campaign-label{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);z-index:22;color:#fffdf4;font:700 12px/1.2 Arial,sans-serif;white-space:nowrap;text-shadow:1px 2px 0 #080d27}
+@media(max-width:700px){.campaign-label{font-size:10px;bottom:2px}}
+
+/* Between campaign phases, keep the selection menu and its artwork off screen
+   while the next microgame loads. The normal menu is unchanged outside a run. */
+.campaign-entry #start-overlay.shell-screen{background:#0b1737!important;justify-items:center;pointer-events:none}
+.campaign-entry #start-overlay.shell-screen .home-content{display:none!important}
+.campaign-entry #start-overlay.shell-screen::after{content:'PREPARANDO A FASE';color:#fffdf4;font:700 clamp(22px,4vw,42px)/1.1 MenuRowdies,Arial,sans-serif;text-align:center;letter-spacing:.02em}
+
+/* Keep the entry menu legible across screen sizes. */
+.conveyor-scene #start-overlay .home-content{grid-template-columns:140px auto;column-gap:30px;transform:none}
+.conveyor-scene #start-overlay .brand-mark{width:140px;height:180px}
+.conveyor-scene #start-overlay .home-content h1{font-size:clamp(40px,4.6vw,60px)}
+.conveyor-scene #start-overlay .home-content>.text-menu{margin-top:18px;gap:1px}
+.conveyor-scene #start-overlay .menu-item{font-size:clamp(22px,2.3vw,29px);min-height:38px;padding:4px 0;line-height:1.1}
+@media(max-width:700px){.conveyor-scene #start-overlay .home-content{grid-template-columns:70px minmax(0,1fr);column-gap:15px}.conveyor-scene #start-overlay .brand-mark{width:70px;height:95px}.conveyor-scene #start-overlay .home-content h1{font-size:clamp(30px,6.7vw,46px)}.conveyor-scene #start-overlay .home-content>.text-menu{margin-top:15px}.conveyor-scene #start-overlay .menu-item{font-size:clamp(20px,4.6vw,25px);min-height:33px;padding:3px 0}}
+
+/* The shared menu artwork keeps each microgame's visual language in a separate
+   painted fragment. Typography stays live so titles and controls remain legible. */
+@font-face{font-family:MenuRowdies;src:url('assets/fonts/Rowdies-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:MenuRowdies;src:url('assets/fonts/Rowdies-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+#start-overlay.shell-screen,#pause-overlay.shell-screen{
+  background-color:#0b1737;
+  background-image:linear-gradient(90deg,#0713374d 0%,#07133716 52%,transparent 76%),url('assets/ui/menu-collage-v1.png');
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  font-family:MenuRowdies,Arial,sans-serif;
+  justify-items:start;
+}
+#pause-overlay.shell-screen{background-image:linear-gradient(90deg,#06112e99 0%,#06112e3d 65%,#06112e44 100%),url('assets/ui/menu-collage-v1.png')}
+#start-overlay.shell-screen .home-content{display:block;width:min(560px,100%);margin:0 0 0 clamp(28px,7vw,124px);transform:none}
+#start-overlay.shell-screen .brand-mark{display:none}
+#start-overlay.shell-screen .home-content h1,#start-overlay.shell-screen .home-content h2{
+  display:block;margin:0;color:#fffdf4;font-family:MenuRowdies,Arial,sans-serif;
+  font-size:clamp(43px,4.7vw,68px);font-weight:700;line-height:.99;letter-spacing:-.025em;
+  text-shadow:3px 4px 0 #07112a,0 0 18px #07112a80;
+}
+#start-overlay.shell-screen .home-content>.text-menu{margin-top:20px;gap:0}
+#start-overlay.shell-screen .menu-item,#pause-overlay.shell-screen .menu-item{
+  color:#fffdf4;font-family:MenuRowdies,Arial,sans-serif;font-weight:400;
+  text-shadow:2px 3px 0 #07112a,0 0 14px #07112acc;
+}
+#start-overlay.shell-screen .menu-item{font-size:clamp(21px,2vw,27px);line-height:1.06;min-height:35px;padding:3px 0}
+#start-overlay.shell-screen .menu-item:hover,#start-overlay.shell-screen .menu-item:focus-visible,
+#pause-overlay.shell-screen .menu-item:hover,#pause-overlay.shell-screen .menu-item:focus-visible{color:#ffe479}
+#pause-overlay.shell-screen .screen-content{width:min(470px,100%);margin:0 0 0 clamp(32px,11vw,190px)}
+#pause-overlay.shell-screen .screen-content h2{font-family:MenuRowdies,Arial,sans-serif;font-weight:700;text-shadow:3px 4px 0 #07112a}
+.shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error){
+  background-color:#0b1737;
+  background-image:linear-gradient(90deg,#06112edb 0%,#06112eb9 53%,#06112e6b 100%),url('assets/ui/menu-collage-v1.png');
+  background-position:center;background-size:cover;background-repeat:no-repeat;justify-items:start;
+}
+.shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .screen-content{
+  margin:0 0 0 clamp(32px,9vw,150px);
+}
+.shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .screen-content h2,
+.shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .menu-item{
+  font-family:MenuRowdies,Arial,sans-serif;text-shadow:2px 3px 0 #07112a;
+}
+.shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .menu-item:hover,
+.shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .menu-item:focus-visible{color:#ffe479}
+@media(max-width:700px){
+  html:has(.shell-screen:not([hidden])),body:has(.shell-screen:not([hidden])){min-width:320px;overflow-x:hidden}
+  #start-overlay.shell-screen,#pause-overlay.shell-screen{
+    background-position:21% center;
+    background-image:linear-gradient(90deg,#071337c9,#07133799),url('assets/ui/menu-collage-v1.png');
+  }
+  #start-overlay.shell-screen .home-content,#pause-overlay.shell-screen .screen-content{margin:0;width:100%}
+  #start-overlay.shell-screen .home-content h1,#start-overlay.shell-screen .home-content h2{font-size:clamp(37px,9vw,54px)}
+  #start-overlay.shell-screen .menu-item{font-size:clamp(20px,4.8vw,25px);min-height:32px;padding:3px 0}
+  .shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error){
+    background-position:21% center;
+    background-image:linear-gradient(90deg,#06112ee6,#06112ebf),url('assets/ui/menu-collage-v1.png');
+  }
+  .shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .screen-content{margin:0;width:100%}
+}
+@media(orientation:landscape) and (max-width:1000px) and (max-height:600px){
+  html:has(.game-shell),body:has(.game-shell){min-width:320px;overflow-x:hidden}
+  .shell-screen{padding:12px 25px;overflow-x:hidden}
+  #start-overlay.shell-screen,#pause-overlay.shell-screen{background-position:center;background-image:linear-gradient(90deg,#071337f2 0%,#071337e1 65%,#07133788 100%),url('assets/ui/menu-collage-v1.png')}
+  #start-overlay.shell-screen .home-content{display:grid;grid-template-columns:38% minmax(0,1fr);align-items:center;gap:12px;width:100%;margin:0;transform:none}
+  #start-overlay.shell-screen .home-content h1{grid-column:1;grid-row:1;align-self:center;font-size:clamp(34px,5vw,47px)}
+  #start-overlay.shell-screen .home-content>.text-menu{margin:0;grid-column:2;grid-row:1}
+  #start-overlay.shell-screen .menu-item{font-size:clamp(16px,2.1vw,20px);min-height:27px;padding:2px 0}
+  #pause-overlay.shell-screen .screen-content{margin:0 0 0 4vw;padding:0}
+  #pause-overlay.shell-screen .screen-content h2{font-size:clamp(38px,5vw,48px);margin-bottom:12px}
+  #pause-overlay.shell-screen .menu-item{font-size:clamp(20px,2.5vw,25px);padding:4px 0}
+  .shell-screen:is(#options-overlay,#help-overlay,#exit-overlay,#gameover-overlay,#load-error) .screen-content{margin:0 0 0 4vw}
+}
+@media(orientation:portrait) and (max-width:700px){
+  html:has(.game-shell),body:has(.game-shell){min-width:320px;overflow:hidden}
+  body:has(.game-shell)::before{content:"";position:fixed;inset:0;z-index:999;background:linear-gradient(#071337d9,#071337ed),url('assets/ui/menu-collage-v1.png') center/cover}
+  body:has(.game-shell)::after{content:"Gire o celular para jogar na horizontal";position:fixed;z-index:1000;left:30px;right:30px;top:50%;transform:translateY(-50%);color:#fffdf4;text-align:center;font:700 clamp(28px,8vw,42px)/1.15 MenuRowdies,Arial,sans-serif;text-shadow:3px 4px 0 #07112a}
+}

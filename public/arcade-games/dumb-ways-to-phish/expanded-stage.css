@@ -1,0 +1,17 @@
+/* Playable artwork stays proportional; scenery fills the surrounding room. */
+html,body,.game-shell{background:var(--stage-base,#4075cc)}
+.game-shell{position:relative;border:0}
+.game-hud{position:absolute;inset:0 0 auto;height:76px;max-width:none;background:linear-gradient(#172535c9,#17253538,transparent);padding:0 32px;text-shadow:0 2px 4px #172535}
+.game-hud .lives,.pause-control{filter:drop-shadow(0 2px 3px #17253580)}
+.stage-wrap{position:relative;height:100svh;padding-top:76px;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:center;background:var(--stage-base,#4075cc)}
+#stage-backdrop{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none}
+.workroom{z-index:1;width:min(100%,calc((100svh - 76px)*1672/941));height:auto;flex:none;min-height:0;aspect-ratio:1672/941}
+.conveyor-scene .workroom{mask-image:linear-gradient(to right,transparent,#000 5px,#000 calc(100% - 5px),transparent)}
+.conveyor-scene .workroom canvas{outline:none}
+.popup-scene{--stage-base:#a1b9c9}
+.popup-scene .stage-wrap{padding-bottom:40px}
+.popup-scene .workroom{width:min(100%,calc((100svh - 116px)*1672/941))}
+.popup-scene .round-clock{background:#354c62ef;border-radius:4px}
+.popup-scene .round-clock.urgent{background:#843e2aef}
+.popup-scene .feedback{background:#354c62ef}
+.popup-scene .feedback[data-kind=close]{background:#244c44ed}

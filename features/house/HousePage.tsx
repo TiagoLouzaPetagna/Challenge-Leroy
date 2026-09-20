@@ -117,6 +117,7 @@ export function HousePage() {
             <>
               <button
                 type="button"
+                aria-label="Construir cômodos"
                 className="house-action house-action--quiet house-action--build"
                 onClick={() => setMode("build")}
               >
@@ -125,6 +126,7 @@ export function HousePage() {
               </button>
               <button
                 type="button"
+                aria-label="Concluir edição"
                 className="house-action house-action--primary house-action--complete"
                 onClick={() => setMode("view")}
               >
@@ -144,6 +146,7 @@ export function HousePage() {
               </button>
               <button
                 type="button"
+                aria-label="Concluir edição"
                 className="house-action house-action--primary house-action--complete"
                 onClick={() => setMode("view")}
               >

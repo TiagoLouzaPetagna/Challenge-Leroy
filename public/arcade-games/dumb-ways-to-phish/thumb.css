@@ -1,0 +1,16 @@
+@font-face{font-family:ThumbHand;src:url('assets/thumb/annie.ttf') format('truetype');font-display:swap}
+html,body,.game-shell{background:#fff}.arcade{max-width:none}.game-shell{position:relative;border:0}
+.game-hud{position:absolute;inset:0 0 auto;height:76px;max-width:none;background:#fff;color:#303237;padding:0 32px}
+.pause-control img{filter:brightness(.3)}
+.game-hud .lives b.lost img{filter:brightness(.45);opacity:.45}
+.stage-wrap{height:100svh;padding-top:76px;box-sizing:border-box;display:flex;align-items:flex-start;justify-content:center;background:#fff}
+.workroom{width:min(100%,calc((100svh - 76px)*1672/941));height:auto;min-height:0;flex:none;aspect-ratio:1672/941;overflow:visible}
+#hand-control{position:absolute;border:0;padding:0;background:none;transform-origin:0 0;cursor:grab;touch-action:none;user-select:none;clip-path:polygon(0 36%,38% 48%,37% 37%,40% 24%,49% 18%,49% 14%,61% 0,69% 0,80% 21%,89% 67%,100% 100%,46% 100%,32% 74%,5% 55%,0 48%)}
+#hand-control:disabled{pointer-events:none}#hand-control:focus-visible{background:#edbd6d25;outline:3px dashed #3a3a3a;outline-offset:-5px}
+.round-clock{left:6%;top:5%;transform:none;background:none;color:#303237;flex-direction:column;gap:0;padding:0;font-family:ThumbHand,cursive;font-size:24px}
+.round-clock strong{font-size:38px;font-weight:400}.round-clock.urgent{background:none;color:#ad3830}
+.feedback{bottom:1.5%;background:#fffffff5!important;color:#303237;max-width:90%;font:24px ThumbHand,cursive;padding:8px 20px;border:1px solid #d4d4d4}
+.feedback[data-kind=wrong]{color:#943d34}.feedback[data-kind=close]{color:#245d48}
+
+#hand-control.dragging{cursor:grabbing}
+

@@ -11,12 +11,14 @@ import { Mascot } from "@/features/ui/LearningUI";
 
 import {
   RADAR_ARTICLES,
+  RADAR_FEATURED_ARTICLE_ID,
   RADAR_QUISHING_CONTENT,
   RADAR_QUESTION_OPTIONS,
   type RadarArticleDefinition,
 } from "@/lib/content/radar-catalog";
 import { POINT_RULES } from "@/lib/domain/rules";
 import type { RadarAnswer, RadarResult } from "@/lib/domain/types";
+import { RadarAdditionalArticle } from "./RadarAdditionalArticle";
 
 import articleStyles from "./RadarArticle.module.css";
 import styles from "./RadarHub.module.css";
@@ -27,11 +29,6 @@ type RadarHubProps = {
   onOpenArticle: (slug: string) => void;
   onBackToOverview: () => void;
 };
-
-const FEATURED_RADAR_ARTICLE = RADAR_ARTICLES[0];
-const RADAR_LIBRARY_ARTICLES = RADAR_ARTICLES.filter(
-  (article) => article.id !== FEATURED_RADAR_ARTICLE.id,
-);
 
 const RADAR_CATEGORIES = [
   { value: "all", label: "Todos" },
@@ -167,18 +164,12 @@ function RadarCoverArtwork({ kind }: { kind: RadarCoverKind }) {
   );
 }
 
-function RadarContentCover({
-  article,
-  featured = false,
-}: {
-  article: RadarArticleDefinition;
-  featured?: boolean;
-}) {
+function RadarContentCover({ article }: { article: RadarArticleDefinition }) {
   const kind = RADAR_COVER_BY_ID[article.id] ?? "quishing";
 
   return (
     <div
-      className={`${styles.cover} ${featured ? styles.coverFeatured : ""}`.trim()}
+      className={styles.cover}
       data-cover={kind}
     >
       <span className={styles.coverLabel}>{article.categoryLabel}</span>
@@ -196,10 +187,9 @@ export function RadarHub({
   const [duration, setDuration] = useState("all");
   const [competency, setCompetency] = useState("all");
   const completed = new Set(completedArticleIds);
-  const featured = FEATURED_RADAR_ARTICLE;
   const filteredArticles = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-    return RADAR_LIBRARY_ARTICLES.filter((article) => {
+    return RADAR_ARTICLES.filter((article) => {
       const matchesQuery =
         !normalizedQuery ||
         `${article.title} ${article.summary} ${article.categoryLabel}`
@@ -256,31 +246,6 @@ export function RadarHub({
           </figure>
 
         </header>
-
-        <section className={styles.featured} aria-labelledby="radar-featured-title">
-          <RadarContentCover article={featured} featured />
-          <div className={styles.featuredCopy}>
-            <h2 id="radar-featured-title">{featured.title}</h2>
-            <p>{featured.summary}</p>
-            <div
-              className={styles.metadata}
-              role="list"
-              aria-label={`Dados da leitura ${featured.title}`}
-            >
-              <span role="listitem">{featured.estimatedMinutes} min</span>
-              <span role="listitem">{featured.competencyLabel}</span>
-              <span role="listitem">+{POINT_RULES.radar} pontos</span>
-            </div>
-            <button
-              type="button"
-              className={completed.has(featured.id) ? "text-button" : "learning-button"}
-              onClick={() => onOpenArticle(featured.slug)}
-            >
-              {completed.has(featured.id) ? "Reler conteúdo" : "Explorar conteúdo"}
-              <span aria-hidden="true">→</span>
-            </button>
-          </div>
-        </section>
 
         <section className={styles.library} aria-labelledby="radar-library-title">
           <div className={styles.sectionHeading}>
@@ -410,7 +375,7 @@ export function RadarHub({
                         {article.status === "available" ? (
                           <button
                             type="button"
-                            className={`text-button ${styles.cardAction}`}
+                            className={`learning-button ${styles.cardAction}`}
                             onClick={() => onOpenArticle(article.slug)}
                           >
                             {isCompleted ? "Reler" : "Ler e verificar"}{" "}
@@ -454,6 +419,7 @@ type RadarArticleProps = {
   onBackToRadar: () => void;
   onOpenPhishLab: () => void;
   onOpenMission: () => void;
+  onOpenRelatedActivity: (href: string) => void;
 };
 
 function RadarFactCheck() {
@@ -510,7 +476,7 @@ function RadarStageNavigation({
   );
 }
 
-export function RadarArticle({
+function QuishingRadarArticle({
   article,
   isCompleted,
   claimedPoints,
@@ -872,4 +838,19 @@ export function RadarArticle({
       </section>
     </ActivityShell>
   );
+}
+
+export function RadarArticle(props: RadarArticleProps) {
+  if (props.article.id !== RADAR_FEATURED_ARTICLE_ID) {
+    return <RadarAdditionalArticle
+      article={props.article}
+      isCompleted={props.isCompleted}
+      claimedPoints={props.claimedPoints}
+      onComplete={props.onComplete}
+      onBackToRadar={props.onBackToRadar}
+      onOpenRelatedActivity={props.onOpenRelatedActivity}
+    />;
+  }
+
+  return <QuishingRadarArticle {...props} />;
 }
