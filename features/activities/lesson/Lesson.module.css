@@ -15,11 +15,8 @@
 /* Estes zeramentos valem só para as lições feitas inteiras neste módulo.
    A simulação ainda usa marcação global e depende das margens do globals.css,
    então é marcada com .activity-workspace e fica de fora. */
-.page:not(:global(.activity-workspace)) h1,
-.page:not(:global(.activity-workspace)) h2,
-.page:not(:global(.activity-workspace)) h3,
-.page:not(:global(.activity-workspace)) p { margin: 0; }
-.page:not(:global(.activity-workspace)) h3 { font-weight: 750; }
+.page:where(:not(:global(.activity-workspace))) :where(h1, h2, h3, p) { margin: 0; }
+.page:where(:not(:global(.activity-workspace))) :where(h3) { font-weight: 750; }
 .page svg { flex-shrink: 0; }
 .page button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .page button:focus-visible, .page summary:focus-visible, .page select:focus-visible {

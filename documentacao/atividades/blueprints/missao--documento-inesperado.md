@@ -1,5 +1,7 @@
 # Documento inesperado
 
+> **Atualização do portal (2026-09-20):** versão curta v2 disponível em `/missoes/documento-inesperado`, com quatro decisões sobre contexto, confirmação com RH, limite da evidência e encaminhamento sem abrir o anexo. O comportamento central foi mantido. Os percursos mais extensos descritos abaixo ainda representam o blueprint anterior à versão curta.
+
 > **Estado do blueprint:** aprovado em 2026-08-15; aguardando conversão técnica e implementação.
 >
 > **Mapa curricular:** aprovado em 2026-08-15.

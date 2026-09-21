@@ -11209,8 +11209,7 @@ footer span {
   background: var(--brand-lime-pale);
 }
 
-.url-anatomy-assigned-case > span,
-.url-anatomy-briefing-grid article > span {
+.url-anatomy-assigned-case > span {
   color: var(--brand-forest-soft);
   font-size: 11px;
   font-weight: 900;
@@ -11225,26 +11224,6 @@ footer span {
 
 .url-anatomy-assigned-case p,
 .url-anatomy-assigned-case small {
-  margin: 0;
-}
-
-.url-anatomy-briefing-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.url-anatomy-briefing-grid article {
-  display: grid;
-  align-content: start;
-  gap: 7px;
-  padding: 17px;
-  border: 1px solid var(--brand-border);
-  border-radius: 13px;
-  background: var(--brand-white);
-}
-
-.url-anatomy-briefing-grid article p {
   margin: 0;
 }
 

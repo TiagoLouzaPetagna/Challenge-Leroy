@@ -8,7 +8,7 @@ const themes = {
   lab: { mascot: "labs", label: "Bancada de investigação", caption: "Evidências antes de conclusões", Icon: FlaskConical, ObjectIcon: TestTubes, DetailIcon: FlaskConical },
   simulations: { mascot: "simulations-loop", label: "Espaço de prática", caption: "Pratique hoje. Reconheça amanhã.", Icon: Mail, ObjectIcon: BookOpen, DetailIcon: Bell },
   teams: { mascot: "teams-loop", label: "Prática em equipe", caption: "Cada decisão fortalece a área.", Icon: Users, ObjectIcon: ShieldCheck, DetailIcon: Trophy },
-  missions: { mascot: "checklist", label: "Seu próximo passo importa", caption: "Aprender · praticar · evoluir", Icon: Route, ObjectIcon: Flag, DetailIcon: Route },
+  missions: { mascot: "checklist-loop", label: "Seu próximo passo importa", caption: "Aprender · praticar · evoluir", Icon: Route, ObjectIcon: Flag, DetailIcon: Route },
   management: { mascot: "support", label: "Cuidado que conecta", caption: "Pessoas · setores · conhecimento", Icon: ShieldCheck, ObjectIcon: MessagesSquare, DetailIcon: Users },
 };
 
@@ -51,8 +51,9 @@ export function SectionBanner({ variant, children, footer, labelledBy, tour }: {
   tour?: string;
 }) {
   const { mascot, label, caption, Icon, ObjectIcon, DetailIcon } = themes[variant];
-  const animatedMascot = variant === "home" || variant === "lab" || variant === "simulations" || variant === "teams";
-  const stillFrame = variant === "simulations" || variant === "teams";
+  const animatedMascot = variant === "home" || variant === "lab" || variant === "simulations" || variant === "teams" || variant === "missions";
+  const stillFrame = variant === "simulations" || variant === "teams" || variant === "missions";
+  const stillImage = variant === "missions" ? "checklist.png" : `${mascot}-still.png`;
   return (
     <section className={`${styles.banner} ${styles[variant]}`} aria-labelledby={labelledBy} data-tour={tour}>
       <div className={styles.copy}>{children}</div>
@@ -65,14 +66,14 @@ export function SectionBanner({ variant, children, footer, labelledBy, tour }: {
         <span className={styles.detail}><DetailIcon strokeWidth={1.6} /></span>
         <span className={styles.seal}><ObjectIcon strokeWidth={1.7} /></span>
         {animatedMascot ? (
-          <video className={styles.mascot} autoPlay loop muted playsInline preload="auto" poster={stillFrame ? `/mascot/leroyzin/${mascot}-still.png` : undefined}>
+          <video className={styles.mascot} autoPlay loop muted playsInline preload="auto" poster={variant === "missions" ? `/mascot/leroyzin/${mascot}.webp` : stillFrame ? `/mascot/leroyzin/${stillImage}` : undefined}>
             <source src={`/mascot/leroyzin/${mascot}.webm`} type="video/webm" />
-            {stillFrame ? <Image src={`/mascot/leroyzin/${mascot}.webp`} alt="" width={768} height={variant === "teams" ? 768 : 512} unoptimized /> : null}
+            {stillFrame ? <Image src={`/mascot/leroyzin/${mascot}.webp`} alt="" width={768} height={variant === "teams" || variant === "missions" ? 768 : 512} unoptimized /> : null}
           </video>
         ) : (
           <Image className={styles.mascot} src={`/mascot/leroyzin/${mascot}.png`} alt="" width={480} height={480} priority unoptimized sizes="(max-width: 700px) 300px, 440px" />
         )}
-        {stillFrame ? <Image className={`${styles.mascot} ${styles.reducedMotionMascot}`} src={`/mascot/leroyzin/${mascot}-still.png`} alt="" width={768} height={variant === "teams" ? 768 : 512} unoptimized /> : null}
+        {stillFrame ? <Image className={`${styles.mascot} ${styles.reducedMotionMascot}`} src={`/mascot/leroyzin/${stillImage}`} alt="" width={768} height={variant === "teams" || variant === "missions" ? 768 : 512} unoptimized /> : null}
         <span className={styles.caption}>{caption}</span>
       </div>
       {footer ? <div className={styles.footer}>{footer}</div> : null}

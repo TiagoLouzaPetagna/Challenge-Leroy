@@ -1,10 +1,11 @@
-import {colors} from './engine.js';
+import {colors,hairMask} from './engine.js';
 import {accessoryFrame} from './reactions.js';
 export const idleFrames=[{ms:1100},{ms:700,breath:1},{ms:100,breath:1,blink:1},{ms:650,breath:1},{ms:900},{ms:100,blink:1}];
 export const waveFrames=[{ms:160,wave:1},{ms:180,wave:2},{ms:200,wave:3},{ms:180,wave:2},{ms:200,wave:3},{ms:160,wave:1},{ms:550}];
 export function layers(data,c,pose={}){
- const expression=pose.expression==='laugh'?'alegre':pose.expression==='sleep'?'sereno':c.face;
- const result=data.order.map(key=>{const image=new Uint8Array(48*64);if(key==='bottom'&&data.bottomHiddenByTop?.[c.top])return image;const variant=key==='body'?'base':key.startsWith('hair')?c.hair:key==='face'?[expression,c.eyeShape,c.nose].join(':'):c[key];for(const [x,y,w,index]of data.pieces[key][variant]){if(key.startsWith('hair')&&y<(data.hairClipY?.[c.accessory]||0))continue;for(let xx=x;xx<x+w;xx++){if((pose.blink||pose.expression==='surprise'||pose.expression==='sleep')&&key==='face'&&y>=23&&y<=26&&((xx>=17&&xx<=21)||(xx>=27&&xx<=31)))continue;if(key==='face'&&['surprise','sleep'].includes(pose.expression)&&y>=28&&y<=30&&xx>=21&&xx<=27)continue;if(pose.wave&&(key==='body'||(key==='top'&&c.top!=='capa'))&&((xx>=31&&xx<=35)||(pose.both&&xx>=12&&xx<=16))&&y>=36&&y<=46)continue;image[y*48+xx]=index;}}return image;});
+ const mask=hairMask(data,c);
+ const expression=pose.expression==='laugh'?'alegre':pose.expression==='sleep'?'sereno':data.options.face.includes(pose.expression)?pose.expression:c.face;
+ const result=data.order.map(key=>{const image=new Uint8Array(48*64);if(key==='bottom'&&data.bottomHiddenByTop?.[c.top])return image;const variant=key==='body'?'base':key.startsWith('hair')?c.hair:key==='face'?[expression,c.eyeShape,c.nose].join(':'):c[key];for(const [x,y,w,index]of data.pieces[key][variant]){for(let xx=x;xx<x+w;xx++){if(key.startsWith('hair')&&mask&&y<mask[xx])continue;if((pose.blink||pose.expression==='surprise'||pose.expression==='sleep')&&key==='face'&&y>=23&&y<=26&&((xx>=17&&xx<=21)||(xx>=27&&xx<=31)))continue;if(key==='face'&&['surprise','sleep'].includes(pose.expression)&&y>=28&&y<=30&&xx>=21&&xx<=27)continue;if(pose.wave&&(key==='body'||(key==='top'&&c.top!=='capa'))&&((xx>=31&&xx<=35)||(pose.both&&xx>=12&&xx<=16))&&y>=36&&y<=46)continue;image[y*48+xx]=index;}}return image;});
  const face=result[data.order.indexOf('face')];if(pose.blink||pose.expression==='sleep'){const y=25;for(const x of [18,28]){for(let dx=0;dx<3;dx++)face[y*48+x+dx]=19;face[(y-1)*48+x-1]=2;}}
  if(pose.expression==='surprise'){for(const x of [18,28]){for(let y=23;y<=26;y++)for(let dx=0;dx<3;dx++)face[y*48+x+dx]=19;face[23*48+x]=21;face[26*48+x+1]=20;}for(let y=28;y<=30;y++)for(let x=23;x<=25;x++)face[y*48+x]=19;face[29*48+24]=21;}
  if(pose.expression==='sleep'){for(let x=23;x<=25;x++)face[29*48+x]=2;}
@@ -13,7 +14,7 @@ export function layers(data,c,pose={}){
  if(pose.wave){
   const mid=pose.wave===1;
   const poly=(points,color)=>{for(let y=0;y<48;y++){const xs=[];for(let i=0;i<points.length;i++){const [x1,y1]=points[i],[x2,y2]=points[(i+1)%points.length];if((y1<=y+.5&&y2>y+.5)||(y2<=y+.5&&y1>y+.5))xs.push(x1+(y+.5-y1)*(x2-x1)/(y2-y1));}xs.sort((a,b)=>a-b);for(let i=0;i+1<xs.length;i+=2)for(let x=Math.ceil(xs[i]-.5);x<=Math.floor(xs[i+1]-.5);x++)px(x,y,color);}};
-  const longSleeve=['jaqueta','moletom','sueter','gravata','armadura','pijama','capa'].includes(c.top);
+  const longSleeve=['jaqueta','moletom','sueter','gravata','armadura','pijama','capa','cardigan','kimono','esportivo','astronauta'].includes(c.top);
   poly(mid?[[30,34],[33,34],[36,37],[39,37],[39,41],[34,43],[31,40]]:[[30,34],[33,34],[35,37],[36,33],[39,33],[38,40],[35,42],[31,39]],1);
   poly(mid?[[31,35],[33,35],[35,38],[38,38],[38,40],[34,41],[32,39]]:[[31,35],[33,35],[35,39],[37,35],[38,35],[37,39],[35,40],[32,38]],longSleeve?11:3);
   line(31,35,34,38,12);if(longSleeve){line(34,40,36,39,10);}else{line(32,37,34,39,4);}
@@ -29,7 +30,11 @@ export function layers(data,c,pose={}){
  }
  if(pose.both){const original=gesture.slice();for(let y=0;y<64;y++)for(let x=0;x<48;x++)if(original[y*48+x])gesture[y*48+47-x]=original[y*48+x];}
  if(pose.z){const x=39,y=pose.z===2?10:14;line(x,y,x+3,y,21);line(x+3,y,x,y+3,21);line(x,y+3,x+3,y+3,21);}
+ if(pose.expression==='yawn'){for(const x of [18,28]){for(let y=23;y<=26;y++)for(let dx=-1;dx<4;dx++)face[y*48+x+dx]=0;for(let dx=0;dx<3;dx++)face[25*48+x+dx]=19;}for(let y=28;y<=31;y++)for(let x=22;x<=27;x++)face[y*48+x]=0;for(let y=28;y<=30;y++)for(let x=23;x<=25;x++)face[y*48+x]=19;face[30*48+24]=5;}
+ if(pose.gaze){for(const x of [18,28]){for(let y=23;y<=26;y++)for(let dx=-1;dx<4;dx++)face[y*48+x+dx]=0;for(let y=23;y<=26;y++)for(let dx=0;dx<3;dx++)face[y*48+x+dx+pose.gaze]=19;face[24*48+x+1+pose.gaze]=20;}}
+ if(pose.hearts){for(const [x,y]of [[5,25-pose.hearts*3],[39,22-pose.hearts*3]]){px(x,y,23);px(x+2,y,23);rect(x,y+1,3,1,23);px(x+1,y+2,23);px(x,y+1,24);}}
  result.push(gesture);
+ if(pose.headDx||pose.headDy||pose.sway){for(let i=0;i<result.length;i++){const source=result[i],moved=new Uint8Array(3072);for(let y=0;y<64;y++)for(let x=0;x<48;x++){const value=source[y*48+x];if(!value)continue;const head=y<=32&&i<8;const xx=x+(head?(pose.headDx||0):0)+(y<48?(pose.sway||0):0),yy=y+(head?(pose.headDy||0):0);if(xx>=0&&xx<48&&yy>=0&&yy<64)moved[yy*48+xx]=value;}result[i]=moved;}}
  if(pose.breath)return result.map(source=>{const moved=new Uint8Array(3072);for(let y=0;y<64;y++)for(let x=0;x<48;x++){const v=source[y*48+x];if(v)moved[(y+(y<44?1:0))*48+x]=v;}return moved;});
  return result;
 }

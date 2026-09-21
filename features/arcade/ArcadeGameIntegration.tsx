@@ -12,8 +12,10 @@ type GameFinishMessage = {
 };
 
 export function ArcadeGameIntegration({ game }: { game: ArcadeGame }) {
-  const scoreUnit = game.slug === "email-please" ? "acertos" : game.slug === "chefia-em-jogo" ? "semanas" : "pontos";
-  const unitFor = (score: number) => game.slug === "chefia-em-jogo" && score === 1 ? "semana" : scoreUnit;
+  const scoreUnit = game.slug === "email-please" || game.slug === "dumb-ways-extras" ? "acertos" : game.slug === "chefia-em-jogo" ? "semanas" : "pontos";
+  const unitFor = (score: number) => score === 1
+    ? game.slug === "chefia-em-jogo" ? "semana" : game.slug === "email-please" || game.slug === "dumb-ways-extras" ? "acerto" : scoreUnit
+    : scoreUnit;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const runRef = useRef<string | null>(null);
   const savingRef = useRef(false);
@@ -95,14 +97,16 @@ export function ArcadeGameIntegration({ game }: { game: ArcadeGame }) {
           ? "O ranking conta as semanas sobrevividas no cargo. Clique em um personagem para visitar sua casa."
           : game.slug === "dumb-ways-to-phish"
           ? "O ranking considera a sequência de microjogos. Clique em um personagem para visitar sua casa."
+          : game.slug === "dumb-ways-extras"
+          ? "O ranking considera a melhor partida de dez rodadas em qualquer um dos desafios. Clique em um personagem para visitar sua casa."
           : "Clique em um personagem para visitar sua casa."}</p>
       </div>{leaderboard?.currentBest ? <span className="arcade-current-score">Sua melhor: <strong>
-        {leaderboard.currentBest.score} {game.slug === "chefia-em-jogo" ? unitFor(leaderboard.currentBest.score) : game.slug === "email-please" ? "acertos" : "pts"}</strong></span> : null}</div>
+        {leaderboard.currentBest.score} {game.slug === "chefia-em-jogo" || game.slug === "email-please" || game.slug === "dumb-ways-extras" ? unitFor(leaderboard.currentBest.score) : "pts"}</strong></span> : null}</div>
       <div className="arcade-ranking-stage">{error ? <div className="arcade-ranking-empty" role="status">
         <strong>Registro temporariamente indisponível</strong><p>{error}</p></div>
         : leaderboard?.entries.length ? <ArcadeLeaderboardPodium entries={leaderboard.entries} gameTitle={game.title}
-            scoreUnit={game.slug === "email-please" ? "acertos" : game.slug === "chefia-em-jogo" ? "semanas" : "pts"}
-            singularScoreUnit={game.slug === "chefia-em-jogo" ? "semana" : undefined} />
+            scoreUnit={game.slug === "email-please" || game.slug === "dumb-ways-extras" ? "acertos" : game.slug === "chefia-em-jogo" ? "semanas" : "pts"}
+            singularScoreUnit={game.slug === "chefia-em-jogo" ? "semana" : game.slug === "email-please" || game.slug === "dumb-ways-extras" ? "acerto" : undefined} />
         : <div className="arcade-ranking-empty"><strong>A primeira posição está aberta</strong>
           <p>Conclua uma partida para inaugurar o pódio.</p></div>}</div>
     </section>

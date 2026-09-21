@@ -6,6 +6,8 @@
 >
 > **Escopo:** 8 Missões, 8 PhishLabs e 6 Simulações; desktop nesta etapa.
 
+> **Pilotos simples em 2026-09-20:** **Pedido urgente de um gestor** e **Uma letra fora do lugar** estão disponíveis no portal com um caso curto e duas decisões cada. Seus blueprints completos permanecem como referência para possíveis casos adicionais; o estado atual está anotado nas fichas individuais.
+
 Esta pasta transforma o [mapa completo de conceitos e atividades](../mapa-conceitos-atividades/README.md) em desenhos implementáveis e revisáveis, um por atividade. O mapa aprovado fixa propriedade, papel e momento dos 187 conceitos. Cada blueprint aprovado define como uma primeira versão poderá ensinar e avaliar uma parte coerente desse conteúdo sem exibir todo o inventário em uma única tentativa. A [jornada curricular aprovada](../mapa-conceitos-atividades/JORNADA-CURRICULAR.md) define a progressão de aprendizagem e introduz uma fundação anterior ao portfólio. A exceção é **A porta também é um canal**: seu arquivo registra uma arquitetura futura e quatro módulos possíveis, não uma primeira composição já escolhida.
 
 ## Aprovação registrada e limite técnico

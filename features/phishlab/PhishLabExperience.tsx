@@ -1,6 +1,8 @@
 "use client";
 
 import { SectionBanner } from "@/features/ui/SectionBanner";
+import { SimplePilotCover } from "@/features/activities/SimplePilotCover";
+import { SIMPLE_PILOTS, type SimplePilotCoverKind, type SimplePilotId } from "@/lib/content/activities/simple-pilots";
 
 import { useState, type CSSProperties } from "react";
 
@@ -32,12 +34,46 @@ type PhishLabHubProps = {
   domainRewardPoints: number;
   senderResult: PhishLabResult | TrueSenderV2Result | null;
   senderRewardPoints: number;
+  pilotBestScores: Partial<Record<SimplePilotId, number | null>>;
   onOpenAnalyzer: () => void;
   onOpenSenderInspector: () => void;
+  onOpenSimplePilot: (route: string) => void;
   onBackToOverview: () => void;
 };
 
-const stations = [
+type Station = {
+  id: string;
+  eyebrow: string;
+  statusLabel: string;
+  title: string;
+  summary: string;
+  format: string;
+  duration: string;
+  skill: string;
+  target: string | null;
+  playable: boolean;
+  coverKind?: SimplePilotCoverKind;
+  pilotRoute?: string;
+};
+
+const pilotStations: Station[] = Object.values(SIMPLE_PILOTS)
+  .filter((pilot) => pilot.area === "phishlab")
+  .map((pilot, index) => ({
+    id: pilot.activityId.split(":")[1],
+    eyebrow: `Estação ${String(index + 3).padStart(2, "0")}`,
+    statusLabel: "Disponível",
+    title: pilot.title,
+    summary: pilot.summary,
+    format: `${pilot.tasks.length} decisões`,
+    duration: `${pilot.durationMinutes} min`,
+    skill: pilot.skill,
+    target: pilot.activityId,
+    playable: true,
+    coverKind: pilot.coverKind,
+    pilotRoute: pilot.route,
+  }));
+
+const stations: Station[] = [
   {
     id: "sender-inspector",
     eyebrow: "Estação 01",
@@ -48,7 +84,7 @@ const stations = [
     format: "Mapa de identidade",
     duration: "9 min",
     skill: "Confirmar identidade",
-    target: "sender",
+    target: SENDER_INSPECTOR_ACTIVITY_ID,
     playable: true,
   },
   {
@@ -61,12 +97,13 @@ const stations = [
     format: "2 casos",
     duration: "8 min",
     skill: "Investigar destinos",
-    target: "domain",
+    target: PHISHLAB_ACTIVITY_ID,
     playable: true,
   },
+  ...pilotStations,
   {
     id: "mirror-page",
-    eyebrow: "Estação 03",
+    eyebrow: `Estação ${String(pilotStations.length + 3).padStart(2, "0")}`,
     statusLabel: "Em produção",
     title: "Espelho de Página",
     summary:
@@ -77,22 +114,7 @@ const stations = [
     target: null,
     playable: false,
   },
-  {
-    id: "incident-line",
-    eyebrow: "Estação 04",
-    statusLabel: "Em produção",
-    title: "Linha do Incidente",
-    summary:
-      "Organize acontecimentos depois de uma interação e pratique a ordem correta de contenção e reporte.",
-    format: "Linha de eventos",
-    duration: "A confirmar",
-    skill: "Recuperar",
-    target: null,
-    playable: false,
-  },
-] as const;
-
-type StationId = (typeof stations)[number]["id"];
+];
 
 function MagnifierMark() {
   return (
@@ -111,7 +133,9 @@ function CheckMark() {
   );
 }
 
-function StationArtwork({ id }: { id: StationId }) {
+function StationArtwork({ station }: { station: Station }) {
+  const { id } = station;
+  if (station.coverKind) return <SimplePilotCover kind={station.coverKind} />;
   if (id === "sender-inspector") {
     return (
       <div className={`${styles.artwork} ${styles.senderArtwork}`} aria-hidden="true">
@@ -189,8 +213,10 @@ export function PhishLabHub({
   domainRewardPoints,
   senderResult,
   senderRewardPoints,
+  pilotBestScores,
   onOpenAnalyzer,
   onOpenSenderInspector,
+  onOpenSimplePilot,
 }: PhishLabHubProps) {
   return (
     <div className="page-stack lab-page">
@@ -240,20 +266,17 @@ export function PhishLabHub({
         </div>
         <div className={styles.stationGrid}>
           {stations.map((station) => {
-            const stationIsRecommended =
-              (station.target === "sender" &&
-                recommendedActivityId === SENDER_INSPECTOR_ACTIVITY_ID) ||
-              (station.target === "domain" &&
-                recommendedActivityId === PHISHLAB_ACTIVITY_ID);
+            const stationIsRecommended = station.target !== null && recommendedActivityId === station.target;
             const stationIsCompleted =
-              (station.target === "sender" && Boolean(senderResult)) ||
-              (station.target === "domain" && Boolean(domainResult));
+              (station.target === SENDER_INSPECTOR_ACTIVITY_ID && Boolean(senderResult)) ||
+              (station.target === PHISHLAB_ACTIVITY_ID && Boolean(domainResult)) ||
+              (station.pilotRoute !== undefined && pilotBestScores[station.target as SimplePilotId] != null);
 
             return (
               <article
                 key={station.id}
                 data-station-id={station.id}
-                className={`${styles.station} ${styles[station.id]} ${station.playable ? styles.stationPlayable : styles.stationFuture} ${stationIsRecommended ? styles.stationRecommended : ""}`}
+                className={`${styles.station} ${styles[station.id as keyof typeof styles] ?? ""} ${station.playable ? styles.stationPlayable : styles.stationFuture} ${stationIsRecommended ? styles.stationRecommended : ""}`}
                 aria-labelledby={`${station.id}-title`}
               >
                 <div className={styles.stationTopline}>
@@ -262,7 +285,7 @@ export function PhishLabHub({
                     {stationIsRecommended ? "Recomendado para você" : station.statusLabel}
                   </strong>
                 </div>
-                <StationArtwork id={station.id} />
+                <StationArtwork station={station} />
                 <div className={styles.stationBody}>
                   <h3 id={`${station.id}-title`}>{station.title}</h3>
                   <p className={styles.stationSummary}>{station.summary}</p>
@@ -286,17 +309,13 @@ export function PhishLabHub({
                   <button
                     type="button"
                     className={stationIsCompleted ? "text-button" : "learning-button"}
-                    onClick={
-                      station.target === "sender"
+                    onClick={station.pilotRoute
+                      ? () => onOpenSimplePilot(station.pilotRoute!)
+                      : station.target === SENDER_INSPECTOR_ACTIVITY_ID
                         ? onOpenSenderInspector
-                        : onOpenAnalyzer
-                    }
+                        : onOpenAnalyzer}
                   >
-                    {station.target === "sender" && senderResult
-                      ? "Ver resultado ou refazer"
-                      : station.target === "domain" && domainResult
-                        ? "Ver resultado ou refazer"
-                      : "Abrir estação"}
+                    {stationIsCompleted ? "Ver resultado ou refazer" : "Abrir estação"}
                   </button>
                 ) : (
                   <p className={styles.productionNotice}>

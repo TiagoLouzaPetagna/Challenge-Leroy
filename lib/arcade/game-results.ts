@@ -5,11 +5,12 @@ import { findArcadePublicProfileByAccountId } from "@/lib/content/arcade-public-
 import { findOwnPublicHouse } from "@/lib/house/public-houses";
 import type { OverlookedLeaderboardEntry } from "./overlooked";
 
-export const GAME_SLUGS = ["dumb-ways-to-phish", "phish-slice", "email-please", "phishing-beat", "phishing-escape", "chefia-em-jogo"] as const;
+export const GAME_SLUGS = ["dumb-ways-to-phish", "dumb-ways-extras", "phish-slice", "email-please", "phishing-beat", "phishing-escape", "chefia-em-jogo"] as const;
 export type GameSlug = typeof GAME_SLUGS[number];
 const TRACK_IDS = ["passo", "contra", "freio", "swing", "trinca", "resposta"] as const;
 const MAX_SCORE: Record<GameSlug, number> = {
   "dumb-ways-to-phish": 1_000_000,
+  "dumb-ways-extras": 10,
   "phish-slice": 1_000_000,
   "email-please": 100_000,
   "phishing-beat": 20_000,

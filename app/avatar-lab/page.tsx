@@ -17,6 +17,7 @@ type CreatorState = "loading" | "ready" | "saved" | "error";
 
 export default function AvatarCreatorPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const readyObserverRef = useRef<MutationObserver | null>(null);
   const [creatorState, setCreatorState] = useState<CreatorState>("loading");
 
   useEffect(() => {
@@ -55,7 +56,14 @@ export default function AvatarCreatorPage() {
     };
 
     window.addEventListener("message", receiveMessage);
-    return () => window.removeEventListener("message", receiveMessage);
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "casa-digital:avatar-state-request" },
+      window.location.origin,
+    );
+    return () => {
+      window.removeEventListener("message", receiveMessage);
+      readyObserverRef.current?.disconnect();
+    };
   }, []);
 
   const statusLabel =
@@ -113,6 +121,32 @@ export default function AvatarCreatorPage() {
           className={styles.frame}
           onLoad={() => {
             if (creatorState === "error") setCreatorState("loading");
+            iframeRef.current?.contentWindow?.postMessage(
+              { type: "casa-digital:avatar-state-request" },
+              window.location.origin,
+            );
+
+            readyObserverRef.current?.disconnect();
+            const frameDocument = iframeRef.current?.contentDocument;
+            if (!frameDocument) return;
+
+            const checkEditor = () => {
+              if (frameDocument.getElementById("status")?.classList.contains("error")) {
+                setCreatorState("error");
+                readyObserverRef.current?.disconnect();
+              } else if ((frameDocument.getElementById("save") as HTMLButtonElement | null)?.disabled === false) {
+                setCreatorState("ready");
+                readyObserverRef.current?.disconnect();
+              }
+            };
+
+            readyObserverRef.current = new MutationObserver(checkEditor);
+            readyObserverRef.current.observe(frameDocument.documentElement, {
+              attributes: true,
+              childList: true,
+              subtree: true,
+            });
+            checkEditor();
           }}
         />
       </section>

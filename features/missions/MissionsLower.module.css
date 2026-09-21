@@ -184,3 +184,23 @@
     border-color: Highlight;
   }
 }
+
+.moreSection { display: grid; gap: 25px; margin-top: 58px; padding: 38px 0 8px; border-top: 1px solid #d9e2d9; }
+.moreHeading > span { color: #3d7b5a; font-size: 11px; font-weight: 850; letter-spacing: .11em; }
+.moreHeading h2 { margin: 7px 0 5px; color: #173f35; font-family: var(--learn-display, Georgia, serif); font-size: clamp(32px, 4vw, 44px); letter-spacing: -.04em; }
+.moreHeading p { margin: 0; color: #60736a; font-size: 14px; }
+.moreGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.pilotCard { display: grid; min-width: 0; gap: 16px; padding: 22px; border: 1px solid #cfdcd6; border-radius: 26px; background: linear-gradient(145deg, #f7fbea, #fffdf7 72%); box-shadow: 0 16px 42px rgb(23 63 53 / 9%); }
+.pilotTopline { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: #4a6e64; font-size: 10px; font-weight: 850; letter-spacing: .1em; }
+.pilotTopline strong { padding: 7px 10px; border-radius: 999px; color: #174c36; background: #ddf1c5; font-size: 10px; letter-spacing: .02em; }
+.pilotCard h3 { margin: 0; color: #173f35; font-family: var(--learn-display, Georgia, serif); font-size: 31px; letter-spacing: -.04em; }
+.pilotCard > p { margin: -8px 0 0; color: #576e63; font-size: 14px; line-height: 1.5; }
+.pilotMeta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 13px 0; border-top: 1px solid #dce5da; border-bottom: 1px solid #dce5da; color: #405e4f; font-size: 11px; font-weight: 800; }
+.pilotCard > button { justify-self: start; }
+
+@media (max-width: 560px) {
+  .moreGrid { grid-template-columns: 1fr; }
+  .moreSection { margin-top: 35px; }
+  .pilotCard { padding: 17px; }
+  .pilotCard h3 { font-size: 27px; }
+}

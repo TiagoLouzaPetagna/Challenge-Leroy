@@ -1,5 +1,7 @@
 # Para onde esse link realmente vai?
 
+> **Atualização do portal (2026-09-20):** versão curta v2 disponível em `/phishlab/para-onde-esse-link-realmente-vai`, com quatro decisões sobre texto do botão, destino final, limite da evidência e rota de acesso. O comportamento central foi mantido. Os percursos mais extensos descritos abaixo ainda representam o blueprint anterior à versão curta.
+
 > **Estado do blueprint:** aprovado em 2026-08-15; aguardando conversão técnica e implementação.
 >
 > **Mapa curricular:** aprovado em 2026-08-15.

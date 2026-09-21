@@ -2,6 +2,8 @@ import { createDemoState as createSeedState } from "../content/demo-seed";
 import { findLearningPathStepByActivityId } from "../content/curriculum-catalog";
 import { RADAR_ARTICLES } from "../content/radar-catalog";
 import { grantEarnedAchievements } from "../domain/achievements";
+import { evaluateSimplePilot, isValidSimplePilotSubmission } from "../activities/simple-pilot-runtime";
+import { SIMPLE_PILOTS } from "../content/activities/simple-pilots";
 import {
   createBankChangeCompetencyEvidence,
   createBankProcessV2CompetencyEvidence,
@@ -83,6 +85,7 @@ import type {
   RecoveryMissionSubmission,
   RecoveryBuilderV2Submission,
   RewardClaim,
+  SimplePilotSubmission,
   SimulationSubmission,
   WorkdayTriageV2Submission,
   TeamAggregateClaim,
@@ -94,6 +97,7 @@ export type { AppState } from "../domain/types";
 
 export type AppAction =
   | { type: "MISSION_COMPLETED"; payload: MissionSubmission }
+  | { type: "SIMPLE_PILOT_COMPLETED"; payload: SimplePilotSubmission }
   | {
       type: "PHISHING_FOUNDATION_V2_COMPLETED";
       payload: PhishingFoundationV2Submission;
@@ -2263,8 +2267,57 @@ function completeBankChange(
   };
 }
 
+function completeSimplePilot(state: AppState, submission: SimplePilotSubmission): AppState {
+  if (!isValidSimplePilotSubmission(submission) || state.learning.attempts[submission.attemptId]) return state;
+  const definition = SIMPLE_PILOTS[submission.activityId];
+  const result = evaluateSimplePilot(submission);
+  const claimKey = `${submission.activityId}:first-completion`;
+  const alreadyRewarded = Boolean(state.learning.rewardClaims[claimKey]);
+  const previous = state.learning.activityProgress[submission.activityId];
+  return {
+    ...state,
+    meta: { ...state.meta, revision: state.meta.revision + 1, savedAt: submission.completedAt },
+    learning: {
+      ...state.learning,
+      attempts: { ...state.learning.attempts, [submission.attemptId]: { ...submission, status: "evaluated", result } },
+      activityProgress: {
+        ...state.learning.activityProgress,
+        [submission.activityId]: {
+          activityId: submission.activityId,
+          status: "completed",
+          attemptIds: [...(previous?.attemptIds ?? []), submission.attemptId],
+          lastAttemptId: submission.attemptId,
+          bestScore: Math.max(previous?.bestScore ?? 0, result.score),
+          completedAt: previous?.completedAt ?? submission.completedAt,
+        },
+      },
+      rewardClaims: alreadyRewarded ? state.learning.rewardClaims : {
+        ...state.learning.rewardClaims,
+        [claimKey]: { claimKey, sourceId: submission.activityId, points: result.potentialReward, claimedAt: submission.completedAt },
+      },
+      pointLedger: alreadyRewarded ? state.learning.pointLedger : [
+        ...state.learning.pointLedger,
+        { id: `points:${claimKey}`, claimKey, sourceId: submission.activityId, category: "learning", points: result.potentialReward, status: "confirmed", createdAt: submission.completedAt },
+      ],
+      competencyEvidence: [
+        ...state.learning.competencyEvidence,
+        { key: `competency:${submission.attemptId}`, competencyId: definition.area === "mission" ? "verificar" : "investigar", activityId: submission.activityId, attemptId: submission.attemptId, score: result.score, context: "guided", createdAt: submission.completedAt },
+      ],
+      history: [
+        ...state.learning.history,
+        { id: `history:${submission.attemptId}`, kind: "activityCompleted", sourceId: submission.activityId, title: `${definition.area === "mission" ? "Missão" : "PhishLab"} ${definition.title} concluído`, createdAt: submission.completedAt },
+        ...(!alreadyRewarded ? [{ id: `history:reward:${claimKey}`, kind: "rewardGranted" as const, sourceId: submission.activityId, title: `${result.potentialReward} pontos gerais concedidos`, createdAt: submission.completedAt }] : []),
+      ],
+    },
+  };
+}
+
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
+    case "SIMPLE_PILOT_COMPLETED": {
+      const nextState = completeSimplePilot(state, action.payload);
+      return nextState === state ? state : grantEarnedAchievements(nextState, action.payload.completedAt);
+    }
     case "MISSION_COMPLETED": {
       const nextState = completeMission(state, action.payload);
       return nextState === state

@@ -1,6 +1,8 @@
 "use client";
 
 import { SectionBanner } from "@/features/ui/SectionBanner";
+import { SimplePilotCover } from "@/features/activities/SimplePilotCover";
+import { SIMPLE_PILOTS, type SimplePilotId } from "@/lib/content/activities/simple-pilots";
 
 import { ProgressJourney } from "@/features/ui/LearningUI";
 import styles from "./MissionsLower.module.css";
@@ -112,6 +114,7 @@ export type MissionsHubProps = {
   onOpenSecondaryMission: (missionId: string) => void;
   onOpenLatestResult?: () => void;
   onOpenReview?: () => void;
+  pilotBestScores?: Partial<Record<SimplePilotId, number | null>>;
 };
 
 const learningPathStatusClassNames: Record<LearningPathStepStatus, string> = {
@@ -126,6 +129,7 @@ export function MissionsHub({
   progress,
   learningPath,
   onOpenLearningPathStep,
+  pilotBestScores,
 }: MissionsHubProps) {
   const currentLearningPathStepId =
     learningPath.steps.find((step) => step.status === "in_progress")?.id ??
@@ -209,6 +213,23 @@ export function MissionsHub({
             );
           })}
         </ol>
+      </section>
+      <section className={styles.moreSection} aria-labelledby="more-missions-title">
+        <div className={styles.moreHeading}><span>MAIS CASOS PARA PRATICAR</span><h2 id="more-missions-title">Outras missões</h2><p>Casos curtos para treinar uma decisão segura por vez.</p></div>
+        <div className={styles.moreGrid}>
+          {Object.values(SIMPLE_PILOTS).filter((pilot) => pilot.area === "mission").map((definition) => {
+            const bestScore = pilotBestScores?.[definition.activityId];
+            const completed = bestScore !== null && bestScore !== undefined;
+            return <article key={definition.activityId} className={styles.pilotCard} aria-labelledby={`${definition.activityId}-card-title`}>
+              <div className={styles.pilotTopline}><span>MISSÃO EXTRA</span><strong>{completed ? "Concluída" : "Disponível"}</strong></div>
+              <SimplePilotCover kind={definition.coverKind} />
+              <h3 id={`${definition.activityId}-card-title`}>{definition.title}</h3>
+              <p>{definition.summary}</p>
+              <div className={styles.pilotMeta}><span>{definition.tasks.length} decisões</span><span>{definition.durationMinutes} min</span><span>{completed ? `Melhor resultado: ${bestScore}/100` : "100 pontos-base"}</span></div>
+              <button type="button" className="learning-button" onClick={() => onOpenLearningPathStep(definition.route)}>{completed ? "Ver resultado ou refazer" : "Abrir missão"}</button>
+            </article>;
+          })}
+        </div>
       </section>
     </div>
   );

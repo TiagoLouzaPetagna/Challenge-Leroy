@@ -144,3 +144,12 @@ html.embedded #placement-label{top:80px}
   .items{max-height:114px;min-height:114px}
   .items>button{flex-basis:124px;height:104px}
 }
+
+#achievement-tooltip{position:fixed;z-index:15;width:max-content;max-width:min(260px,calc(100vw - 24px));display:flex;flex-direction:column;gap:3px;padding:11px 14px;border:1px solid #b9d1b8;border-radius:12px;background:#fffdf8;color:#244a38;box-shadow:0 12px 34px #173e3530;pointer-events:none;text-align:left;line-height:1.35}
+.achievement-tooltip-type{color:#64815e;font-size:.62rem;font-weight:850;letter-spacing:.13em}
+#achievement-tooltip-name{font-size:.88rem;font-weight:800}
+#achievement-tooltip-mission{font-size:.75rem;color:#526b57}
+.items>button[data-locked=true]{background:#e9ede6;border-color:#d1d9ce}
+.items>button[data-locked=true] .item-preview{opacity:.48;filter:grayscale(.45)}
+.items>button[data-locked=true] .item-name{color:#607267}
+.items>button[data-locked=true]::after{content:'BLOQUEADO';position:absolute;top:7px;right:7px;padding:3px 5px;border-radius:4px;background:#315c46;color:#fff;font-size:8px;font-weight:850;letter-spacing:.04em}

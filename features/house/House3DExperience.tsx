@@ -13,7 +13,7 @@ type House3DExperienceProps = {
   onExport?: (snapshot: { sceneJson: string; thumbnailUrl: string; theme: string } | null) => void;
   visitorProfileId?: string;
   publishedVisitor?: boolean;
-  visitorTheme?: "crafted" | "cyberpunk" | "industrial";
+  visitorTheme?: "crafted" | "cyberpunk" | "industrial" | "gothic" | "dark-academia";
   ownerName?: string;
 };
 

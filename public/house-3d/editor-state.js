@@ -59,6 +59,7 @@ export function fitsFloor(poly,cells) {
 }
 export function baseY(item,items) {
   if(byId[item.id]?.kind==='wall')return item.elevation;
+  if(byId[item.id]?.kind==='ceiling')return WALL_HEIGHT-byId[item.id].height-.08;
   const parent=items.find(other=>other.id===item.parent);
   return parent?(byId[parent.id].kind==='wall'?parent.elevation:FLOOR_Y)+(surfaceFor(parent,item.support)?.height??0):FLOOR_Y;
 }

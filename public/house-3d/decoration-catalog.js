@@ -57,8 +57,10 @@ export const DECORATION_ITEMS=[
   {
     "id": "cyberpunk_cubo_flutuante",
     "name": "Cubo flutuante Cyberpunk",
-    "category": "decoration",
+    "category": "achievement",
     "collection": "cyberpunk",
+    "sourceMission": null,
+    "description": "Cubo flutuante animado, disponível como item de conquista sem missão vinculada.",
     "kind": "object",
     "nativeScale": true,
     "width": 0.9615492080033037,
@@ -85,8 +87,10 @@ export const DECORATION_ITEMS=[
   {
     "id": "cyberpunk_drone_recarga",
     "name": "Mini drone na base Cyberpunk",
-    "category": "decoration",
+    "category": "achievement",
     "collection": "cyberpunk",
+    "sourceMission": null,
+    "description": "Mini drone animado, disponível como item de conquista sem missão vinculada.",
     "kind": "object",
     "nativeScale": true,
     "width": 0.9917084141945661,

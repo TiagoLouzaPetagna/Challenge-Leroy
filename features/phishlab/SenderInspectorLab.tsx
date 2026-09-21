@@ -298,7 +298,7 @@ export function SenderInspectorLab({
       <div className={s.page}>
         <div className={s.result}>
           <div className={s.resultHero}>
-            <Mascot pose={result.needsReview ? "explaining" : "celebration"} size="medium" />
+            <Mascot pose="celebration" size="medium" />
             <div>
               <span className={s.microLabel}>
                 {result.needsReview ? "CONCLUÍDO · HÁ O QUE REVER" : "CONCLUÍDO"}

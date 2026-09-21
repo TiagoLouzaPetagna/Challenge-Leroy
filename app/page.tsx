@@ -136,6 +136,9 @@ import { ActivityRouteState } from "@/features/activities/ActivityRouteState";
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
 import { isActivityPlayerReady } from "@/features/activities/player-registry";
+import { SimplePilotPlayer } from "@/features/activities/SimplePilotPlayer";
+import { isSimplePilotId, SIMPLE_PILOTS } from "@/lib/content/activities/simple-pilots";
+import type { SimplePilotAttempt } from "@/lib/domain/types";
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
@@ -1438,6 +1441,7 @@ export default function Home() {
     persistenceError,
     logout,
     submitMission,
+    submitSimplePilot,
     submitPhishingFoundationV2,
     submitConversationReconstructionV2,
     submitMfaConsoleV2,
@@ -1483,6 +1487,16 @@ export default function Home() {
   );
   const activeView = routeResolution.view;
   const playerKey = routeResolution.playerKey;
+  const simplePilotDefinition = isSimplePilotId(routeResolution.activityId)
+    ? SIMPLE_PILOTS[routeResolution.activityId]
+    : null;
+  const simplePilotProgress = simplePilotDefinition ? state.learning.activityProgress[simplePilotDefinition.activityId] : null;
+  const simplePilotAttempt = simplePilotProgress?.lastAttemptId ? state.learning.attempts[simplePilotProgress.lastAttemptId] : null;
+  const simplePilotV2Attempt = simplePilotAttempt && simplePilotDefinition && simplePilotAttempt.activityId === simplePilotDefinition.activityId && "casePackageId" in simplePilotAttempt && simplePilotAttempt.activityVersion === 2
+    ? simplePilotAttempt as SimplePilotAttempt
+    : null;
+  const simplePilotResult = simplePilotV2Attempt?.result ?? null;
+  const simplePilotClaim = simplePilotDefinition ? state.learning.rewardClaims[`${simplePilotDefinition.activityId}:first-completion`] : null;
   const isPhishingFoundationMission =
     playerKey === "phishing-foundation-mission";
   const isCompromisedConversationMission =
@@ -2058,13 +2072,17 @@ export default function Home() {
   const currentLabel = useMemo(
     () =>
       activeView === "missao"
-        ? isCompromisedConversationMission
+        ? simplePilotDefinition?.area === "mission"
+          ? `Missão · ${simplePilotDefinition.title}`
+          : isCompromisedConversationMission
           ? "Missão · A conversa já estava acontecendo"
           : isMfaFatigueMission
             ? "Missão · Você iniciou este acesso?"
             : isRecoveryMission
               ? "Missão · Cliquei. E agora?"
           : "Missão · O aviso que não podia esperar"
+        : simplePilotDefinition?.area === "phishlab"
+          ? `PhishLab · ${simplePilotDefinition.title}`
         : isSenderInspector
           ? "PhishLab · Quem enviou de verdade?"
         : isLinkAnalyzer
@@ -2084,6 +2102,7 @@ export default function Home() {
         : viewLabels[activeView] ?? "Visão geral",
     [
       activeView,
+      simplePilotDefinition,
       arcadeGame,
       isCompromisedConversationMission,
       isMfaFatigueMission,
@@ -2308,6 +2327,10 @@ export default function Home() {
             />
           ) : activeView === "missoes" ? (
             <MissionsHub
+              pilotBestScores={Object.fromEntries(Object.values(SIMPLE_PILOTS).map((pilot) => [
+                pilot.activityId,
+                state.learning.activityProgress[pilot.activityId]?.bestScore ?? null,
+              ]))}
               progress={{
                 completedLabel: learningPath.completedLabel,
                 progressValue: learningPath.progressValue,
@@ -2379,7 +2402,19 @@ export default function Home() {
               onOpenReview={() => router.push(nextStep.href)}
             />
           ) : activeView === "missao" ? (
-            isPhishingFoundationMission ? (
+            simplePilotDefinition?.area === "mission" ? (
+              <SimplePilotPlayer
+                key={simplePilotProgress?.lastAttemptId ?? `${simplePilotDefinition.activityId}:${isHydrated ? "new" : "hydrating"}`}
+                definition={simplePilotDefinition}
+                existingResult={simplePilotResult}
+                existingAnswers={simplePilotV2Attempt?.answerIds ?? null}
+                claimedPoints={simplePilotClaim?.points ?? 0}
+                rewardAlreadyClaimed={Boolean(simplePilotClaim)}
+                onComplete={submitSimplePilot}
+                onBack={() => router.push("/missoes")}
+                onNext={() => router.push(simplePilotDefinition.nextRoute)}
+              />
+            ) : isPhishingFoundationMission ? (
               <PhishingFoundationMission
                 key={
                   isHydrated
@@ -2489,7 +2524,19 @@ export default function Home() {
               />
             )
           ) : activeView === "laboratorio" ? (
-            isSenderInspector ? (
+            simplePilotDefinition?.area === "phishlab" ? (
+              <SimplePilotPlayer
+                key={simplePilotProgress?.lastAttemptId ?? `${simplePilotDefinition.activityId}:${isHydrated ? "new" : "hydrating"}`}
+                definition={simplePilotDefinition}
+                existingResult={simplePilotResult}
+                existingAnswers={simplePilotV2Attempt?.answerIds ?? null}
+                claimedPoints={simplePilotClaim?.points ?? 0}
+                rewardAlreadyClaimed={Boolean(simplePilotClaim)}
+                onComplete={submitSimplePilot}
+                onBack={() => router.push("/phishlab")}
+                onNext={() => router.push(simplePilotDefinition.nextRoute)}
+              />
+            ) : isSenderInspector ? (
               <SenderInspectorLab
                 key={
                   state.learning.activityProgress[SENDER_INSPECTOR_ACTIVITY_ID]
@@ -2527,6 +2574,11 @@ export default function Home() {
               />
             ) : (
               <PhishLabHub
+                pilotBestScores={Object.fromEntries(Object.values(SIMPLE_PILOTS).map((pilot) => [
+                  pilot.activityId,
+                  state.learning.activityProgress[pilot.activityId]?.bestScore ?? null,
+                ]))}
+                onOpenSimplePilot={(route) => router.push(route)}
                 recommendedActivityId={
                   activeReview?.targetActivityId.startsWith("phishlab:")
                     ? activeReview.targetActivityId

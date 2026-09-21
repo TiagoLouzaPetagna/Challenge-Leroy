@@ -11,7 +11,10 @@ import {
   type WorkdayTriageV2Submission,
   type BankProcessV2Submission,
   type RadarSubmission,
+  type LegacySimplePilotSubmission,
+  type SimplePilotSubmission,
 } from "../domain/types";
+import { evaluateLegacySimplePilot, evaluateSimplePilot, isValidLegacySimplePilotSubmission, isValidSimplePilotSubmission } from "../activities/simple-pilot-runtime";
 import { createDemoState } from "../content/demo-seed";
 import { grantEarnedAchievements } from "../domain/achievements";
 import {
@@ -778,6 +781,7 @@ function isRadarAttempt(value: unknown): boolean {
 }
 
 function isTeamChallengeResult(value: unknown): boolean {
+  const competencyScores = isRecord(value) ? value.competencyScores : null;
   return (
     isRecord(value) &&
     isFiniteNumber(value.score) &&
@@ -789,12 +793,12 @@ function isTeamChallengeResult(value: unknown): boolean {
     (value.totalDecisions as number) > 0 &&
     Number.isInteger(value.falsePositives) &&
     (value.falsePositives as number) >= 0 &&
-    isRecord(value.competencyScores) &&
+    isRecord(competencyScores) &&
     ["observar", "verificar", "decidir"].every(
       (competencyId) =>
-        isFiniteNumber(value.competencyScores[competencyId]) &&
-        (value.competencyScores[competencyId] as number) >= 0 &&
-        (value.competencyScores[competencyId] as number) <= 100,
+        isFiniteNumber(competencyScores[competencyId]) &&
+        (competencyScores[competencyId] as number) >= 0 &&
+        (competencyScores[competencyId] as number) <= 100,
     ) &&
     Array.isArray(value.coveredCompetencyIds) &&
     value.coveredCompetencyIds.every((item) =>
@@ -962,6 +966,7 @@ function isBankProcessV2Attempt(value: unknown): boolean {
 
 function isLearningAttempt(value: unknown): boolean {
   return (
+    isSimplePilotAttempt(value) ||
     isMissionAttempt(value) ||
     isPhishingFoundationV2Attempt(value) ||
     isConversationReconstructionV2Attempt(value) ||
@@ -978,6 +983,31 @@ function isLearningAttempt(value: unknown): boolean {
     isBankChangeAttempt(value) ||
     isBankProcessV2Attempt(value)
   );
+}
+
+function isSimplePilotAttempt(value: unknown): boolean {
+  if (!isRecord(value) || value.status !== "evaluated" || !isRecord(value.result)) return false;
+  const result = value.result;
+  if (value.activityVersion === 1) {
+    const legacy = value as unknown as LegacySimplePilotSubmission;
+    if (!isValidLegacySimplePilotSubmission(legacy)) return false;
+    const expected = evaluateLegacySimplePilot(legacy);
+    return result.score === expected.score &&
+      result.firstCorrect === expected.firstCorrect &&
+      result.secondCorrect === expected.secondCorrect &&
+      result.needsReview === expected.needsReview &&
+      result.potentialReward === expected.potentialReward;
+  }
+  const submission = value as unknown as SimplePilotSubmission;
+  if (!isValidSimplePilotSubmission(submission)) return false;
+  const expected = evaluateSimplePilot(submission);
+  const correctAnswers = result.correctAnswers;
+  return result.score === expected.score &&
+    Array.isArray(correctAnswers) &&
+    correctAnswers.length === expected.correctAnswers.length &&
+    expected.correctAnswers.every((correct, index) => correctAnswers[index] === correct) &&
+    result.needsReview === expected.needsReview &&
+    result.potentialReward === expected.potentialReward;
 }
 
 function isActivityProgress(value: unknown): boolean {
@@ -1100,6 +1130,7 @@ function isTeamAggregateClaim(value: unknown): boolean {
 }
 
 function isSectorAggregate(value: unknown): boolean {
+  const requiredCompetencyIds = isRecord(value) ? value.requiredCompetencyIds : null;
   return (
     isRecord(value) &&
     Number.isInteger(value.eligibleParticipants) &&
@@ -1113,16 +1144,16 @@ function isSectorAggregate(value: unknown): boolean {
     Number.isInteger(value.validDecisions) &&
     (value.validDecisions as number) >= 0 &&
     (value.correctDecisions as number) <= (value.validDecisions as number) &&
-    Array.isArray(value.requiredCompetencyIds) &&
-    value.requiredCompetencyIds.length > 0 &&
-    value.requiredCompetencyIds.every((item) =>
+    Array.isArray(requiredCompetencyIds) &&
+    requiredCompetencyIds.length > 0 &&
+    requiredCompetencyIds.every((item) =>
       COMPETENCIES.has(item as string),
     ) &&
     Array.isArray(value.coveredCompetencyIds) &&
     value.coveredCompetencyIds.every(
       (item) =>
         COMPETENCIES.has(item as string) &&
-        value.requiredCompetencyIds.includes(item),
+        requiredCompetencyIds.includes(item),
     )
   );
 }
@@ -1206,7 +1237,8 @@ export function isValidState(value: unknown): value is AppState {
       isActivityProgress(progress) &&
       isRecord(progress) &&
       (!progress.lastAttemptId ||
-        Object.prototype.hasOwnProperty.call(attempts, progress.lastAttemptId)),
+        (typeof progress.lastAttemptId === "string" &&
+          Object.prototype.hasOwnProperty.call(attempts, progress.lastAttemptId))),
   );
   const claimsAreValid = Object.entries(rewardClaims).every(
     ([claimKey, claim]) =>
@@ -1232,6 +1264,7 @@ export function isValidState(value: unknown): value is AppState {
       (evidence) =>
         isCompetencyEvidence(evidence) &&
         isRecord(evidence) &&
+        typeof evidence.attemptId === "string" &&
         Object.prototype.hasOwnProperty.call(attempts, evidence.attemptId),
     );
   const teamContributionsAreValid =
@@ -1324,8 +1357,8 @@ export function isValidState(value: unknown): value is AppState {
       onboarding.tutorial.status === "inProgress" ||
       onboarding.tutorial.status === "completed") &&
     Number.isInteger(onboarding.tutorial.currentStep) &&
-    onboarding.tutorial.currentStep >= 0 &&
-    onboarding.tutorial.currentStep <= 6 &&
+    (onboarding.tutorial.currentStep as number) >= 0 &&
+    (onboarding.tutorial.currentStep as number) <= 6 &&
     (onboarding.tutorial.completedAt === null ||
       isIsoDate(onboarding.tutorial.completedAt)) &&
     (onboarding.tutorial.status !== "completed" ||

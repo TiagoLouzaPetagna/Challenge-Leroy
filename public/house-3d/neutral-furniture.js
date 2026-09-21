@@ -19,7 +19,10 @@ export function createNeutralFurniture(definition,gltf){
     });
   }
   const scale=definition.visualScale??1;model.scale.setScalar(scale);
-  if(definition.modelOffset){
+  if(definition.centeredWall){
+    const bounds=new THREE.Box3().setFromObject(gltf.scene),center=bounds.getCenter(new THREE.Vector3());
+    gltf.scene.position.set(-center.x,-bounds.min.y,-center.z);
+  }else if(definition.modelOffset){
     gltf.scene.position.add(new THREE.Vector3(...definition.modelOffset));
   }else if(definition.kind==='wall'){
     // Editor wall items are centered in depth and positioned at their bottom.

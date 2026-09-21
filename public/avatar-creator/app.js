@@ -1,4 +1,4 @@
-import { pixels, randomize, validate } from "./engine.js";
+import { pixels, randomize, validate, customColorFields, isHexColor, colorRamp } from "./engine.js";
 import { registerAvatarTools } from "./webmcp.js";
 import { setupMotion, resetMotion } from "./motion-v2.js";
 
@@ -45,11 +45,23 @@ const groups = {
 let data;
 let state;
 let group = "hair";
+let readyPayload;
 
 function notifyHost(type, payload = {}) {
   if (!embedded || window.parent === window) return;
   window.parent.postMessage({ type, payload }, HOST_ORIGIN);
 }
+
+window.addEventListener("message", (event) => {
+  if (
+    !embedded ||
+    event.origin !== HOST_ORIGIN ||
+    event.source !== window.parent ||
+    event.data?.type !== "casa-digital:avatar-state-request"
+  ) return;
+
+  if (readyPayload) notifyHost("casa-digital:avatar-ready", readyPayload);
+});
 
 function draw(canvas, config, field) {
   const full = document.createElement("canvas");
@@ -111,11 +123,15 @@ function update() {
   renderItems();
 }
 
+function optionLabel(key, value) {
+  return (key === "skin" ? data.skinLabels?.[value] : null) || data.labels[value] || value;
+}
+
 function choose(key, value) {
   state[key] = value;
   markChanged();
   update();
-  note(data.labels[value] + " aplicado. Continue montando ou use este avatar.");
+  note(group === "colors" ? "Cor aplicada. Continue montando ou use este avatar." : optionLabel(key, value) + " aplicado. Continue montando ou use este avatar.");
 }
 
 function sample(field, value) {
@@ -143,8 +159,9 @@ function renderItems() {
     const titleElement = document.createElement("h3");
     titleElement.textContent = title;
     const selected = document.createElement("span");
-    selected.textContent = "Selecionado: " + data.labels[state[field]];
-    heading.append(titleElement, selected);
+    selected.textContent = "Selecionado: " + optionLabel(field, state[field]);
+    heading.append(titleElement);
+    if (group !== "colors") heading.append(selected);
     section.append(heading);
 
     if (field === "bottom" && data.bottomHiddenByTop?.[state.top]) {
@@ -162,7 +179,7 @@ function renderItems() {
       button.type = "button";
       button.className = group === "colors" ? "swatch" : "item";
       button.setAttribute("aria-pressed", String(state[field] === value));
-      button.setAttribute("aria-label", title + ": " + data.labels[value]);
+      button.setAttribute("aria-label", title + ": " + optionLabel(field, value));
       button.dataset.field = field;
       button.dataset.value = value;
 
@@ -181,8 +198,8 @@ function renderItems() {
 
       const label = document.createElement("span");
       label.className = "label";
-      label.textContent = data.labels[value];
-      button.append(label);
+      label.textContent = optionLabel(field, value);
+      if (group !== "colors") button.append(label);
       button.addEventListener("click", () => {
         choose(field, value);
         requestAnimationFrame(() =>
@@ -197,6 +214,47 @@ function renderItems() {
       list.append(button);
     }
     section.append(list);
+    if (group === "colors" && customColorFields.includes(field)) {
+      const controls = document.createElement("div");
+      controls.className = "custom-color";
+      const label = document.createElement("label");
+      label.textContent = "Cor personalizada";
+      const picker = document.createElement("input");
+      picker.type = "color";
+      picker.id = "custom-" + field;
+      label.htmlFor = picker.id;
+      const ramp = colorRamp(data, field, state[field]);
+      picker.value = "#" + (Array.isArray(ramp) ? ramp[1] : ramp);
+      const hex = document.createElement("input");
+      hex.type = "text";
+      hex.value = picker.value;
+      hex.maxLength = 7;
+      hex.pattern = "#[0-9a-fA-F]{6}";
+      hex.setAttribute("aria-label", "Código hexadecimal: " + title);
+      hex.spellcheck = false;
+      const apply = value => {
+        validate(data, { [field]: value });
+        state[field] = value.toLowerCase();
+        picker.value = state[field];
+        hex.value = state[field];
+        hex.setCustomValidity("");
+        selected.textContent = "Selecionado: " + state[field];
+        list.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", "false"));
+        markChanged();
+        draw($("#avatar"), state);
+        resetMotion();
+      };
+      picker.addEventListener("input", () => apply(picker.value));
+      picker.addEventListener("change", () => note("Cor personalizada aplicada."));
+      hex.addEventListener("input", () => {
+        const value = hex.value.trim();
+        hex.setCustomValidity(isHexColor(value) ? "" : "Use # seguido de seis caracteres, por exemplo #3867D6.");
+        if (isHexColor(value)) apply(value);
+      });
+      hex.addEventListener("change", () => hex.reportValidity());
+      controls.append(label, picker, hex);
+      section.append(controls);
+    }
     area.append(section);
   }
 }
@@ -230,6 +288,10 @@ function readSavedAvatar() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (!saved?.config || typeof saved.config !== "object") return null;
+    const retired = { viking: 'nenhum', torrada: 'nenhum', bigode: 'nenhum', mohawk: 'curto', sidecut: 'curto', brilhantes: 'redondos', erguidos: 'redondos', caidos: 'redondos' };
+    for (const key of ['hair', 'eyeShape', 'accessory']) {
+      if (retired[saved.config[key]]) saved.config[key] = retired[saved.config[key]];
+    }
     validate(data, saved.config);
     return saved;
   } catch {
@@ -341,10 +403,11 @@ async function init() {
     } else {
       note("Escolha uma peça ou comece com “Surpreenda-me”.");
     }
-    notifyHost("casa-digital:avatar-ready", {
+    readyPayload = {
       hasSavedAvatar: Boolean(saved),
       imageDataUrl: saved?.imageDataUrl || null,
-    });
+    };
+    notifyHost("casa-digital:avatar-ready", readyPayload);
   } catch (error) {
     note("Não foi possível carregar as peças. Recarregue a página.");
     $("#status").classList.add("error");

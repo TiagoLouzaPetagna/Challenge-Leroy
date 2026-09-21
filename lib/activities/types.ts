@@ -38,6 +38,8 @@ export type ActivityContractFamily =
   | "team-protocol-v1"
   | "bank-change-v1"
   | "bank-process-v2"
+  | "simple-pilot-v1"
+  | "simple-pilot-v2"
   | "not-published";
 
 export type ActivityPlayerKey =
@@ -51,7 +53,8 @@ export type ActivityPlayerKey =
   | "secure-inbox-team-challenge"
   | "team-protocol"
   | "bank-change-team-challenge"
-  | "radar-article";
+  | "radar-article"
+  | "simple-pilot";
 
 export type ActivityRegistryDefinition = {
   activityId: string;

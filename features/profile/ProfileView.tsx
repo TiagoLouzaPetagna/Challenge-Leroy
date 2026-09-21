@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import type { LearnerPreferences } from "@/lib/domain/types";
+import type { ArcadeRewardProgress } from "@/lib/arcade/rewards";
 import { UserAvatar } from "@/features/avatar/UserAvatar";
 import { ArrowUpRight, House, MapPinned } from "lucide-react";
 
@@ -177,12 +178,24 @@ export function ProfileView({
     value: preferences,
   });
   const [saveMessage, setSaveMessage] = useState("");
+  const [arcadeRewards, setArcadeRewards] = useState<ArcadeRewardProgress[] | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     onPreviewPreferences(preferences);
     return () => onPreviewPreferences(preferences);
   }, [onPreviewPreferences, preferences]);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/arcade/rewards', { cache: 'no-store' })
+      .then(response => response.ok ? response.json() : Promise.reject())
+      .then((data: { rewards?: ArcadeRewardProgress[] }) => {
+        if(active) setArcadeRewards(Array.isArray(data.rewards) ? data.rewards : []);
+      })
+      .catch(() => { if(active) setArcadeRewards([]); });
+    return () => { active = false; };
+  }, []);
 
   const draft =
     draftState.base === preferences ? draftState.value : preferences;
@@ -474,7 +487,6 @@ export function ProfileView({
             </section>
 
             <section className={`${styles.recommendation}${model.review ? ` ${styles.recommendationActive}` : ""}`} aria-labelledby="profile-recommendation-title">
-              <span className={styles.recommendationIndex} aria-hidden="true">Próximo</span>
               <div>
                 <span className={styles.eyebrow}>Próximo desenvolvimento</span>
                 <h2 id="profile-recommendation-title">{model.review ? model.review.title : "Nenhuma revisão pendente"}</h2>
@@ -570,7 +582,7 @@ export function ProfileView({
           <section id="profile-panel-achievements" className={styles.contentPanel} role="tabpanel" aria-labelledby="profile-tab-achievements" tabIndex={0}>
             <div className={styles.editorialHeading}>
               <div><span className={styles.eyebrow}>Marcos pessoais</span><h2>Conquistas que marcam o caminho</h2></div>
-              <p>Cada conquista concede 100 pontos nesta etapa. O valor está configurado individualmente para ajustes futuros.</p>
+              <p>As conquistas da jornada dão pontos. As dos jogos liberam objetos para sua casa 3D.</p>
             </div>
             {model.achievements.length > 0 ? (
               <div className={styles.achievementCollection}>
@@ -586,6 +598,32 @@ export function ProfileView({
                 ))}
               </div>
             ) : <div className={styles.emptyState}><span className={styles.emptyMark} aria-hidden="true">★</span><div><strong>Seus próximos marcos aparecerão aqui</strong><p>Continue a jornada para descobrir conquistas reais.</p></div></div>}
+            <div className={styles.editorialHeading}>
+              <div><span className={styles.eyebrow}>Arcade</span><h2>Recompensas para sua casa</h2></div>
+              <p>Seu melhor resultado em cada jogo libera objetos. Cada recompensa pode ter mais de uma peça.</p>
+            </div>
+            {arcadeRewards === null ? <p role="status">Carregando recompensas…</p> : arcadeRewards.length ? (
+              <div className={styles.arcadeRewardGroups}>
+                {[...new Set(arcadeRewards.map(reward => reward.game))].map(game => (
+                  <section key={game} className={styles.arcadeRewardGroup} aria-label={`Recompensas de ${game}`}>
+                    <h3>{game}</h3>
+                    <div className={styles.arcadeRewardGrid}>
+                      {arcadeRewards.filter(reward => reward.game === game).map(reward => (
+                        <article key={reward.id} className={`${styles.arcadeReward}${reward.unlocked ? ` ${styles.arcadeRewardUnlocked}` : ''}`}>
+                          {reward.imageUrl && <img src={reward.imageUrl} alt="" loading="lazy" />}
+                          <div>
+                            <span>{reward.unlocked ? 'Liberada' : 'Em andamento'}</span>
+                            <h4>{reward.title}</h4>
+                            <p>{reward.unlocked ? 'Disponível na coleção da casa.' : `${Math.min(reward.current,reward.target)} de ${reward.target} ${reward.unit}`}</p>
+                            <div className={styles.arcadeRewardBar} role="progressbar" aria-label={`Progresso de ${reward.title}`} aria-valuemin={0} aria-valuemax={reward.target} aria-valuenow={Math.min(reward.current,reward.target)}><i style={{width:`${getProgressPercentage(reward.current,reward.target)}%`}} /></div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : <p role="status">Não foi possível carregar as recompensas agora.</p>}
           </section>
         ) : null}
 

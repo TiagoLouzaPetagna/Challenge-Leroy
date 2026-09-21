@@ -1,5 +1,7 @@
 # Uma letra fora do lugar
 
+> **Atualização do portal (2026-09-20):** piloto simples v2 disponível em `/phishlab/uma-letra-fora-do-lugar`, com comparação de dois endereços fictícios e quatro decisões: escolher a referência, localizar a diferença, limitar a conclusão e seguir pela rota cadastrada. O comportamento central — comparar com referência confiável e entrar por ela — foi mantido. Os percursos adicionais e a lente extensa descritos abaixo ainda não foram convertidos; os trechos de estado histórico deste blueprint referem-se ao desenho anterior ao piloto.
+
 > **Estado do blueprint:** aprovado em 2026-08-15; aguardando conversão técnica e implementação.
 >
 > **Mapa curricular:** aprovado em 2026-08-15.

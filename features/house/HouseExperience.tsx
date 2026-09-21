@@ -2707,7 +2707,7 @@ export function HouseExperience({ mode }: HouseExperienceProps) {
                       style={{
                         left: `${trophyPosition.left}%`,
                         top: `${trophyPosition.top}%`,
-                        width: `${definition.surface.trophyWidth * 100 * trophy.widthScale}%`,
+                        width: `${definition.surface!.trophyWidth * 100 * trophy.widthScale}%`,
                       }}
                     >
                       <img src={trophySpriteUrls[trophy.id]} alt="" draggable={false} />

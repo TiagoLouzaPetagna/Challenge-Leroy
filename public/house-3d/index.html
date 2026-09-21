@@ -36,7 +36,7 @@
           <div class="collection-scopes" aria-label="Itens disponíveis ou colocados"><button type="button" data-scope="available" aria-pressed="true">Para colocar <span data-scope-count="available"></span></button><button type="button" data-scope="placed" aria-pressed="false">Na casa <span data-scope-count="placed"></span></button><button type="button" data-scope="all" aria-pressed="false">Todos</button></div>
           <label class="collection-search"><span>Buscar item</span><input id="collection-search" type="search" placeholder="Nome do item" autocomplete="off"></label>
           <div class="categories" aria-label="Tipo de item"><button data-category="all" aria-pressed="true">Todos os tipos</button><button data-category="furniture" aria-pressed="false">Móveis</button><button data-category="decoration" aria-pressed="false">Objetos</button><button data-category="achievement" aria-pressed="false">Conquistas</button></div>
-          <label class="collection-style"><span>Estilo</span><select id="collection-style"><option value="all">Todos</option><option value="essential">Essenciais</option><option value="neutral">Neutro</option><option value="industrial">Industrial</option><option value="industrial-loft">Industrial Loft</option><option value="cyberpunk">Cyberpunk</option><option value="japanese">Japonês</option></select></label>
+          <label class="collection-style"><span>Estilo</span><select id="collection-style"><option value="all">Todos</option><option value="essential">Essenciais</option><option value="neutral">Neutro</option><option value="industrial">Industrial</option><option value="industrial-loft">Industrial Loft</option><option value="cyberpunk">Cyberpunk</option><option value="japanese">Japonês</option><option value="gothic">Gótico</option><option value="dark-academia">Dark Academia</option><option value="adventure">Aventura</option><option value="stations">Estações</option><option value="office">Escritório</option><option value="flags">Bandeiras</option></select></label>
         </div>
         <div class="collection-results" role="status"><strong id="collection-result-count">0 itens</strong><span id="collection-result-label">para colocar</span></div>
         <div class="items" id="items"></div>
@@ -68,6 +68,7 @@
       <p id="build-status" role="status">Clique no piso para selecionar um ambiente.</p>
       <div class="build-summary"><output id="floor-count"></output><span id="floor-limit"></span><span>Shift + arrastar gira a câmera · Esc cancela</span></div>
     </section>
+    <div id="achievement-tooltip" role="tooltip" hidden><span class="achievement-tooltip-type">CONQUISTA</span><strong id="achievement-tooltip-name"></strong><span id="achievement-tooltip-mission"></span></div>
     <div id="toast" role="status" aria-live="polite" hidden></div>
     <footer><p id="hint">Arraste o espaço para explorar</p></footer>
   </main>

@@ -4,6 +4,7 @@ import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {FLOOR_TROPHY,createFloorTrophy} from './floor-trophy.js';
 import {createMimic} from './mimic.js';
 import {CATALOG,byId} from './catalog.js';
+import {canPlaceReward as rewardAvailable,rewardLockLabel,knownUnlockedItems} from './reward-access.js';
 import {createNeutralFurniture,createImportedAnimation} from './neutral-furniture.js';
 import {CELL,FLOOR_Y,STORAGE_KEY,History,clone,footprint,baseY,localPoint,pointOnSurface,mountedWall,groupIds,withoutItem,withItem,validateScene,readSave,decodeSave,encodeSave} from './editor-state.js';
 import {WALL_HEIGHT,WALL_GAP,WINDOW,wallPose,wallAlong,wallPlane,resolveWall,wallsForCells,wallsForScene} from './wall-model.js';
@@ -13,9 +14,10 @@ import {RoomStructure,constructionGrid} from './room-structure.js';
 import {createFloorBuilder} from './floor-builder.js';
 import {icon,fillIcons} from './icons.js';
 import {CUT_HEIGHT,supportsAttachment} from './wall-visibility.js';
-import {readFinish,finishThumbnail,furnitureAsset,architectureAsset,FINISHES} from './finish-preference.js';
+import {readFinish,finishThumbnail,furnitureAsset,architectureAsset,FINISHES,SELECTABLE_FINISHES} from './finish-preference.js';
 import {applyIndustrialTheme} from './industrial-themes.js';
 import {applyCyberpunkTheme} from './cyberpunk-theme.js';
+import {applyNewCollectionTheme} from './new-collection-themes.js';
 import {createShadowDetailLighting} from './shadow-detail-lighting.js';
 import {surfacesFor} from './editor-state.js';
 import {configureModels,readModelSave} from './model-versions.js';
@@ -25,7 +27,7 @@ const embedded=embedParams.get('embedded')==='1';
 const visitorProfile=embedParams.get('visitor');
 const publishedVisitor=embedParams.get('published')==='1';
 const requestedTheme=embedParams.get('theme');
-const visitorTheme=['crafted','cyberpunk','industrial'].includes(requestedTheme)?requestedTheme:null;
+const visitorTheme=['crafted','cyberpunk','industrial','gothic','dark-academia'].includes(requestedTheme)?requestedTheme:null;
 const LEGACY_DEFAULT_ITEMS=[
   ['table',2.75,1.899999976158142,0],
   ['armchair',2.6500000953674316,.550000011920929,0],
@@ -47,8 +49,8 @@ document.documentElement.classList.toggle('embedded',embedded);
 const $=id=>document.getElementById(id), canvas=$('scene');
 let finishMode=visitorTheme??'crafted';if(!visitorTheme)try{finishMode=readFinish(window.localStorage);}catch{}
 const modernModels=true;configureModels(true);
-const themeLabels={'previous':'Anterior','detailed':'Casa texturizada','crafted':'Tatame trabalhado','crafted-plain':'Sala anterior','default-room':'Cômodo default','industrial':'Industrial','industrial-loft':'Industrial Loft','cyberpunk':'Cyberpunk'};
-for(const id of ['room-theme','new-room-theme']){for(const theme of FINISHES){const option=document.createElement('option');option.value=theme;option.textContent=themeLabels[theme];$(id).append(option);}$(id).value=finishMode;}
+const themeLabels={'crafted':'Tatame trabalhado','default-room':'Cômodo default','industrial':'Industrial','industrial-loft':'Industrial Loft','cyberpunk':'Cyberpunk',gothic:'Gótico','dark-academia':'Dark Academia'};
+for(const id of ['room-theme','new-room-theme']){for(const theme of SELECTABLE_FINISHES){const option=document.createElement('option');option.value=theme;option.textContent=themeLabels[theme];$(id).append(option);}$(id).value=finishMode;}
 fillIcons();
 const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-6,6,6,-6,.1,100);
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
@@ -82,17 +84,77 @@ let mimicMixer,mimicClip;
 let wallMode='auto',activeRoom='room-1',focusRoomId=null,buildCamera=null;
 let selected=null,mode='edit',moveMode=true,gridVisible=false,category='all',collapsed=false;
 let collectionScope='available',collectionStyle='all',collectionQuery='';
-const collectionStyleLabels={essential:'Essenciais',neutral:'Neutro',industrial:'Industrial','industrial-loft':'Industrial Loft',cyberpunk:'Cyberpunk',japanese:'Japonês'};
+const collectionStyleLabels={essential:'Essenciais',neutral:'Neutro',industrial:'Industrial','industrial-loft':'Industrial Loft',cyberpunk:'Cyberpunk',japanese:'Japonês',gothic:'Gótico','dark-academia':'Dark Academia',adventure:'Aventura',stations:'Estações',office:'Escritório',flags:'Bandeiras'};
 const searchKey=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let frameMode='house',cameraInteraction=null;
 let gesture=null,cardDrag=null,pointerDown=null,lastPointer=null,suppressCardClick=0;
 let storage,lastRaw=null,saveBlocked=false,saveState='loading',saveTimer,toastTimer;
+let unlockedRewardItems=new Set(),previouslyPlacedRewards=new Set(),rewardsLoaded=false;
+const canPlaceReward=id=>rewardAvailable(id,unlockedRewardItems,previouslyPlacedRewards);
+async function loadArcadeRewards(){
+  try{
+    const response=await fetch('/api/arcade/rewards',{cache:'no-store'});
+    if(!response.ok)throw Error('Conquistas indisponíveis');
+    const result=await response.json();
+    if(!Array.isArray(result.unlockedItemIds))throw Error('Resposta inválida');
+    unlockedRewardItems=knownUnlockedItems(result.unlockedItemIds);
+    rewardsLoaded=true;
+  }catch{rewardsLoaded=false;}
+  if(ready)updateUI();
+}
+let assetLoader;
+const modelLoads=new Map();
+
+function prepareModelMaterials(root) {
+  root.traverse(object=>{
+    if(!object.isMesh||object.userData.finishPrepared)return;
+    object.userData.finishPrepared=true;object.castShadow=true;object.receiveShadow=true;
+    const originals=Array.isArray(object.material)?object.material:[object.material];
+    const materials=originals.map(original=>{
+      const material=original.clone();
+      material.userData={...material.userData,baseOpacity:material.opacity,baseTransparent:material.transparent,baseDepthWrite:material.depthWrite};
+      for(const texture of [material.map,material.normalMap,material.roughnessMap])if(texture)texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+      return material;
+    });
+    object.material=Array.isArray(object.material)?materials:materials[0];
+  });
+}
+
+async function ensureModel(item) {
+  if(models.has(item.id))return models.get(item.id);
+  if(modelLoads.has(item.id))return modelLoads.get(item.id);
+  const loading=assetLoader.loadAsync(item.asset).then(gltf=>{
+    const model=createNeutralFurniture(item,gltf);
+    prepareModelMaterials(model);
+    models.set(item.id,model);scene.add(model);
+    const mixer=createImportedAnimation(gltf);if(mixer)importedMixers.set(item.id,mixer);
+    return model;
+  }).finally(()=>modelLoads.delete(item.id));
+  modelLoads.set(item.id,loading);
+  return loading;
+}
 const heldArrows=new Set();
 const currentItem=()=>history?.scene.items.find(item=>item.id===selected);
 const isWall=id=>byId[id]?.kind==='wall';
 const wallTitle=id=>wallPlane(id)?.label??'Parede';
 const currentCells=()=>history?.scene.cells??manifest?.cells;
 const currentWalls=()=>history?wallsForScene(history.scene):wallsForCells(currentCells());
+const achievementTooltip=$('achievement-tooltip');
+const achievementOrigin=item=>item.sourceMission?`Missão: ${item.sourceMission}`:item.sourceGame?`${item.sourceGame} · ${item.rewardName}`:'Missão ainda não vinculada a este item.';
+function hideAchievementTooltip(){achievementTooltip.hidden=true;}
+function showAchievementTooltip(id,x,y){
+  const item=byId[id];
+  if(!item||item.category!=='achievement'||!ready||mode==='build'||gesture){hideAchievementTooltip();return;}
+  if(achievementTooltip.dataset.item!==id){
+    $('achievement-tooltip-name').textContent=item.name;
+    $('achievement-tooltip-mission').textContent=achievementOrigin(item);
+    achievementTooltip.dataset.item=id;
+  }
+  achievementTooltip.hidden=false;
+  const width=achievementTooltip.offsetWidth,height=achievementTooltip.offsetHeight;
+  achievementTooltip.style.left=`${Math.max(12,Math.min(x+16,innerWidth-width-12))}px`;
+  achievementTooltip.style.top=`${Math.max(12,Math.min(y+18,innerHeight-height-12))}px`;
+}
 
 function toast(message) {
   clearTimeout(toastTimer);$('toast').textContent=message;$('toast').hidden=false;
@@ -153,7 +215,12 @@ function updateUI() {
   $('all-rooms').setAttribute('aria-pressed',String(!focusRoomId));
   for(const b of $('room-tabs').children)b.setAttribute('aria-pressed',String(b.dataset.room===focusRoomId));
   roomSelect.value=activeRoom;
-  $('room-theme').value=room.theme??finishMode;
+  const roomTheme=room.theme??finishMode,themeSelect=$('room-theme');
+  themeSelect.querySelector('option[data-legacy]')?.remove();
+  if(!SELECTABLE_FINISHES.includes(roomTheme)){
+    const legacyOption=document.createElement('option');legacyOption.value=roomTheme;legacyOption.textContent='Tema antigo em uso';legacyOption.disabled=true;legacyOption.dataset.legacy='true';themeSelect.prepend(legacyOption);
+  }
+  themeSelect.value=roomTheme;
   if(document.activeElement!==$('room-name'))$('room-name').value=room.name;
   $('studio').classList.toggle('view-mode',mode==='view');$('studio').classList.toggle('build-mode',building);
   $('mode-label').textContent=building||editing?'Concluir':'Decorar';
@@ -169,7 +236,7 @@ function updateUI() {
   $('selected-tools').hidden=!editing||(!placed&&!gesture?.draft);
   $('selected-name').textContent=byId[selected]?.name??'';
   $('selected-name').title=byId[selected]?.description??'';
-  $('selected-state').textContent=gesture?'Escolha a posição · Esc cancela':placed?(placed.wall?wallTitle(placed.wall):placed.parent?`Sobre ${byId[placed.parent].name.toLowerCase()}`:`No chão · ${history.scene.rooms.find(r=>r.id===roomAt(history.scene,placed.x,placed.z))?.name??'Casa'}`):'Guardado na coleção';
+  $('selected-state').textContent=gesture?'Escolha a posição · Esc cancela':placed?(placed.wall?wallTitle(placed.wall):byId[placed.id].kind==='ceiling'?'No teto':placed.parent?`Sobre ${byId[placed.parent].name.toLowerCase()}`:`No chão · ${history.scene.rooms.find(r=>r.id===roomAt(history.scene,placed.x,placed.z))?.name??'Casa'}`):'Guardado na coleção';
   $('rotate').disabled=!editing||(!placed&&!gesture);$('remove').disabled=!editing||!placed;
   $('rotate').hidden=isWall(selected);$('wall-height').hidden=!isWall(selected)||!placed;
   const wallDraft=gesture?.draft??placed;
@@ -186,14 +253,16 @@ function updateUI() {
   let visibleCount=0;
   for(const item of CATALOG) {
     const card=cards.get(item.id),onFloor=placedIds.has(item.id);
+    const locked=!onFloor&&!canPlaceReward(item.id);
     const style=item.collection??'essential';
     const matchesScope=collectionScope==='all'||(collectionScope==='placed'&&onFloor)||(collectionScope==='available'&&!onFloor);
     const matchesQuery=!collectionQuery||searchKey(`${item.name} ${collectionStyleLabels[style]}`).includes(collectionQuery);
     card.hidden=!(matchesScope&&(category==='all'||item.category===category)&&(collectionStyle==='all'||style===collectionStyle)&&matchesQuery);
     if(!card.hidden)visibleCount++;
-    card.setAttribute('aria-pressed',String(item.id===selected));card.dataset.placed=String(onFloor);
-    card.querySelector('.item-state').textContent=onFloor?'Selecionar':'Colocar';
-    card.setAttribute('aria-label',`${item.name}, ${onFloor?'na casa':'guardado, colocar na casa'}`);
+    card.setAttribute('aria-pressed',String(item.id===selected));card.dataset.placed=String(onFloor);card.dataset.locked=String(locked);
+    card.querySelector('.item-state').textContent=onFloor?'Selecionar':locked?'Bloqueado':'Colocar';
+    card.title=locked?(rewardsLoaded?rewardLockLabel(item.id):'Carregando conquistas…'):item.description??achievementOrigin(item);
+    card.setAttribute('aria-label',`${item.name}, ${onFloor?'na casa':locked?`bloqueado. ${rewardsLoaded?rewardLockLabel(item.id):'Carregando conquistas.'}`:'guardado, colocar na casa'}${item.category==='achievement'&&!locked?`. ${achievementOrigin(item)}`:''}`);
   }
   document.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));
   document.querySelectorAll('[data-scope]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.scope===collectionScope)));
@@ -290,6 +359,7 @@ function selectItem(id) {
   updateWallVisibility();updateUI();persist();
 }
 function setMode(value) {
+  hideAchievementTooltip();
   cancelGesture(false);builder?.cancel();
   const wasBuilding=mode==='build';
   if(value==='build'&&!wasBuilding){buildCamera={camera:camera.position.clone(),target:controls.target.clone(),zoom:camera.zoom,frame:frameMode,room:focusRoomId};builder?.activate();}
@@ -314,7 +384,7 @@ window.addEventListener('message',event=>{
       const preview=document.createElement('canvas');preview.width=480;preview.height=270;
       preview.getContext('2d').drawImage(canvas,0,0,preview.width,preview.height);
       const thumbnailUrl=preview.toDataURL('image/webp',.64);
-      notifyHost('casa-atelie:export-scene',{requestId:event.data.requestId,sceneJson:encodeSave(history.scene,viewState()),thumbnailUrl,theme:['crafted','cyberpunk','industrial'].includes(history.scene.rooms?.[0]?.theme)?history.scene.rooms[0].theme:'crafted'});
+      notifyHost('casa-atelie:export-scene',{requestId:event.data.requestId,sceneJson:encodeSave(history.scene,viewState()),thumbnailUrl,theme:['crafted','cyberpunk','industrial','gothic','dark-academia'].includes(history.scene.rooms?.[0]?.theme)?history.scene.rooms[0].theme:'crafted'});
     }catch{notifyHost('casa-atelie:export-error',{requestId:event.data.requestId});}
     return;
   }
@@ -331,6 +401,10 @@ function storeItem(id=selected) {
 }
 function applyItem(item,message) {
   if(mode!=='edit')return {ok:false,reason:'Entre no modo Decorar para editar.'};
+  if(!history.scene.items.some(placed=>placed.id===item.id)&&!canPlaceReward(item.id)){
+    const reason=rewardsLoaded?rewardLockLabel(item.id):'Aguarde o carregamento das conquistas.';
+    toast(reason);return {ok:false,reason};
+  }
   const result=withItem(history.scene,item,currentCells());
   if(result.ok)commit(result.scene,message);else toast(result.reason);
   return {ok:result.ok,...(!result.ok?{reason:result.reason}:{})};
@@ -464,7 +538,7 @@ function preview(draft) {
   gesture.draft=draft;gesture.angle=draft.angle;gesture.issue=result.ok?null:result.reason;gesture.scene=result.scene;
   if(result.scene)drawItems(result.scene.items,groupIds(result.scene,draft.id));
   const label=$('placement-label');label.hidden=false;label.classList.toggle('invalid',Boolean(gesture.issue));
-  const where=draft.wall?'na parede':draft.parent?`sobre ${byId[draft.parent].name.toLowerCase()}`:'no chão';
+  const where=draft.wall?'na parede':byId[draft.id].kind==='ceiling'?'no teto':draft.parent?`sobre ${byId[draft.parent].name.toLowerCase()}`:'no chão';
   label.textContent=gesture.issue??`${gesture.kind==='place'?'Clique ou pressione Enter':'Solte'} para colocar ${where}`;
   if(draft.wall)$('wall-height-value').value=`Base a ${(draft.elevation-FLOOR_Y).toFixed(2).replace('.',',')} m`;
   updateOutline();
@@ -482,12 +556,16 @@ function previewAt(event) {
   if(returning){$('placement-label').textContent='Solte para guardar na coleção';$('placement-label').classList.remove('invalid');}
 }
 function startGesture(id,kind,offset={x:0,z:0}) {
+  if(!history.scene.items.some(item=>item.id===id)&&!canPlaceReward(id)){
+    toast(rewardsLoaded?rewardLockLabel(id):'Aguarde o carregamento das conquistas.');return false;
+  }
+  hideAchievementTooltip();
   cancelGesture(false);selected=id;moveMode=true;
   if(isWall(id))drawItems(history.scene.items);
   const item=currentItem();gesture={id,kind,offset,angle:item?.angle??0,draft:null,issue:null};
   controls.enabled=false;canvas.style.cursor='grabbing';
   $('return-target').hidden=kind!=='drag';updateUI();
-  if(item)preview(clone(item));else{$('placement-label').hidden=false;$('placement-label').textContent=isWall(id)?'Escolha uma parede · Esc cancela':byId[id].kind==='object'?'Escolha o chão ou um tampo · Esc cancela':'Escolha um lugar no piso · Esc cancela';}
+  if(item)preview(clone(item));else{$('placement-label').hidden=false;$('placement-label').textContent=isWall(id)?'Escolha uma parede · Esc cancela':byId[id].kind==='ceiling'?'Clique no piso para escolher onde pendurar no teto · Esc cancela':byId[id].kind==='object'?'Escolha o chão ou um tampo · Esc cancela':'Escolha um lugar no piso · Esc cancela';}
 }
 function cancelGesture(announce=true) {
   if(!gesture)return false;
@@ -500,7 +578,7 @@ function finishGesture(event=null) {
   if(event&&!$('return-target').hidden&&over(returnZone(),event)) {const id=gesture.id;cancelGesture(false);storeItem(id);return;}
   const active=gesture;
   if(active.issue||!active.draft||(event&&!overCanvas(event))) {
-    const message=active.issue??'Escolha um lugar no piso.';
+    const message=active.issue??(byId[active.id].kind==='ceiling'?'Escolha um ponto do teto.':'Escolha um lugar no piso.');
     if(active.kind==='place'&&event&&overCanvas(event)){toast(message);return;}
     cancelGesture(false);toast(message);return;
   }
@@ -509,6 +587,7 @@ function finishGesture(event=null) {
 
 // Capture before OrbitControls so moving an object never also moves the camera.
 canvas.addEventListener('pointerdown',event=>{
+  hideAchievementTooltip();
   if(!ready||mode==='build'||event.button!==0)return;
   canvas.focus({preventScroll:true});lastPointer=event;pointerDown={x:event.clientX,y:event.clientY};
   if(gesture?.kind==='place'){event.stopImmediatePropagation();previewAt(event);canvas.setPointerCapture(event.pointerId);return;}
@@ -521,8 +600,14 @@ canvas.addEventListener('pointerdown',event=>{
   }
 },true);
 canvas.addEventListener('pointermove',event=>{
-  lastPointer=event;if(gesture&&!cardDrag&&gesture.kind!=='keyboard')previewAt(event);
+  lastPointer=event;
+  if(gesture&&!cardDrag&&gesture.kind!=='keyboard')previewAt(event);
+  if(event.pointerType==='mouse'||event.pointerType==='pen'){
+    if(event.buttons||gesture||mode==='build')hideAchievementTooltip();
+    else showAchievementTooltip(itemAt(event),event.clientX,event.clientY);
+  }
 });
+canvas.addEventListener('pointerleave',hideAchievementTooltip);
 canvas.addEventListener('pointerup',event=>{
   if(!ready||mode==='build'||cardDrag)return;
   if(gesture&&gesture.kind!=='keyboard')finishGesture(event);
@@ -536,16 +621,25 @@ function buildCards() {
   $('collection-count').textContent=CATALOG.length;
   for(const item of CATALOG) {
     const card=document.createElement('button');card.type='button';card.dataset.item=item.id;
-    card.title=item.description??`${item.name} · uma unidade na coleção`;
-    const img=document.createElement('img');img.src=finishThumbnail(item,finishMode);img.alt='';img.draggable=false;
+    if(item.category!=='achievement')card.title=item.description??`${item.name} · uma unidade na coleção`;
+    const img=document.createElement('img');img.src=finishThumbnail(item,finishMode);img.alt='';img.draggable=false;img.loading='lazy';
     const name=document.createElement('span');name.className='item-name';name.textContent=item.name;
     const status=document.createElement('span');status.className='item-state';
     const style=document.createElement('span');style.className='item-style';style.textContent=collectionStyleLabels[item.collection??'essential'];
     const preview=document.createElement('span');preview.className='item-preview';preview.append(img);
     const details=document.createElement('span');details.className='item-details';details.append(style,name,status);
     const mark=document.createElement('span');mark.className='placed-mark';mark.append(icon('check'));mark.setAttribute('aria-hidden','true');card.append(mark,preview,details);$('items').append(card);cards.set(item.id,card);
-    card.onclick=()=>{
+    card.onclick=async()=>{
       if(performance.now()<suppressCardClick||mode!=='edit')return;
+      if(!canPlaceReward(item.id)&&!history.scene.items.some(placed=>placed.id===item.id)){
+        toast(rewardsLoaded?rewardLockLabel(item.id):'Aguarde o carregamento das conquistas.');return;
+      }
+      if(item.asset&&!models.has(item.id)){
+        card.disabled=true;card.setAttribute('aria-busy','true');toast(`Carregando ${item.name.toLowerCase()}…`);
+        try{await ensureModel(item);}catch(error){console.error(error);toast('Não foi possível carregar este item. Tente novamente.');return;}
+        finally{card.disabled=false;card.removeAttribute('aria-busy');}
+        if(mode!=='edit')return;
+      }
       selectItem(item.id);moveMode=true;
       if(!currentItem()){
         if(innerWidth<=740){collapsed=true;updateUI();resize();}
@@ -553,11 +647,26 @@ function buildCards() {
       }else updateUI();
     };
     card.addEventListener('pointerdown',event=>{
+      hideAchievementTooltip();
       if(event.button!==0||mode!=='edit')return;
+      if(!canPlaceReward(item.id)&&!history.scene.items.some(placed=>placed.id===item.id))return;
+      if(item.asset&&!models.has(item.id))return;
       cardDrag={id:item.id,x:event.clientX,y:event.clientY,started:false,pointerId:event.pointerId};
       card.setPointerCapture(event.pointerId);
     });
     card.addEventListener('pointercancel',()=>{cardDrag=null;cancelGesture(false);});
+    if(item.category==='achievement'){
+      card.addEventListener('pointermove',event=>{
+        if(event.buttons||cardDrag?.started){hideAchievementTooltip();return;}
+        showAchievementTooltip(item.id,event.clientX,event.clientY);
+      });
+      card.addEventListener('pointerleave',hideAchievementTooltip);
+      card.addEventListener('focus',()=>{
+        const rect=card.getBoundingClientRect();
+        showAchievementTooltip(item.id,rect.left+rect.width/2,rect.top);
+      });
+      card.addEventListener('blur',hideAchievementTooltip);
+    }
   }
 }
 addEventListener('pointermove',event=>{
@@ -573,7 +682,7 @@ addEventListener('pointerup',event=>{
   if(held.started){suppressCardClick=performance.now()+300;finishGesture(event);}
   const card=cards.get(held.id);if(card.hasPointerCapture(event.pointerId))card.releasePointerCapture(event.pointerId);
 });
-addEventListener('blur',()=>{cardDrag=null;pointerDown=null;cancelGesture(false);});
+addEventListener('blur',()=>{hideAchievementTooltip();cardDrag=null;pointerDown=null;cancelGesture(false);});
 
 const arrowSteps={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
 addEventListener('keydown',event=>{
@@ -658,7 +767,7 @@ let previous=performance.now();renderer.setAnimationLoop(now=>{
 try {
   const getJSON=async path=>{const response=await fetch(path);if(!response.ok)throw Error('Arquivo ausente: '+path);return response.json();};
   const [description,seed]=await Promise.all([getJSON('./assets/principal/scene.json'),getJSON('./assets/principal/editor-seed.json')]);manifest=description;
-  const loader=new GLTFLoader();
+  const loader=assetLoader=new GLTFLoader();
   const [room,trophy,decor,wallDecor,floorKit,mimic,furniture,finishes,sakura]=await Promise.all([loader.loadAsync('./assets/principal/casa-principal.glb'),loader.loadAsync('./assets/novos-modelos/lapide.glb'),loader.loadAsync('./assets/decor/objetos.glb'),loader.loadAsync('./assets/wall/objetos.glb'),loader.loadAsync(architectureAsset(finishMode)),loader.loadAsync('./assets/mimico/mimico-respirando.glb'),loader.loadAsync(furnitureAsset(finishMode)),finishMode==='detailed'?loader.loadAsync('./assets/casa-refinada/acabamentos.glb'):Promise.resolve(null),loader.loadAsync('./assets/novos-modelos/mesa.glb')]);
   scene.add(room.scene,furniture.scene);
   for(const item of manifest.items) {
@@ -687,17 +796,10 @@ try {
     if(refined){original?.removeFromParent();scene.add(refined);}
     model.userData={...model.userData,...item,itemId:item.id};models.set(item.id,model);
   }
-  const neutralModels=await Promise.all(CATALOG.filter(item=>item.asset).map(async item=>[item,await loader.loadAsync(item.asset)]));
-  for(const [definition,gltf] of neutralModels){const model=createNeutralFurniture(definition,gltf);models.set(definition.id,model);scene.add(model);const mixer=createImportedAnimation(gltf);if(mixer)importedMixers.set(definition.id,mixer);}
+  // Imported objects are loaded when placed or selected, instead of loading
+  // every catalog model before the house becomes interactive.
   // Refined item roots were moved into the live scene; templates stay offscreen.
-  for(const root of [room.scene,furniture.scene,...models.values(),decor.scene,wallDecor.scene,floorKit.scene,...(finishes?[finishes.scene]:[])])root.traverse(object=>{
-    if(!object.isMesh||object.userData.finishPrepared)return;object.userData.finishPrepared=true;object.castShadow=true;object.receiveShadow=true;
-    const originals=Array.isArray(object.material)?object.material:[object.material];
-    const materials=originals.map(original=>{
-      const material=original.clone();material.userData={...material.userData,baseOpacity:material.opacity,baseTransparent:material.transparent,baseDepthWrite:material.depthWrite};
-      for(const texture of [material.map,material.normalMap,material.roughnessMap])if(texture)texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return material;
-    });object.material=Array.isArray(object.material)?materials:materials[0];
-  });
+  for(const root of [room.scene,furniture.scene,...models.values(),decor.scene,wallDecor.scene,floorKit.scene,...(finishes?[finishes.scene]:[])])prepareModelMaterials(root);
   const themeStates=new Map();
   const kitCache=new Map([[architectureAsset(finishMode),floorKit]]);
   for(const theme of FINISHES){
@@ -705,9 +807,9 @@ try {
     if(!kitCache.has(path))kitCache.set(path,await loader.loadAsync(path));
     const kit=kitCache.get(path).scene.clone(true);
     const details=theme==='detailed'?(finishes??await loader.loadAsync('./assets/casa-refinada/acabamentos.glb')).scene.clone(true):null;
-    const architecture=['crafted','default-room','industrial','industrial-loft','cyberpunk'].includes(theme)?kit:details;
+    const architecture=['crafted','default-room','industrial','industrial-loft','cyberpunk','gothic','dark-academia'].includes(theme)?kit:details;
     const state=new RoomStructure(room.scene.clone(true),architecture??kit,architecture);
-    await applyIndustrialTheme(state,theme);await applyCyberpunkTheme(state,theme);shadowDetail.bindFloor(state);
+    await applyIndustrialTheme(state,theme);await applyCyberpunkTheme(state,theme);await applyNewCollectionTheme(state,theme,loader);shadowDetail.bindFloor(state);
     themeStates.set(theme,state);
   }
   structure=themeStates.get(finishMode);structure.installThemes(themeStates,finishMode);
@@ -736,6 +838,8 @@ try {
   const loadedScene=saved.status==='loaded'?saved.scene:validateScene(seed,manifest.cells);
   const themedScene=upgradeRooms({...loadedScene,cells:loadedScene.cells??manifest.cells});
   history=new History({...themedScene,rooms:themedScene.rooms.map(r=>({...r,theme:r.theme??finishMode}))});
+  previouslyPlacedRewards=new Set(history.scene.items.map(item=>item.id).filter(id=>Boolean(rewardLockLabel(id))));
+  await Promise.all(history.scene.items.filter(placed=>byId[placed.id]?.asset).map(placed=>ensureModel(byId[placed.id])));
   builder=createFloorBuilder({canvas,camera,scene,controls,getScene:()=>history.scene,getActiveRoom:()=>activeRoom,getNewTheme:()=>$('new-room-theme').value,setActiveRoom:id=>{activeRoom=id;},selectRoom:id=>chooseRoom(id),isActive:()=>mode==='build',commit,toast});
   if(saved.status==='loaded') {
     const view=saved.view;wallMode=view.wallMode??(view.walls===false?'low':'auto');gridVisible=view.grid??false;mode=view.mode??'edit';
@@ -750,6 +854,7 @@ try {
   if(requested&&Object.hasOwn(byId,requested))mode='edit';
   if(requestedHostMode)mode=requestedHostMode;
   ready=true;syncModels();resize();if(saved.status!=='loaded'||saved.view.frame===undefined)setView();
+  if(!visitorProfile)void loadArcadeRewards();
 
   if(saved.status==='invalid')blockSave('O salvamento anterior não abriu. Esta sessão é temporária.');
   else persist();
@@ -783,8 +888,9 @@ function registerTools() {
   const register=tool=>{try{Promise.resolve(document.modelContext.registerTool(tool,{signal:lifecycle.signal})).catch(console.warn);}catch(error){console.warn(error);}};
   const ids=CATALOG.map(item=>item.id),idSchema={type:'string',enum:ids};
   const parentSchema={anyOf:[{type:'string',enum:CATALOG.filter(item=>item.surface).map(item=>item.id)},{type:'null'}]};
-  register({name:'mount_wall_item',description:'Coloca ou move quadro/prateleira na parede. Use um id de mountableWalls de read_room. Along é a posição ao longo do trecho e elevation é a altura da base. Move também os objetos apoiados; valida janela, colisões, teto e histórico.',inputSchema:{type:'object',properties:{id:{type:'string',enum:CATALOG.filter(item=>item.kind==='wall').map(item=>item.id)},wall:{type:'string'},along:{type:'number'},elevation:{type:'number'}},required:['id','wall','along','elevation'],additionalProperties:false},execute:input=>{
-    cancelGesture(false);const result=applyItem(wallPose(byId[input.id],input.wall,input.along,input.elevation,currentCells(),history.scene));return {...result,state:readRoom()};
+  register({name:'mount_wall_item',description:'Coloca ou move quadro/prateleira na parede. Use um id de mountableWalls de read_room. Along é a posição ao longo do trecho e elevation é a altura da base. Move também os objetos apoiados; valida janela, colisões, teto e histórico.',inputSchema:{type:'object',properties:{id:{type:'string',enum:CATALOG.filter(item=>item.kind==='wall').map(item=>item.id)},wall:{type:'string'},along:{type:'number'},elevation:{type:'number'}},required:['id','wall','along','elevation'],additionalProperties:false},execute:async input=>{
+    cancelGesture(false);if(byId[input.id]?.asset)await ensureModel(byId[input.id]);
+    const result=applyItem(wallPose(byId[input.id],input.wall,input.along,input.elevation,currentCells(),history.scene));return {...result,state:readRoom()};
   }});
   const cellSchema={type:'array',items:{type:'integer',minimum:-32,maximum:32},minItems:2,maxItems:2};
   register({name:'edit_floor',description:'Cria um ambiente (new), amplia (add) ou recorta (erase) uma área em blocos de 80 cm. Exige modo build. roomId indica o ambiente a ampliar, omitido usa o selecionado. Cria uma passagem inicial e valida conexões, móveis e janela.',inputSchema:{type:'object',properties:{tool:{type:'string',enum:['add','erase','new']},from:cellSchema,to:cellSchema,roomId:{type:'string'}},required:['tool','from','to'],additionalProperties:false},execute:input=>({...builder.apply(input.tool,brushCells(input.from,input.to),input.roomId??activeRoom),state:readRoom()})});
@@ -796,8 +902,9 @@ function registerTools() {
     cancelGesture(false);const item=history.scene.items.find(v=>v.id===input.id);
     const result=item?applyItem({...item,x:input.x,z:input.z,...(Object.hasOwn(input,'parent')?{parent:input.parent}:{})}):{ok:false,reason:'O item está guardado.'};return {moved:result.ok,reason:result.reason,state:readRoom()};
   }});
-  register({name:'place_furniture',description:'Coloca um item guardado. Informe parent para apoiar livros ou luminária num tampo; omitido ou null coloca no chão. Não cria cópias e usa a mesma validação da interface.',inputSchema:{type:'object',properties:{id:idSchema,x:{type:'number'},z:{type:'number'},angle:{type:'number'},parent:parentSchema},required:['id','x','z'],additionalProperties:false},execute:input=>{
+  register({name:'place_furniture',description:'Coloca um item guardado. Informe parent para apoiar livros ou luminária num tampo; omitido ou null coloca no chão. Não cria cópias e usa a mesma validação da interface.',inputSchema:{type:'object',properties:{id:idSchema,x:{type:'number'},z:{type:'number'},angle:{type:'number'},parent:parentSchema},required:['id','x','z'],additionalProperties:false},execute:async input=>{
     cancelGesture(false);const present=history.scene.items.some(item=>item.id===input.id);
+    if(!present&&byId[input.id]?.asset)await ensureModel(byId[input.id]);
     const result=present?{ok:false,reason:'Esse item já está na sala.'}:applyItem({id:input.id,x:input.x,z:input.z,angle:input.angle??0,...(Object.hasOwn(input,'parent')?{parent:input.parent}:{})});
     return {...result,state:readRoom()};
   }});

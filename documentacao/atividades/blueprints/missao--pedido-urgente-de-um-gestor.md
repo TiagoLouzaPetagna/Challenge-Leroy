@@ -1,5 +1,7 @@
 # Pedido urgente de um gestor
 
+> **Atualização do portal (2026-09-20):** piloto simples v2 disponível em `/missoes/pedido-urgente-do-gestor`, com um caso curto e quatro decisões: identificar o atalho, confirmar por contato conhecido, manter a segunda aprovação e encaminhar a ausência do aprovador. O comportamento central — preservar a segunda aprovação diante de urgência e autoridade alegada — foi mantido. Os percursos adicionais e a mecânica mais extensa descritos abaixo ainda não foram convertidos; os trechos de estado histórico deste blueprint referem-se ao desenho anterior ao piloto.
+
 > **Estado do blueprint:** aprovado em 2026-08-15; aguardando conversão técnica e implementação.
 >
 > **Mapa curricular:** aprovado em 2026-08-15.

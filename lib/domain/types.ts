@@ -10,6 +10,7 @@ import type {
   FoundationRequestedActionId,
   FoundationTransferDecisionId,
 } from "../content/activities/account-lock/v2";
+import type { SimplePilotId } from "../content/activities/simple-pilots";
 import type {
   IdentityClaimAssessmentId,
   IdentityRelationId,
@@ -920,6 +921,52 @@ export type BankProcessV2Attempt = BankProcessV2Submission & {
   result: BankProcessV2Result;
 };
 
+export type SimplePilotSubmission = {
+  activityId: SimplePilotId;
+  activityVersion: 2;
+  casePackageId: string;
+  attemptId: string;
+  completedAt: string;
+  answerIds: [string, string, string, string];
+};
+
+export type LegacySimplePilotSubmission = {
+  activityId: "mission:urgent-manager-request" | "phishlab:lookalike-identifier";
+  activityVersion: 1;
+  casePackageId: string;
+  attemptId: string;
+  completedAt: string;
+  firstAnswerId: string;
+  secondAnswerId: string;
+};
+
+export type SimplePilotAnswer = Omit<SimplePilotSubmission, "attemptId" | "completedAt">;
+
+export type SimplePilotResult = {
+  score: number;
+  correctAnswers: [boolean, boolean, boolean, boolean];
+  needsReview: boolean;
+  potentialReward: number;
+};
+
+export type LegacySimplePilotResult = {
+  score: number;
+  firstCorrect: boolean;
+  secondCorrect: boolean;
+  needsReview: boolean;
+  potentialReward: number;
+};
+
+export type SimplePilotAttempt = SimplePilotSubmission & {
+  status: "evaluated";
+  result: SimplePilotResult;
+};
+
+export type LegacySimplePilotAttempt = LegacySimplePilotSubmission & {
+  status: "evaluated";
+  result: LegacySimplePilotResult;
+};
+
 export type LearningAttempt =
   | MissionAttempt
   | PhishingFoundationV2Attempt
@@ -935,7 +982,9 @@ export type LearningAttempt =
   | RadarAttempt
   | TeamChallengeAttempt
   | BankChangeAttempt
-  | BankProcessV2Attempt;
+  | BankProcessV2Attempt
+  | SimplePilotAttempt
+  | LegacySimplePilotAttempt;
 
 export type ActivityProgress = {
   activityId: string;

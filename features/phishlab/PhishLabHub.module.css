@@ -336,6 +336,14 @@
   background: linear-gradient(145deg, #eaf8f6 0%, #fffdf7 72%);
 }
 
+.lookalike-identifier {
+  background: linear-gradient(145deg, #eaf8f6 0%, #fffdf7 72%);
+}
+
+.destination-chain {
+  background: linear-gradient(145deg, #ebf8ee 0%, #fffdf7 72%);
+}
+
 .mirror-page {
   background: linear-gradient(145deg, #f0efe9 0%, #faf9f4 76%);
 }

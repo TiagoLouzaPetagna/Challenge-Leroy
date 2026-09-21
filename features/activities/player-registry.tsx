@@ -11,6 +11,7 @@ import { RadarArticle } from "@/features/radar/RadarExperience";
 import { WorkdaySimulation } from "@/features/simulations/SimulationExperience";
 import { TeamChallenge } from "@/features/teams/TeamsExperience";
 import { SectorProtocolActivity } from "@/features/teams/SectorProtocolActivity";
+import { SimplePilotPlayer } from "@/features/activities/SimplePilotPlayer";
 import type { ActivityPlayerKey } from "@/lib/activities/types";
 
 export const ACTIVITY_PLAYER_REGISTRY = {
@@ -25,6 +26,7 @@ export const ACTIVITY_PLAYER_REGISTRY = {
   "team-protocol": SectorProtocolActivity,
   "bank-change-team-challenge": BankChangeChallenge,
   "radar-article": RadarArticle,
+  "simple-pilot": SimplePilotPlayer,
 } as const;
 
 export type RegisteredActivityPlayerKey =

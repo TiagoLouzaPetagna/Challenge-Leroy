@@ -310,13 +310,13 @@
   align-items: end;
   padding: 18px 18px 16px;
   overflow: hidden;
-  border: 1px solid rgb(255 253 247 / 72%);
+  border: 1px solid #dfdbc9;
   border-radius: 146px 146px 26px 26px;
-  color: var(--learn-white);
+  color: var(--learn-forest-deep);
   background:
-    radial-gradient(circle at 50% 34%, rgb(184 239 58 / 16%) 0 27%, transparent 27.5%),
-    var(--learn-forest);
-  box-shadow: 0 20px 38px rgb(23 63 53 / 22%);
+    radial-gradient(circle at 50% 34%, rgb(255 253 247 / 70%) 0 27%, transparent 27.5%),
+    #f8f3e4;
+  box-shadow: 0 20px 38px rgb(23 63 53 / 12%);
   animation: profile-mascot-arrive 520ms var(--motion-ease) both;
 }
 
@@ -328,7 +328,7 @@
   left: 50%;
   bottom: 51px;
   border-radius: 50%;
-  background: rgb(4 25 20 / 24%);
+  background: rgb(90 77 50 / 15%);
   transform: translateX(-50%);
   content: "";
 }
@@ -338,10 +338,10 @@
   z-index: 3;
   top: 17px;
   padding: 6px 9px;
-  border: 1px solid rgb(255 255 255 / 19%);
+  border: 1px solid #d5ddc6;
   border-radius: 999px;
-  color: var(--learn-lime);
-  background: rgb(9 38 31 / 72%);
+  color: var(--learn-forest-deep);
+  background: var(--learn-cream);
   font-size: 10px;
   font-weight: 850;
   letter-spacing: .08em;
@@ -780,7 +780,7 @@
   position: relative;
   display: grid;
   min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: clamp(18px, 3vw, 34px);
   align-items: center;
   padding: clamp(22px, 3vw, 32px);
@@ -793,21 +793,6 @@
 .recommendationActive {
   border-color: #e6c85e;
   background: #fff6d7;
-}
-
-.recommendationIndex {
-  display: grid;
-  width: 72px;
-  height: 72px;
-  place-items: center;
-  border: 1px solid rgb(23 63 53 / 16%);
-  border-radius: 50%;
-  color: var(--learn-forest);
-  background: var(--learn-paper);
-  font-family: var(--learn-display);
-  font-size: 15px;
-  font-weight: 650;
-  transform: rotate(-5deg);
 }
 
 .recommendation h2 {
@@ -1282,6 +1267,34 @@
   gap: 12px;
 }
 
+.arcadeRewardGroups { display: grid; gap: 23px; margin-top: 16px; }
+.arcadeRewardGroup > h3 { margin: 0 0 9px; color: var(--learn-forest-deep); font-size: 17px; }
+.arcadeRewardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 275px), 1fr));
+  gap: 12px;
+}
+
+.arcadeReward {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d7dfd6;
+  border-radius: 16px;
+  background: #f8f8f1;
+}
+
+.arcadeRewardUnlocked { border-color: #a9c979; background: #f3f9e9; }
+.arcadeReward img { width: 76px; height: 76px; flex: 0 0 76px; object-fit: contain; border-radius: 10px; background: #e9eee3; }
+.arcadeReward > div { min-width: 0; flex: 1; }
+.arcadeReward span { color: #567351; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.arcadeReward h4 { margin: 4px 0; color: var(--learn-forest-deep); font-size: 15px; line-height: 1.25; }
+.arcadeReward p { margin: 0 0 9px; color: #5a6b64; font-size: 12px; }
+.arcadeRewardBar { height: 6px; overflow: hidden; border-radius: 20px; background: #dfe7d8; }
+.arcadeRewardBar i { display: block; height: 100%; border-radius: inherit; background: #76a743; }
+
 .achievement {
   display: grid;
   min-width: 0;
@@ -1654,11 +1667,11 @@
   }
 
   .recommendation {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .recommendation button {
-    grid-column: 2;
+    grid-column: 1;
     justify-self: start;
   }
 
@@ -1737,11 +1750,6 @@
 
   .recommendation {
     grid-template-columns: 1fr;
-  }
-
-  .recommendationIndex {
-    width: 60px;
-    height: 60px;
   }
 
   .recommendation button {

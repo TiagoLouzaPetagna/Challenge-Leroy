@@ -1,4 +1,5 @@
 import { ARCADE_GAMES } from "../content/arcade-catalog";
+import { SIMPLE_PILOTS } from "../content/activities/simple-pilots";
 import { BANK_CHANGE_ACTIVITY_ID } from "../content/bank-change-catalog";
 import {
   BANK_CHANGE_PROCESS_ACTIVITY_VERSION,
@@ -65,13 +66,9 @@ const EMPTY_RELATIONS: readonly string[] = [];
 const EMPTY_COMPETENCIES: ActivityRegistryDefinition["competencyFocus"] = [];
 
 const plannedDefinitions = [
-  ["mission:urgent-manager-request", "mission", "Pedido urgente de um gestor", "/missoes/pedido-urgente-do-gestor", POINT_RULES.mainMission],
-  ["mission:unexpected-document", "mission", "Documento inesperado", "/missoes/documento-inesperado", POINT_RULES.mainMission],
   ["mission:official-callback", "mission", "A central que não podia esperar", "/missoes/a-central-que-nao-podia-esperar", POINT_RULES.mainMission],
   ["mission:personalized-pretext", "mission", "Ele já sabia meus dados", "/missoes/ele-ja-sabia-meus-dados", POINT_RULES.mainMission],
   ["mission:pretext-without-link", "mission", "O pedido não tinha link", "/missoes/o-pedido-nao-tinha-link", POINT_RULES.mainMission],
-  ["phishlab:lookalike-identifier", "phishlab", "Uma letra fora do lugar", "/phishlab/uma-letra-fora-do-lugar", POINT_RULES.phishLab],
-  ["phishlab:destination-chain", "phishlab", "Para onde esse link realmente vai?", "/phishlab/para-onde-esse-link-realmente-vai", POINT_RULES.phishLab],
   ["phishlab:qr-destination", "phishlab", "O destino atrás do QR", "/phishlab/o-destino-atras-do-qr", POINT_RULES.phishLab],
   ["phishlab:page-mirror", "phishlab", "Espelho de Página", "/phishlab/espelho-de-pagina", POINT_RULES.phishLab],
   ["phishlab:oauth-consent", "phishlab", "Login verdadeiro, permissão errada", "/phishlab/login-verdadeiro-permissao-errada", POINT_RULES.phishLab],
@@ -102,6 +99,23 @@ const targetPlannedActivities: ActivityRegistryDefinition[] =
   }));
 
 const availableActivities: ActivityRegistryDefinition[] = [
+  ...Object.values(SIMPLE_PILOTS).map((pilot): ActivityRegistryDefinition => ({
+    activityId: pilot.activityId,
+    area: pilot.area,
+    title: pilot.title,
+    route: pilot.route,
+    publishedVersion: pilot.version,
+    integrationStatus: "available",
+    playerKey: "simple-pilot",
+    contractFamily: "simple-pilot-v2",
+    basePoints: pilot.area === "mission" ? POINT_RULES.mainMission : POINT_RULES.phishLab,
+    rewardClaimKey: `${pilot.activityId}:first-completion`,
+    competencyFocus: pilot.competencyFocus,
+    prerequisiteActivityIds: EMPTY_RELATIONS,
+    recommendedAfterActivityIds: pilot.recommendedAfterActivityIds,
+    publishedCasePackageIds: [`${pilot.activityId}:case-1`],
+    acceptedVersions: pilot.acceptedVersions,
+  })),
   {
     activityId: PILOT_MISSION_ID,
     area: "mission",

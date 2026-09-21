@@ -1,0 +1,25 @@
+// Each milestone uses a result the site already stores. A reward can include
+// several models; they unlock together at the same score threshold.
+export const ARCADE_REWARDS = [
+  {id:'office-1',gameId:'overlooked',game:'Office Defenders',title:'Bandeja de triagem com envelopes',target:50,unit:'pontos',items:['escritorio_organizador_vertical']},
+  {id:'office-2',gameId:'overlooked',game:'Office Defenders',title:'Quadro da dupla',target:100,unit:'pontos',items:['aventura_quadro_estrategia']},
+  {id:'office-3',gameId:'overlooked',game:'Office Defenders',title:'Estação de defesa com dois monitores',target:140,unit:'pontos',items:['estacoes_mesa_computador','estacoes_monitores','estacoes_teclado_mouse','estacoes_cadeira','estacoes_acessorios_escritorio']},
+  {id:'dumb-1',gameId:'dumb-ways-to-phish',game:'Dumb Ways to Phish',title:'Mini triturador de anexos',target:500,unit:'pontos',items:['escritorio_fragmentadora']},
+  {id:'dumb-2',gameId:'dumb-ways-to-phish',game:'Dumb Ways to Phish',title:'Luminária de janelas suspeitas',target:1500,unit:'pontos',items:['aventura_alertas_articulados']},
+  {id:'dumb-3',gameId:'dumb-ways-to-phish',game:'Dumb Ways to Phish',title:'Cabine arcade dos microjogos',target:3000,unit:'pontos',items:['estacoes_fliperama']},
+  {id:'slice-1',gameId:'phish-slice',game:'Phish Slice',title:'Envelope cortado',target:50,unit:'pontos',items:['escritorio_carta_partida']},
+  {id:'slice-2',gameId:'phish-slice',game:'Phish Slice',title:'Lâmina luminosa de parede',target:150,unit:'pontos',items:['aventura_espada_luminosa']},
+  {id:'slice-3',gameId:'phish-slice',game:'Phish Slice',title:'Móbile de envelopes divididos',target:300,unit:'pontos',items:['aventura_mobile_cartas']},
+  {id:'email-1',gameId:'email-please',game:'Email, Please',title:'Bandeja de correspondências',target:5,unit:'acertos',items:['escritorio_bandeja_correspondencia']},
+  {id:'email-2',gameId:'email-please',game:'Email, Please',title:'Escultura de alertas',target:10,unit:'acertos',items:['escritorio_janelas_alerta']},
+  {id:'email-3',gameId:'email-please',game:'Email, Please',title:'Mesa de análise com lupa e cartas',target:20,unit:'acertos',items:['estacoes_mesa_investigacao','estacoes_lupa','estacoes_correspondencia','estacoes_luminaria']},
+  {id:'beat-1',gameId:'phishing-beat',game:'Phishing Beat',title:'Disco de parede',target:500,unit:'pontos',items:['escritorio_disco_anzol']},
+  {id:'beat-2',gameId:'phishing-beat',game:'Phishing Beat',title:'Caixas de som com luzes discretas',target:2000,unit:'pontos',items:['aventura_caixa_som_grande','aventura_caixa_som_pequena']},
+  {id:'beat-3',gameId:'phishing-beat',game:'Phishing Beat',title:'Mini jukebox interativa',target:5000,unit:'pontos',items:['estacoes_jukebox']},
+  {id:'escape-1',gameId:'phishing-escape',game:'Phishing Escape',title:'Molho de chaves',target:500,unit:'pontos',items:['escritorio_molho_chaves']},
+  {id:'escape-2',gameId:'phishing-escape',game:'Phishing Escape',title:'Mural de pistas',target:800,unit:'pontos',items:['aventura_quadro_investigacao']},
+  {id:'escape-3',gameId:'phishing-escape',game:'Phishing Escape',title:'Miniatura iluminada da saída',target:1000,unit:'pontos',items:['aventura_portal_saida']},
+  {id:'chefia-1',gameId:'chefia-em-jogo',game:'Chefia em Jogo',title:'Painel de proteção',target:10,unit:'semanas',items:['escritorio_painel_protecao']},
+  {id:'chefia-2',gameId:'chefia-em-jogo',game:'Chefia em Jogo',title:'Calendário de parede',target:25,unit:'semanas',items:['aventura_calendario_parede']},
+  {id:'chefia-3',gameId:'chefia-em-jogo',game:'Chefia em Jogo',title:'Mesa de decisões com quatro indicadores',target:40,unit:'semanas',items:['estacoes_balcao','estacoes_medalhao_alerta','estacoes_medalhao_aprovado','estacoes_medalhao_equipe','estacoes_medalhao_rejeitado']},
+];

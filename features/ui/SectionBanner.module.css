@@ -94,6 +94,6 @@
   .detail svg { width: 23px; height: 23px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .simulations video.mascot, .teams video.mascot { display: none; }
-  .simulations .reducedMotionMascot, .teams .reducedMotionMascot { display: block; }
+  .simulations video.mascot, .teams video.mascot, .missions video.mascot { display: none; }
+  .simulations .reducedMotionMascot, .teams .reducedMotionMascot, .missions .reducedMotionMascot { display: block; }
 }

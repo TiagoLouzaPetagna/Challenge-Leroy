@@ -56,6 +56,7 @@ import {
   radarRewardClaimKey,
 } from "@/lib/domain/rules";
 import { executeActivitySubmission } from "@/lib/activities/runtime/execute-activity";
+import { evaluateSimplePilot, isValidSimplePilotSubmission } from "@/lib/activities/simple-pilot-runtime";
 import type {
   BankChangeAnswer,
   BankChangeResult,
@@ -72,6 +73,9 @@ import type {
   MissionAnswer,
   MissionResult,
   MissionSubmission,
+  SimplePilotAnswer,
+  SimplePilotResult,
+  SimplePilotSubmission,
   MfaConsoleV2Answer,
   MfaConsoleV2Result,
   MfaConsoleV2Submission,
@@ -134,6 +138,7 @@ type AppContextValue = {
   persistenceError: string | null;
   logout: () => Promise<void>;
   submitMission: (answer: MissionAnswer) => Promise<MissionResult>;
+  submitSimplePilot: (answer: SimplePilotAnswer) => Promise<SimplePilotResult>;
   submitPhishingFoundationV2: (
     answer: PhishingFoundationV2Answer,
   ) => Promise<PhishingFoundationV2Result>;
@@ -367,6 +372,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       state.learning.activityProgress,
       state.teams.contributionClaims,
     ],
+  );
+
+  const submitSimplePilot = useCallback(
+    async (answer: SimplePilotAnswer): Promise<SimplePilotResult> => {
+      if (!isHydrated) throw new Error("O progresso ainda está sendo carregado.");
+      const submission: SimplePilotSubmission = { ...answer, ...createAttemptMetadata() };
+      return executeActivitySubmission({
+        submission,
+        validate: isValidSimplePilotSubmission,
+        evaluate: evaluateSimplePilot,
+        persist: (acceptedSubmission) => internalDispatch({ type: "SIMPLE_PILOT_COMPLETED", payload: acceptedSubmission }),
+        invalidMessage: "Esta atividade piloto não está disponível nesta versão.",
+      });
+    },
+    [isHydrated],
   );
 
   const submitPhishingFoundationV2 = useCallback(
@@ -1048,6 +1068,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       persistenceError,
       logout,
       submitMission,
+      submitSimplePilot,
       submitPhishingFoundationV2,
       submitConversationReconstructionV2,
       submitMfaConsoleV2,
@@ -1081,6 +1102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       resetDemo,
       state,
       submitMission,
+      submitSimplePilot,
       submitPhishingFoundationV2,
       submitConversationReconstructionV2,
       submitMfaConsoleV2,

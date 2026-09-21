@@ -3,10 +3,10 @@
 import {
   useRef,
   useState,
-  type CSSProperties,
   type DragEvent,
   type PointerEvent,
 } from "react";
+import { ChevronDown } from "lucide-react";
 
 import { ActivityShell } from "@/features/activities/ActivityShell";
 import {
@@ -16,8 +16,10 @@ import {
 import { ActivityError } from "@/features/activities/primitives/ActivityError";
 import { ActivityNextStep } from "@/features/activities/primitives/ActivityNextStep";
 import { ActivityProgress } from "@/features/activities/primitives/ActivityProgress";
+import { Icon, lessonStyles as s } from "@/features/activities/lesson/LessonShell";
 import { useActivityStageFocus } from "@/features/activities/useActivityStageFocus";
 import { usePostSubmitCelebration } from "@/features/activities/usePostSubmitCelebration";
+import { Mascot } from "@/features/ui/LearningUI";
 import {
   DOMAIN_ANALYZER_V2_ACTIVITY_ID,
   DOMAIN_ANALYZER_V2_ACTIVITY_VERSION,
@@ -670,6 +672,60 @@ export function DomainUnderMagnifierLab({
 
   if (celebration.screen) return celebration.screen;
 
+  if (displayResult) {
+    return (
+      <div className={s.page}>
+        <div className={s.result}>
+          <div className={s.resultHero}>
+            <Mascot pose="celebration" size="medium" />
+            <div>
+              <span className={s.microLabel}>
+                {isV2Result
+                  ? displayResult.needsReview ? "CONCLUÍDO · HÁ O QUE REVER" : "CONCLUÍDO"
+                  : "RESULTADO ANTERIOR"}
+              </span>
+              <h3 ref={stageTitleRef} tabIndex={-1}>
+                {isV2Result
+                  ? displayResult.needsReview
+                    ? "Você chegou ao fim. Vamos rever algumas respostas?"
+                    : "Você encontrou a origem do endereço."
+                  : "Sua tentativa anterior foi preservada."}
+              </h3>
+              <p>
+                {isV2Result
+                  ? displayResult.needsReview ? contentPackage.feedback.review : contentPackage.feedback.success
+                  : "Pratique novamente para ver a revisão detalhada desta versão."}
+              </p>
+            </div>
+          </div>
+
+          {isV2Result ? (
+            <details className={s.review} open>
+              <summary>
+                Rever minhas respostas
+                <span>{displayResult.score}/100 · só você vê</span>
+                <Icon icon={ChevronDown} size={18} />
+              </summary>
+              <ActivityAnswerReview items={answerReviewItems} />
+            </details>
+          ) : (
+            <div className="legacy-result-notice">
+              <strong>A tentativa antiga foi preservada sem reinterpretação.</strong>
+              <p>Refazer inicia a versão 2. Os pontos e a conclusão da versão 1 continuam válidos e não serão concedidos novamente.</p>
+            </div>
+          )}
+
+          <ActivityNextStep area="Missões" title="A conversa já estava acontecendo" onOpen={onOpenNextActivity} />
+          <div className="activity-completion-actions" aria-label="Ações após a conclusão">
+            <button type="button" className="activity-completion-button" onClick={practiceAnotherCase}>Praticar novamente</button>
+            <button type="button" className="activity-completion-button" onClick={onBackToHub}>Voltar ao PhishLab</button>
+            <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ActivityShell
       className="activity-workspace page-stack lab-player-page url-anatomy-page"
@@ -740,12 +796,6 @@ export function DomainUnderMagnifierLab({
                   <p>{content.summary}</p>
                   
                 </aside>
-              </div>
-              <div className="url-anatomy-briefing-grid">
-                
-                <article><span>O que aconteceu</span><p>{content.situation}</p></article>
-                <article><span>Sua tarefa</span><p>{content.task}</p></article>
-                
               </div>
             </div>
           ) : null}
@@ -1028,72 +1078,6 @@ export function DomainUnderMagnifierLab({
                 <button type="button" className="text-button" onClick={() => goTo(4)}>
                   Voltar à revisão principal
                 </button>
-              </div>
-            </div>
-          ) : null}
-
-          {stage === 7 && displayResult ? (
-            <div className="lab-result-view">
-              <div className="result-hero compact-result">
-                <div>
-                  <span className="section-badge">
-                    {isV2Result ? "Anatomia concluída" : "Resultado histórico v1"}
-                  </span>
-                  <h2 ref={stageTitleRef} tabIndex={-1}>
-                    {displayResult.score}/100
-                  </h2>
-                  <p>
-                    {displayResult.needsReview
-                      ? "A atividade foi concluída e recomenda uma nova tentativa guiada."
-                      : "Você localizou a origem e aplicou a técnica em uma estrutura diferente."}
-                  </p>
-                </div>
-                <div
-                  className="score-ring"
-                  style={{ "--score": displayResult.score } as CSSProperties}
-                >
-                  <strong>{displayResult.score}</strong>
-                  <span>desempenho</span>
-                </div>
-              </div>
-              {isV2Result ? (
-                <><div className="lab-result-grid">
-                  <article>
-                    <span>Anatomia</span>
-                    <strong>{(displayResult as DomainAnalyzerV2Result).anatomyPoints}/30</strong>
-                    <p>Função atribuída aos cinco trechos.</p>
-                  </article>
-                  <article>
-                    <span>Origem e conclusão</span>
-                    <strong>{(displayResult as DomainAnalyzerV2Result).domainConclusionPoints}/25</strong>
-                    <p>Domínio registrado e veredito proporcional.</p>
-                  </article>
-                  <article>
-                    <span>Rota própria</span>
-                    <strong>{(displayResult as DomainAnalyzerV2Result).safeRoutePoints}/20</strong>
-                    <p>Resposta sem usar o endereço como prova.</p>
-                  </article>
-                  <article>
-                    <span>Transferência</span>
-                    <strong>{(displayResult as DomainAnalyzerV2Result).transferPoints}/25</strong>
-                    <p>Aplicação em outra aparência.</p>
-                  </article>
-                </div>
-                <details className="activity-review-disclosure"><summary>Rever minhas decisões</summary><ActivityAnswerReview items={answerReviewItems} /></details></>
-              ) : (
-                <div className="legacy-result-notice">
-                  <strong>A tentativa antiga foi preservada sem reinterpretação.</strong>
-                  <p>
-                    Refazer inicia a versão 2. Os pontos e a conclusão da versão 1
-                    continuam válidos e não serão concedidos novamente.
-                  </p>
-                </div>
-              )}
-              <ActivityNextStep area="Missões" title="A conversa já estava acontecendo" onOpen={onOpenNextActivity} />
-              <div className="activity-completion-actions" aria-label="Ações após a conclusão">
-                <button type="button" className="activity-completion-button" onClick={practiceAnotherCase}>Praticar novamente</button>
-                <button type="button" className="activity-completion-button" onClick={onBackToHub}>Voltar ao PhishLab</button>
-                <button type="button" className="activity-completion-button" onClick={onOpenProfile}>Meu perfil</button>
               </div>
             </div>
           ) : null}

@@ -8,7 +8,7 @@ export type PublicHouse = {
   sectorName: string;
   avatarUrl: string | null;
   thumbnailUrl: string | null;
-  theme: "crafted" | "cyberpunk" | "industrial";
+  theme: "crafted" | "cyberpunk" | "industrial" | "gothic" | "dark-academia";
   updatedAt: string;
 };
 
@@ -40,7 +40,7 @@ function fromRow(row: Record<string, unknown>): HouseRow {
     nickname: String(row.nickname), sectorId: String(row.sector_id),
     sectorName: String(row.sector_name), avatarUrl: row.avatar_url ? String(row.avatar_url) : null,
     thumbnailUrl: row.thumbnail_url ? String(row.thumbnail_url) : null,
-    theme: row.theme === "cyberpunk" || row.theme === "industrial" ? row.theme : "crafted",
+    theme: row.theme === "cyberpunk" || row.theme === "industrial" || row.theme === "gothic" || row.theme === "dark-academia" ? row.theme : "crafted",
     sceneJson: String(row.scene_json), updatedAt: String(row.updated_at),
   };
 }
@@ -88,7 +88,7 @@ export async function publishHouse(account: AuthenticatedAccount, payload: Recor
   const sceneJson = validateScene(payload.sceneJson);
   const nickname = typeof payload.nickname === "string" ? payload.nickname.trim().slice(0, 28) : "";
   if (nickname.length < 2) throw new Error("Escolha um apelido com pelo menos 2 caracteres.");
-  const theme = payload.theme === "cyberpunk" || payload.theme === "industrial" ? payload.theme : "crafted";
+  const theme = payload.theme === "cyberpunk" || payload.theme === "industrial" || payload.theme === "gothic" || payload.theme === "dark-academia" ? payload.theme : "crafted";
   const avatarUrl = safeImage(payload.avatarUrl, 150_000);
   const thumbnailUrl = safeImage(payload.thumbnailUrl, 180_000);
   await ensureStorage();
